@@ -15,11 +15,11 @@ type CollectHandler struct {
 }
 
 func NewCollectHandler(
-    handler *Handler,
-    collectService service.CollectService,
+	handler *Handler,
+	collectService service.CollectService,
 ) *CollectHandler {
 	return &CollectHandler{
-		Handler:      handler,
+		Handler:        handler,
 		collectService: collectService,
 	}
 }
@@ -28,6 +28,15 @@ func (h *CollectHandler) GetCollect(ctx *gin.Context) {
 
 }
 
+// Collect godoc
+// @Summary 收藏招聘信息
+// @Tags 收藏模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobCollectRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/collect [post]
 func (h *CollectHandler) Collect(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -47,6 +56,15 @@ func (h *CollectHandler) Collect(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// Cancel godoc
+// @Summary 取消收藏
+// @Tags 收藏模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobCancelCollectRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/cancnel_collect [post]
 func (h *CollectHandler) Cancel(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -66,6 +84,15 @@ func (h *CollectHandler) Cancel(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// My godoc
+// @Summary 我收藏的
+// @Tags 收藏模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.CollectMyRequest true "params"
+// @Success 200 {object} v1.CollectMyResponseData
+// @Router /collect/my [post]
 func (h *CollectHandler) My(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -89,16 +116,16 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 	}
 	for _, job := range jobs {
 		resp.Jobs = append(resp.Jobs, v1.JobMyItem{
-			ID:             job.ID,
-			Positions:      job.Positions,
-			SalaryMin:      job.SalaryMin,
-			SalaryMax:      job.SalaryMax,
-			FirstAreaDes:   job.FirstAreaDes,
-			SecondAreaDes:  job.SecondAreaDes,
-			ThirdAreaDes:   job.ThirdAreaDes,
-			Address:        job.Address,
-			CreateAt:       formatTime(job.CreateAt),
-			IsTop:          job.IsTop,
+			ID:              job.ID,
+			Positions:       job.Positions,
+			SalaryMin:       job.SalaryMin,
+			SalaryMax:       job.SalaryMax,
+			FirstAreaDes:    job.FirstAreaDes,
+			SecondAreaDes:   job.SecondAreaDes,
+			ThirdAreaDes:    job.ThirdAreaDes,
+			Address:         job.Address,
+			CreateAt:        formatTime(job.CreateAt),
+			IsTop:           job.IsTop,
 			LastRefreshTime: formatTimeMillis(job.RefreshTime),
 		})
 	}

@@ -36,6 +36,15 @@ func (h *CostHistoryHandler) GetCostHistory(ctx *gin.Context) {
 
 }
 
+// Buy godoc
+// @Summary 联系券充值
+// @Tags 联系券模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.ContactVoucherBuyRequest true "params"
+// @Success 200 {object} v1.ContactVoucherBuyResponseData
+// @Router /contact_voucher/buy [post]
 func (h *CostHistoryHandler) Buy(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -63,6 +72,15 @@ func (h *CostHistoryHandler) Buy(ctx *gin.Context) {
 	})
 }
 
+// Cost godoc
+// @Summary 联系券消费
+// @Tags 联系券模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.ContactVoucherCostRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /contact_voucher/cost [post]
 func (h *CostHistoryHandler) Cost(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -96,6 +114,15 @@ func (h *CostHistoryHandler) Cost(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// My godoc
+// @Summary 我的券包
+// @Tags 联系券模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.ContactHistoryListRequest true "params"
+// @Success 200 {object} v1.ContactVoucherMyResponseData
+// @Router /contact_voucher/my [post]
 func (h *CostHistoryHandler) My(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {

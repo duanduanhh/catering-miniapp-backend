@@ -1,60 +1,453 @@
 definitions:
-  v1.GetProfileResponse:
+  github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest:
+    properties:
+      biz_type:
+        type: integer
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData:
+    properties:
+      jobs:
+        items:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem:
+    properties:
+      address:
+        type: string
+      create_at:
+        type: string
+      id:
+        type: integer
+      positions:
+        type: string
+      purpose_user_name:
+        type: string
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest:
+    properties:
+      biz_type:
+        type: integer
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest:
+    properties:
+      contact_voucher_num:
+        type: integer
+      price:
+        type: number
+    required:
+    - contact_voucher_num
+    - price
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData:
+    properties:
+      buyer_user_id:
+        type: integer
+      contact_voucher_num:
+        type: integer
+      created_at:
+        type: string
+      order_id:
+        type: integer
+      order_no:
+        type: string
+      price:
+        type: number
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest:
+    properties:
+      purpose_id:
+        type: integer
+      purpose_type:
+        type: integer
+      purpose_user_id:
+        type: integer
+      purpose_user_phone:
+        type: string
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem:
+    properties:
+      change_num:
+        type: integer
+      create_at:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData:
+    properties:
+      contact_voucher_num:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem'
+        type: array
+      list_total:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest:
+    properties:
+      address:
+        type: string
+      attendance_leave:
+        items:
+          type: string
+        type: array
+      basic_protection:
+        items:
+          type: string
+        type: array
+      company_name:
+        type: string
+      contact:
+        type: string
+      description:
+        type: string
+      first_area_des:
+        type: string
+      first_area_id:
+        type: integer
+      four_area_des:
+        type: string
+      four_area_id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      photo_urls:
+        items:
+          type: string
+        type: array
+      positions:
+        type: string
+      salary_benefits:
+        items:
+          type: string
+        type: array
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      second_area_des:
+        type: string
+      second_area_id:
+        type: integer
+      third_area_des:
+        type: string
+      third_area_id:
+        type: integer
+    required:
+    - address
+    - company_name
+    - contact
+    - description
+    - first_area_des
+    - latitude
+    - longitude
+    - positions
+    - salary_max
+    - salary_min
+    - second_area_des
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter:
+    properties:
+      attendance_leave:
+        items:
+          type: string
+        type: array
+      basic_protection:
+        items:
+          type: string
+        type: array
+      latitude:
+        type: number
+      longitude:
+        type: number
+      positions:
+        type: string
+      salary_benefits:
+        items:
+          type: string
+        type: array
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem:
+    properties:
+      address:
+        type: string
+      contact:
+        type: string
+      create_at:
+        type: string
+      description:
+        type: string
+      fail_reason:
+        type: string
+      first_area_des:
+        type: string
+      first_area_id:
+        type: integer
+      four_area_des:
+        type: string
+      four_area_id:
+        type: integer
+      id:
+        type: integer
+      is_top:
+        type: integer
+      last_refresh_time:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      photo_urls:
+        items:
+          type: string
+        type: array
+      positions:
+        type: string
+      refresh_time:
+        type: integer
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      second_area_des:
+        type: string
+      second_area_id:
+        type: integer
+      status:
+        type: integer
+      third_area_des:
+        type: string
+      third_area_id:
+        type: integer
+      top_end_time:
+        type: string
+      top_hour:
+        type: integer
+      top_start_time:
+        type: string
+      update_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest:
+    properties:
+      filter:
+        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter'
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+      query_type:
+        type: integer
+      request_id:
+        type: string
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse:
     properties:
       code:
         type: integer
       data:
-        $ref: '#/definitions/v1.GetProfileResponseData'
+        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData'
       message:
         type: string
     type: object
-  v1.GetProfileResponseData:
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData:
     properties:
-      nickname:
-        example: alan
-        type: string
-      userId:
-        type: string
-    type: object
-  v1.LoginRequest:
-    properties:
-      email:
-        example: 1234@gmail.com
-        type: string
-      password:
-        example: "123456"
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  v1.LoginResponse:
-    properties:
-      code:
+      jobs:
+        items:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem'
+        type: array
+      total:
         type: integer
-      data:
-        $ref: '#/definitions/v1.LoginResponseData'
-      message:
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem:
+    properties:
+      address:
+        type: string
+      create_at:
+        type: string
+      first_area_des:
+        type: string
+      id:
+        type: integer
+      is_top:
+        type: integer
+      last_refresh_time:
+        type: string
+      positions:
+        type: string
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      second_area_des:
+        type: string
+      third_area_des:
         type: string
     type: object
-  v1.LoginResponseData:
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest:
     properties:
-      accessToken:
-        type: string
+      biz_type:
+        type: integer
+      page_num:
+        type: integer
+      page_size:
+        type: integer
     type: object
-  v1.RegisterRequest:
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData:
     properties:
-      email:
-        example: 1234@gmail.com
-        type: string
-      password:
-        example: "123456"
-        type: string
+      jobs:
+        items:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest:
+    properties:
+      job_id:
+        type: integer
     required:
-    - email
-    - password
+    - job_id
     type: object
-  v1.Response:
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData:
+    properties:
+      created_at:
+        type: string
+      currency:
+        type: string
+      order_id:
+        type: integer
+      order_no:
+        type: string
+      price:
+        type: number
+      rule_id:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest:
+    properties:
+      address:
+        type: string
+      attendance_leave:
+        items:
+          type: string
+        type: array
+      basic_protection:
+        items:
+          type: string
+        type: array
+      contact:
+        type: string
+      description:
+        type: string
+      first_area_des:
+        type: string
+      first_area_id:
+        type: integer
+      four_area_des:
+        type: string
+      four_area_id:
+        type: integer
+      id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      photo_urls:
+        items:
+          type: string
+        type: array
+      positions:
+        type: string
+      salary_benefits:
+        items:
+          type: string
+        type: array
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      second_area_des:
+        type: string
+      second_area_id:
+        type: integer
+      third_area_des:
+        type: string
+      third_area_id:
+        type: integer
+    required:
+    - id
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.Response:
     properties:
       code:
         type: integer
@@ -62,16 +455,91 @@ definitions:
       message:
         type: string
     type: object
-  v1.UpdateProfileRequest:
+  github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest:
     properties:
-      email:
-        example: 1234@gmail.com
+      address:
         type: string
-      nickname:
-        example: alan
+      first_area_id:
+        type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
+      second_area_id:
+        type: integer
+      third_area_id:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest:
+    properties:
+      avatar:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      sex:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData:
+    properties:
+      url:
+        type: string
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData'
+      message:
+        type: string
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData:
+    properties:
+      avatar:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      sex:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest:
+    properties:
+      code:
+        type: string
+      inviter_id:
+        type: integer
+      loginCode:
         type: string
     required:
-    - email
+    - code
+    - loginCode
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData:
+    properties:
+      expires_in:
+        type: integer
+      user_info:
+        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo'
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo:
+    properties:
+      id:
+        type: integer
+    type: object
+  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest:
+    properties:
+      order_id:
+        type: integer
+      order_no:
+        type: string
+      price:
+        type: number
     type: object
 host: localhost:8000
 info:
@@ -87,7 +555,7 @@ info:
   title: Nunu Example API
   version: 1.0.0
 paths:
-  /login:
+  /collect/my:
     post:
       consumes:
       - application/json
@@ -97,40 +565,383 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/v1.LoginRequest'
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.LoginResponse'
-      summary: 账号登录
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData'
+      security:
+      - Bearer: []
+      summary: 我收藏的
       tags:
-      - 用户模块
-  /register:
+      - 收藏模块
+  /contact_history/in:
     post:
       consumes:
       - application/json
-      description: 目前只支持邮箱登录
       parameters:
       - description: params
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/v1.RegisterRequest'
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.Response'
-      summary: 用户注册
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData'
+      security:
+      - Bearer: []
+      summary: 联系我的
       tags:
-      - 用户模块
-  /user:
+      - 联系模块
+  /contact_history/out:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData'
+      security:
+      - Bearer: []
+      summary: 我联系的
+      tags:
+      - 联系模块
+  /contact_voucher/buy:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData'
+      security:
+      - Bearer: []
+      summary: 联系券充值
+      tags:
+      - 联系券模块
+  /contact_voucher/cost:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 联系券消费
+      tags:
+      - 联系券模块
+  /contact_voucher/my:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData'
+      security:
+      - Bearer: []
+      summary: 我的券包
+      tags:
+      - 联系券模块
+  /img/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData'
+      security:
+      - Bearer: []
+      summary: 图片上传
+      tags:
+      - 通用接口
+  /jobs/cancnel_collect:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 取消收藏
+      tags:
+      - 收藏模块
+  /jobs/close:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 关闭招聘信息
+      tags:
+      - 招聘模块
+  /jobs/collect:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 收藏招聘信息
+      tags:
+      - 收藏模块
+  /jobs/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 发布招聘信息
+      tags:
+      - 招聘模块
+  /jobs/info:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem'
+      summary: 招聘信息详情
+      tags:
+      - 招聘模块
+  /jobs/list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse'
+      summary: 招聘信息列表
+      tags:
+      - 招聘模块
+  /jobs/my:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData'
+      security:
+      - Bearer: []
+      summary: 我发布的
+      tags:
+      - 招聘模块
+  /jobs/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 刷新招聘信息
+      tags:
+      - 招聘模块
+  /jobs/top:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData'
+      security:
+      - Bearer: []
+      summary: 置顶招聘信息
+      tags:
+      - 招聘模块
+  /jobs/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 修改招聘信息
+      tags:
+      - 招聘模块
+  /user/info:
     get:
       consumes:
       - application/json
@@ -140,13 +951,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.GetProfileResponse'
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse'
       security:
       - Bearer: []
-      summary: 获取用户信息
+      summary: 查询个人信息
       tags:
       - 用户模块
-    put:
+  /user/update/geo:
+    post:
       consumes:
       - application/json
       parameters:
@@ -155,19 +967,86 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/v1.UpdateProfileRequest'
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.Response'
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
       security:
       - Bearer: []
-      summary: 修改用户信息
+      summary: 更新位置信息
       tags:
       - 用户模块
+  /user/update/info:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 更新个人信息
+      tags:
+      - 用户模块
+  /wechat/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData'
+      summary: 微信登录
+      tags:
+      - 用户模块
+  /wechat/pay:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+      security:
+      - Bearer: []
+      summary: 微信支付
+      tags:
+      - 支付模块
 securityDefinitions:
   Bearer:
     in: header

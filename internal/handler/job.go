@@ -31,6 +31,15 @@ func NewJobHandler(
 	}
 }
 
+// Create godoc
+// @Summary 发布招聘信息
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobCreateRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/create [post]
 func (h *JobHandler) Create(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -73,6 +82,15 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// Update godoc
+// @Summary 修改招聘信息
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobUpdateRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/update [post]
 func (h *JobHandler) Update(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -132,6 +150,15 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// Refresh godoc
+// @Summary 刷新招聘信息
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobRefreshRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/refresh [post]
 func (h *JobHandler) Refresh(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -155,6 +182,15 @@ func (h *JobHandler) Refresh(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// Close godoc
+// @Summary 关闭招聘信息
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobCloseRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/close [post]
 func (h *JobHandler) Close(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -178,6 +214,14 @@ func (h *JobHandler) Close(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// List godoc
+// @Summary 招聘信息列表
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Param request body v1.JobListRequest true "params"
+// @Success 200 {object} v1.JobListResponse
+// @Router /jobs/list [post]
 func (h *JobHandler) List(ctx *gin.Context) {
 	var req v1.JobListRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -217,6 +261,14 @@ func (h *JobHandler) List(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, resp)
 }
 
+// Info godoc
+// @Summary 招聘信息详情
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Param request body v1.JobInfoRequest true "params"
+// @Success 200 {object} v1.JobListItem
+// @Router /jobs/info [post]
 func (h *JobHandler) Info(ctx *gin.Context) {
 	var req v1.JobInfoRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -233,6 +285,15 @@ func (h *JobHandler) Info(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, item)
 }
 
+// My godoc
+// @Summary 我发布的
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobMyRequest true "params"
+// @Success 200 {object} v1.JobMyResponseData
+// @Router /jobs/my [post]
 func (h *JobHandler) My(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -272,6 +333,15 @@ func (h *JobHandler) My(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, resp)
 }
 
+// Top godoc
+// @Summary 置顶招聘信息
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobTopRequest true "params"
+// @Success 200 {object} v1.JobTopResponseData
+// @Router /jobs/top [post]
 func (h *JobHandler) Top(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {

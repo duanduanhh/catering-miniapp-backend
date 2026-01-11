@@ -12,16 +12,54 @@ import (
 
 type WechatHandler struct {
 	*Handler
-	orderService service.OrderService
+	orderService  service.OrderService
+	wechatService service.WechatService
 }
 
-func NewWechatHandler(handler *Handler, orderService service.OrderService) *WechatHandler {
+func NewWechatHandler(handler *Handler, orderService service.OrderService, wechatService service.WechatService) *WechatHandler {
 	return &WechatHandler{
-		Handler:      handler,
-		orderService: orderService,
+		Handler:       handler,
+		orderService:  orderService,
+		wechatService: wechatService,
 	}
 }
 
+// Login godoc
+// @Summary 微信登录
+// @Tags 用户模块
+// @Accept json
+// @Produce json
+// @Param request body v1.WechatLoginRequest true "params"
+// @Success 200 {object} v1.WechatLoginResponseData
+// @Router /wechat/login [post]
+func (h *WechatHandler) Login(ctx *gin.Context) {
+	var req v1.WechatLoginRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	token, expiresIn, user, err := h.wechatService.Login(ctx, req.Code, req.LoginCode, req.InviterID)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("wechatService.Login error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	ctx.Header("Authorization", "Bearer "+token)
+	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
+		UserInfo:  v1.WechatLoginUserInfo{ID: user.ID},
+		ExpiresIn: expiresIn,
+	})
+}
+
+// Pay godoc
+// @Summary 微信支付
+// @Tags 支付模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.WechatPayRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /wechat/pay [post]
 func (h *WechatHandler) Pay(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {

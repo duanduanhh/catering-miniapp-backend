@@ -24,7 +24,423 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/login": {
+        "/collect/my": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "收藏模块"
+                ],
+                "summary": "我收藏的",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/contact_history/in": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系模块"
+                ],
+                "summary": "联系我的",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/contact_history/out": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系模块"
+                ],
+                "summary": "我联系的",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/contact_voucher/buy": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系券模块"
+                ],
+                "summary": "联系券充值",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/contact_voucher/cost": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系券模块"
+                ],
+                "summary": "联系券消费",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/contact_voucher/my": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系券模块"
+                ],
+                "summary": "我的券包",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/img/upload": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "通用接口"
+                ],
+                "summary": "图片上传",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/cancnel_collect": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "收藏模块"
+                ],
+                "summary": "取消收藏",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/close": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "关闭招聘信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/collect": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "收藏模块"
+                ],
+                "summary": "收藏招聘信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/create": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "发布招聘信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/info": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -33,9 +449,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户模块"
+                    "招聘模块"
                 ],
-                "summary": "账号登录",
+                "summary": "招聘信息详情",
                 "parameters": [
                     {
                         "description": "params",
@@ -43,7 +459,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.LoginRequest"
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest"
                         }
                     }
                 ],
@@ -51,15 +467,14 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem"
                         }
                     }
                 }
             }
         },
-        "/register": {
+        "/jobs/list": {
             "post": {
-                "description": "目前只支持邮箱登录",
                 "consumes": [
                     "application/json"
                 ],
@@ -67,9 +482,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户模块"
+                    "招聘模块"
                 ],
-                "summary": "用户注册",
+                "summary": "招聘信息列表",
                 "parameters": [
                     {
                         "description": "params",
@@ -77,7 +492,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.RegisterRequest"
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest"
                         }
                     }
                 ],
@@ -85,13 +500,165 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.Response"
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse"
                         }
                     }
                 }
             }
         },
-        "/user": {
+        "/jobs/my": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "我发布的",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/refresh": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "刷新招聘信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/top": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "置顶招聘信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/update": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "修改招聘信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/info": {
             "get": {
                 "security": [
                     {
@@ -107,17 +674,19 @@ const docTemplate = `{
                 "tags": [
                     "用户模块"
                 ],
-                "summary": "获取用户信息",
+                "summary": "查询个人信息",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.GetProfileResponse"
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse"
                         }
                     }
                 }
-            },
-            "put": {
+            }
+        },
+        "/user/update/geo": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -132,7 +701,7 @@ const docTemplate = `{
                 "tags": [
                     "用户模块"
                 ],
-                "summary": "修改用户信息",
+                "summary": "更新位置信息",
                 "parameters": [
                     {
                         "description": "params",
@@ -140,7 +709,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.UpdateProfileRequest"
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest"
                         }
                     }
                 ],
@@ -148,7 +717,116 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.Response"
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/update/info": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "更新个人信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/wechat/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "微信登录",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/wechat/pay": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "微信支付",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
                         }
                     }
                 }
@@ -156,89 +834,687 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "v1.GetProfileResponse": {
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest": {
+            "type": "object",
+            "properties": {
+                "biz_type": {
+                    "type": "integer"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData": {
+            "type": "object",
+            "properties": {
+                "jobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "positions": {
+                    "type": "string"
+                },
+                "purpose_user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest": {
+            "type": "object",
+            "properties": {
+                "biz_type": {
+                    "type": "integer"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData": {
+            "type": "object",
+            "properties": {
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest": {
+            "type": "object",
+            "required": [
+                "contact_voucher_num",
+                "price"
+            ],
+            "properties": {
+                "contact_voucher_num": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData": {
+            "type": "object",
+            "properties": {
+                "buyer_user_id": {
+                    "type": "integer"
+                },
+                "contact_voucher_num": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest": {
+            "type": "object",
+            "properties": {
+                "purpose_id": {
+                    "type": "integer"
+                },
+                "purpose_type": {
+                    "type": "integer"
+                },
+                "purpose_user_id": {
+                    "type": "integer"
+                },
+                "purpose_user_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem": {
+            "type": "object",
+            "properties": {
+                "change_num": {
+                    "type": "integer"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData": {
+            "type": "object",
+            "properties": {
+                "contact_voucher_num": {
+                    "type": "integer"
+                },
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem"
+                    }
+                },
+                "list_total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "company_name",
+                "contact",
+                "description",
+                "first_area_des",
+                "latitude",
+                "longitude",
+                "positions",
+                "salary_max",
+                "salary_min",
+                "second_area_des"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "attendance_leave": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "basic_protection": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "contact": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "first_area_des": {
+                    "type": "string"
+                },
+                "first_area_id": {
+                    "type": "integer"
+                },
+                "four_area_des": {
+                    "type": "string"
+                },
+                "four_area_id": {
+                    "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "photo_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "positions": {
+                    "type": "string"
+                },
+                "salary_benefits": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                },
+                "second_area_des": {
+                    "type": "string"
+                },
+                "second_area_id": {
+                    "type": "integer"
+                },
+                "third_area_des": {
+                    "type": "string"
+                },
+                "third_area_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter": {
+            "type": "object",
+            "properties": {
+                "attendance_leave": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "basic_protection": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "positions": {
+                    "type": "string"
+                },
+                "salary_benefits": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "contact": {
+                    "type": "string"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "fail_reason": {
+                    "type": "string"
+                },
+                "first_area_des": {
+                    "type": "string"
+                },
+                "first_area_id": {
+                    "type": "integer"
+                },
+                "four_area_des": {
+                    "type": "string"
+                },
+                "four_area_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_top": {
+                    "type": "integer"
+                },
+                "last_refresh_time": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "photo_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "positions": {
+                    "type": "string"
+                },
+                "refresh_time": {
+                    "type": "integer"
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                },
+                "second_area_des": {
+                    "type": "string"
+                },
+                "second_area_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "third_area_des": {
+                    "type": "string"
+                },
+                "third_area_id": {
+                    "type": "integer"
+                },
+                "top_end_time": {
+                    "type": "string"
+                },
+                "top_hour": {
+                    "type": "integer"
+                },
+                "top_start_time": {
+                    "type": "string"
+                },
+                "update_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest": {
+            "type": "object",
+            "properties": {
+                "filter": {
+                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "query_type": {
+                    "type": "integer"
+                },
+                "request_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer"
                 },
                 "data": {
-                    "$ref": "#/definitions/v1.GetProfileResponseData"
+                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData"
                 },
                 "message": {
                     "type": "string"
                 }
             }
         },
-        "v1.GetProfileResponseData": {
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData": {
             "type": "object",
             "properties": {
-                "nickname": {
-                    "type": "string",
-                    "example": "alan"
+                "jobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem"
+                    }
                 },
-                "userId": {
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem": {
+            "type": "object",
+            "properties": {
+                "address": {
                     "type": "string"
-                }
-            }
-        },
-        "v1.LoginRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "1234@gmail.com"
                 },
-                "password": {
-                    "type": "string",
-                    "example": "123456"
-                }
-            }
-        },
-        "v1.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
+                "create_at": {
+                    "type": "string"
+                },
+                "first_area_des": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "integer"
                 },
-                "data": {
-                    "$ref": "#/definitions/v1.LoginResponseData"
+                "is_top": {
+                    "type": "integer"
                 },
-                "message": {
+                "last_refresh_time": {
+                    "type": "string"
+                },
+                "positions": {
+                    "type": "string"
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                },
+                "second_area_des": {
+                    "type": "string"
+                },
+                "third_area_des": {
                     "type": "string"
                 }
             }
         },
-        "v1.LoginResponseData": {
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest": {
             "type": "object",
             "properties": {
-                "accessToken": {
-                    "type": "string"
+                "biz_type": {
+                    "type": "integer"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
                 }
             }
         },
-        "v1.RegisterRequest": {
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData": {
+            "type": "object",
+            "properties": {
+                "jobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest": {
             "type": "object",
             "required": [
-                "email",
-                "password"
+                "job_id"
             ],
             "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "1234@gmail.com"
-                },
-                "password": {
-                    "type": "string",
-                    "example": "123456"
+                "job_id": {
+                    "type": "integer"
                 }
             }
         },
-        "v1.Response": {
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "rule_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "attendance_leave": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "basic_protection": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "contact": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "first_area_des": {
+                    "type": "string"
+                },
+                "first_area_id": {
+                    "type": "integer"
+                },
+                "four_area_des": {
+                    "type": "string"
+                },
+                "four_area_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "photo_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "positions": {
+                    "type": "string"
+                },
+                "salary_benefits": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                },
+                "second_area_des": {
+                    "type": "string"
+                },
+                "second_area_id": {
+                    "type": "integer"
+                },
+                "third_area_des": {
+                    "type": "string"
+                },
+                "third_area_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -250,19 +1526,136 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.UpdateProfileRequest": {
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "first_area_id": {
+                    "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "second_area_id": {
+                    "type": "integer"
+                },
+                "third_area_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "sex": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "sex": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest": {
             "type": "object",
             "required": [
-                "email"
+                "code",
+                "loginCode"
             ],
             "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "1234@gmail.com"
+                "code": {
+                    "type": "string"
                 },
-                "nickname": {
-                    "type": "string",
-                    "example": "alan"
+                "inviter_id": {
+                    "type": "integer"
+                },
+                "loginCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData": {
+            "type": "object",
+            "properties": {
+                "expires_in": {
+                    "type": "integer"
+                },
+                "user_info": {
+                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
                 }
             }
         }

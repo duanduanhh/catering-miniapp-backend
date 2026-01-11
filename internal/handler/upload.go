@@ -21,6 +21,15 @@ func NewUploadHandler(handler *Handler) *UploadHandler {
 	}
 }
 
+// UploadImage godoc
+// @Summary 图片上传
+// @Tags 通用接口
+// @Accept multipart/form-data
+// @Produce json
+// @Security Bearer
+// @Param file formData file true "file"
+// @Success 200 {object} v1.UploadImageResponseData
+// @Router /img/upload [post]
 func (h *UploadHandler) UploadImage(ctx *gin.Context) {
 	file, err := ctx.FormFile("file")
 	if err != nil {

@@ -37,3 +37,19 @@ log:
   max_age: 7
   max_size: 1024
   compress: true
+wechat:
+  app_id: "wx7657ed47b51812cc"
+  secret: "79998a7a43906bd096fe33e1cb23449e"
+  endpoint_code2session: "https://api.weixin.qq.com/sns/jscode2session"
+  endpoint_access_token: "https://api.weixin.qq.com/cgi-bin/token"
+  endpoint_phone: "https://api.weixin.qq.com/wxa/business/getuserphonenumber"
+
+wxpay:
+  app_id: "wx7657ed47b51812cc"
+  mch_id: "1513645021"
+  pay_key: "zhang131343567774953030040920xin"
+  secret: "9603f1f453f716d5006dbc9445053010"
+  notify_url: "https://www.test.canyinxinxi.com/bills/wxnotify"
+  cert_path: "/root/main_server/apiclient_key.pem"
+  serial_number: "59C25DA32E27760AEC1896AE734A3B735E3D306E"
+  api_v3_key: "zhang131343567774953030040920xin"
