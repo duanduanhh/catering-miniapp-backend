@@ -32,8 +32,7 @@ build-linux:
 .PHONY: docker
 TAG   ?= v1-20250111
 docker:
-	docker build -f deploy/build/Dockerfile --build-arg APP_RELATIVE_PATH=./cmd/server -t duanduan0820/catering:miniapp-backend-$(TAG) .
-	docker push duanduan0820/catering:miniapp-backend-$(TAG)
+	docker buildx build --platform linux/amd64 --pull=false --load -f deploy/build/Dockerfile --build-arg APP_RELATIVE_PATH=./cmd/server -t duanduan0820/catering:miniapp-backend-$(TAG) --push .
 
 .PHONY: swag
 swag:
