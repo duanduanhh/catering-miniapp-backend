@@ -1,5 +1,5 @@
 definitions:
-  github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest:
+  v1.CollectMyRequest:
     properties:
       biz_type:
         type: integer
@@ -8,16 +8,16 @@ definitions:
       page_size:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData:
+  v1.CollectMyResponseData:
     properties:
       jobs:
         items:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem'
+          $ref: '#/definitions/v1.JobMyItem'
         type: array
       total:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem:
+  v1.ContactHistoryItem:
     properties:
       address:
         type: string
@@ -30,7 +30,7 @@ definitions:
       purpose_user_name:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest:
+  v1.ContactHistoryListRequest:
     properties:
       biz_type:
         type: integer
@@ -39,16 +39,16 @@ definitions:
       page_size:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData:
+  v1.ContactHistoryListResponseData:
     properties:
       contacts:
         items:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem'
+          $ref: '#/definitions/v1.ContactHistoryItem'
         type: array
       total:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest:
+  v1.ContactVoucherBuyRequest:
     properties:
       contact_voucher_num:
         type: integer
@@ -58,7 +58,7 @@ definitions:
     - contact_voucher_num
     - price
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData:
+  v1.ContactVoucherBuyResponseData:
     properties:
       buyer_user_id:
         type: integer
@@ -73,7 +73,7 @@ definitions:
       price:
         type: number
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest:
+  v1.ContactVoucherCostRequest:
     properties:
       purpose_id:
         type: integer
@@ -84,7 +84,7 @@ definitions:
       purpose_user_phone:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem:
+  v1.ContactVoucherMyItem:
     properties:
       change_num:
         type: integer
@@ -97,39 +97,39 @@ definitions:
       type:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData:
+  v1.ContactVoucherMyResponseData:
     properties:
       contact_voucher_num:
         type: integer
       list:
         items:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem'
+          $ref: '#/definitions/v1.ContactVoucherMyItem'
         type: array
       list_total:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest:
+  v1.JobCancelCollectRequest:
     properties:
       job_id:
         type: integer
     required:
     - job_id
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest:
+  v1.JobCloseRequest:
     properties:
       job_id:
         type: integer
     required:
     - job_id
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest:
+  v1.JobCollectRequest:
     properties:
       job_id:
         type: integer
     required:
     - job_id
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest:
+  v1.JobCreateRequest:
     properties:
       address:
         type: string
@@ -194,7 +194,7 @@ definitions:
     - salary_min
     - second_area_des
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter:
+  v1.JobFilter:
     properties:
       attendance_leave:
         items:
@@ -219,14 +219,14 @@ definitions:
       salary_min:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest:
+  v1.JobInfoRequest:
     properties:
       job_id:
         type: integer
     required:
     - job_id
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem:
+  v1.JobListItem:
     properties:
       address:
         type: string
@@ -289,10 +289,10 @@ definitions:
       user_id:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest:
+  v1.JobListRequest:
     properties:
       filter:
-        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter'
+        $ref: '#/definitions/v1.JobFilter'
       page_num:
         type: integer
       page_size:
@@ -302,25 +302,25 @@ definitions:
       request_id:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse:
+  v1.JobListResponse:
     properties:
       code:
         type: integer
       data:
-        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData'
+        $ref: '#/definitions/v1.JobListResponseData'
       message:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData:
+  v1.JobListResponseData:
     properties:
       jobs:
         items:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem'
+          $ref: '#/definitions/v1.JobListItem'
         type: array
       total:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem:
+  v1.JobMyItem:
     properties:
       address:
         type: string
@@ -345,7 +345,7 @@ definitions:
       third_area_des:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest:
+  v1.JobMyRequest:
     properties:
       biz_type:
         type: integer
@@ -354,30 +354,30 @@ definitions:
       page_size:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData:
+  v1.JobMyResponseData:
     properties:
       jobs:
         items:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem'
+          $ref: '#/definitions/v1.JobMyItem'
         type: array
       total:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest:
+  v1.JobRefreshRequest:
     properties:
       job_id:
         type: integer
     required:
     - job_id
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest:
+  v1.JobTopRequest:
     properties:
       job_id:
         type: integer
     required:
     - job_id
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData:
+  v1.JobTopResponseData:
     properties:
       created_at:
         type: string
@@ -392,7 +392,7 @@ definitions:
       rule_id:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest:
+  v1.JobUpdateRequest:
     properties:
       address:
         type: string
@@ -447,7 +447,7 @@ definitions:
     required:
     - id
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.Response:
+  v1.Response:
     properties:
       code:
         type: integer
@@ -455,7 +455,7 @@ definitions:
       message:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest:
+  v1.UpdateUserGeoRequest:
     properties:
       address:
         type: string
@@ -470,7 +470,7 @@ definitions:
       third_area_id:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest:
+  v1.UpdateUserInfoRequest:
     properties:
       avatar:
         type: string
@@ -481,21 +481,21 @@ definitions:
       sex:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData:
+  v1.UploadImageResponseData:
     properties:
       url:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse:
+  v1.UserInfoResponse:
     properties:
       code:
         type: integer
       data:
-        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData'
+        $ref: '#/definitions/v1.UserInfoResponseData'
       message:
         type: string
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData:
+  v1.UserInfoResponseData:
     properties:
       avatar:
         type: string
@@ -508,7 +508,7 @@ definitions:
       user_id:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest:
+  v1.WechatLoginRequest:
     properties:
       code:
         type: string
@@ -520,19 +520,19 @@ definitions:
     - code
     - loginCode
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData:
+  v1.WechatLoginResponseData:
     properties:
       expires_in:
         type: integer
       user_info:
-        $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo'
+        $ref: '#/definitions/v1.WechatLoginUserInfo'
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo:
+  v1.WechatLoginUserInfo:
     properties:
       id:
         type: integer
     type: object
-  github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest:
+  v1.WechatPayRequest:
     properties:
       order_id:
         type: integer
@@ -565,14 +565,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest'
+          $ref: '#/definitions/v1.CollectMyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData'
+            $ref: '#/definitions/v1.CollectMyResponseData'
       security:
       - Bearer: []
       summary: 我收藏的
@@ -588,14 +588,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest'
+          $ref: '#/definitions/v1.ContactHistoryListRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData'
+            $ref: '#/definitions/v1.ContactHistoryListResponseData'
       security:
       - Bearer: []
       summary: 联系我的
@@ -611,14 +611,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest'
+          $ref: '#/definitions/v1.ContactHistoryListRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData'
+            $ref: '#/definitions/v1.ContactHistoryListResponseData'
       security:
       - Bearer: []
       summary: 我联系的
@@ -634,14 +634,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest'
+          $ref: '#/definitions/v1.ContactVoucherBuyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData'
+            $ref: '#/definitions/v1.ContactVoucherBuyResponseData'
       security:
       - Bearer: []
       summary: 联系券充值
@@ -657,14 +657,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest'
+          $ref: '#/definitions/v1.ContactVoucherCostRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 联系券消费
@@ -680,14 +680,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest'
+          $ref: '#/definitions/v1.ContactHistoryListRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData'
+            $ref: '#/definitions/v1.ContactVoucherMyResponseData'
       security:
       - Bearer: []
       summary: 我的券包
@@ -709,7 +709,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData'
+            $ref: '#/definitions/v1.UploadImageResponseData'
       security:
       - Bearer: []
       summary: 图片上传
@@ -725,14 +725,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest'
+          $ref: '#/definitions/v1.JobCancelCollectRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 取消收藏
@@ -748,14 +748,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest'
+          $ref: '#/definitions/v1.JobCloseRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 关闭招聘信息
@@ -771,14 +771,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest'
+          $ref: '#/definitions/v1.JobCollectRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 收藏招聘信息
@@ -794,14 +794,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest'
+          $ref: '#/definitions/v1.JobCreateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 发布招聘信息
@@ -817,14 +817,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest'
+          $ref: '#/definitions/v1.JobInfoRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem'
+            $ref: '#/definitions/v1.JobListItem'
       summary: 招聘信息详情
       tags:
       - 招聘模块
@@ -838,14 +838,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest'
+          $ref: '#/definitions/v1.JobListRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse'
+            $ref: '#/definitions/v1.JobListResponse'
       summary: 招聘信息列表
       tags:
       - 招聘模块
@@ -859,14 +859,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest'
+          $ref: '#/definitions/v1.JobMyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData'
+            $ref: '#/definitions/v1.JobMyResponseData'
       security:
       - Bearer: []
       summary: 我发布的
@@ -882,14 +882,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest'
+          $ref: '#/definitions/v1.JobRefreshRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 刷新招聘信息
@@ -905,14 +905,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest'
+          $ref: '#/definitions/v1.JobTopRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData'
+            $ref: '#/definitions/v1.JobTopResponseData'
       security:
       - Bearer: []
       summary: 置顶招聘信息
@@ -928,14 +928,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest'
+          $ref: '#/definitions/v1.JobUpdateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 修改招聘信息
@@ -951,7 +951,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse'
+            $ref: '#/definitions/v1.UserInfoResponse'
       security:
       - Bearer: []
       summary: 查询个人信息
@@ -967,14 +967,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest'
+          $ref: '#/definitions/v1.UpdateUserGeoRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 更新位置信息
@@ -990,14 +990,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest'
+          $ref: '#/definitions/v1.UpdateUserInfoRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 更新个人信息
@@ -1013,14 +1013,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest'
+          $ref: '#/definitions/v1.WechatLoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData'
+            $ref: '#/definitions/v1.WechatLoginResponseData'
       summary: 微信登录
       tags:
       - 用户模块
@@ -1034,14 +1034,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest'
+          $ref: '#/definitions/v1.WechatPayRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response'
+            $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
       summary: 微信支付

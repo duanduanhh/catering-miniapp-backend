@@ -48,7 +48,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest"
+                            "$ref": "#/definitions/v1.CollectMyRequest"
                         }
                     }
                 ],
@@ -56,7 +56,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData"
+                            "$ref": "#/definitions/v1.CollectMyResponseData"
                         }
                     }
                 }
@@ -86,7 +86,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest"
+                            "$ref": "#/definitions/v1.ContactHistoryListRequest"
                         }
                     }
                 ],
@@ -94,7 +94,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData"
+                            "$ref": "#/definitions/v1.ContactHistoryListResponseData"
                         }
                     }
                 }
@@ -124,7 +124,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest"
+                            "$ref": "#/definitions/v1.ContactHistoryListRequest"
                         }
                     }
                 ],
@@ -132,7 +132,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData"
+                            "$ref": "#/definitions/v1.ContactHistoryListResponseData"
                         }
                     }
                 }
@@ -162,7 +162,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest"
+                            "$ref": "#/definitions/v1.ContactVoucherBuyRequest"
                         }
                     }
                 ],
@@ -170,7 +170,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData"
+                            "$ref": "#/definitions/v1.ContactVoucherBuyResponseData"
                         }
                     }
                 }
@@ -200,7 +200,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest"
+                            "$ref": "#/definitions/v1.ContactVoucherCostRequest"
                         }
                     }
                 ],
@@ -208,7 +208,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -238,7 +238,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest"
+                            "$ref": "#/definitions/v1.ContactHistoryListRequest"
                         }
                     }
                 ],
@@ -246,7 +246,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData"
+                            "$ref": "#/definitions/v1.ContactVoucherMyResponseData"
                         }
                     }
                 }
@@ -282,7 +282,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData"
+                            "$ref": "#/definitions/v1.UploadImageResponseData"
                         }
                     }
                 }
@@ -312,7 +312,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest"
+                            "$ref": "#/definitions/v1.JobCancelCollectRequest"
                         }
                     }
                 ],
@@ -320,7 +320,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -350,7 +350,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest"
+                            "$ref": "#/definitions/v1.JobCloseRequest"
                         }
                     }
                 ],
@@ -358,7 +358,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -388,7 +388,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest"
+                            "$ref": "#/definitions/v1.JobCollectRequest"
                         }
                     }
                 ],
@@ -396,7 +396,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -426,7 +426,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest"
+                            "$ref": "#/definitions/v1.JobCreateRequest"
                         }
                     }
                 ],
@@ -434,7 +434,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -459,7 +459,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest"
+                            "$ref": "#/definitions/v1.JobInfoRequest"
                         }
                     }
                 ],
@@ -467,7 +467,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem"
+                            "$ref": "#/definitions/v1.JobListItem"
                         }
                     }
                 }
@@ -492,7 +492,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest"
+                            "$ref": "#/definitions/v1.JobListRequest"
                         }
                     }
                 ],
@@ -500,7 +500,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse"
+                            "$ref": "#/definitions/v1.JobListResponse"
                         }
                     }
                 }
@@ -530,7 +530,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest"
+                            "$ref": "#/definitions/v1.JobMyRequest"
                         }
                     }
                 ],
@@ -538,7 +538,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData"
+                            "$ref": "#/definitions/v1.JobMyResponseData"
                         }
                     }
                 }
@@ -568,7 +568,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest"
+                            "$ref": "#/definitions/v1.JobRefreshRequest"
                         }
                     }
                 ],
@@ -576,7 +576,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -606,7 +606,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest"
+                            "$ref": "#/definitions/v1.JobTopRequest"
                         }
                     }
                 ],
@@ -614,7 +614,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData"
+                            "$ref": "#/definitions/v1.JobTopResponseData"
                         }
                     }
                 }
@@ -644,7 +644,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest"
+                            "$ref": "#/definitions/v1.JobUpdateRequest"
                         }
                     }
                 ],
@@ -652,7 +652,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -679,7 +679,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse"
+                            "$ref": "#/definitions/v1.UserInfoResponse"
                         }
                     }
                 }
@@ -709,7 +709,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest"
+                            "$ref": "#/definitions/v1.UpdateUserGeoRequest"
                         }
                     }
                 ],
@@ -717,7 +717,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -747,7 +747,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest"
+                            "$ref": "#/definitions/v1.UpdateUserInfoRequest"
                         }
                     }
                 ],
@@ -755,7 +755,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -780,7 +780,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest"
+                            "$ref": "#/definitions/v1.WechatLoginRequest"
                         }
                     }
                 ],
@@ -788,7 +788,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData"
+                            "$ref": "#/definitions/v1.WechatLoginResponseData"
                         }
                     }
                 }
@@ -818,7 +818,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest"
+                            "$ref": "#/definitions/v1.WechatPayRequest"
                         }
                     }
                 ],
@@ -826,7 +826,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.Response"
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -834,7 +834,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyRequest": {
+        "v1.CollectMyRequest": {
             "type": "object",
             "properties": {
                 "biz_type": {
@@ -848,13 +848,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.CollectMyResponseData": {
+        "v1.CollectMyResponseData": {
             "type": "object",
             "properties": {
                 "jobs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem"
+                        "$ref": "#/definitions/v1.JobMyItem"
                     }
                 },
                 "total": {
@@ -862,7 +862,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem": {
+        "v1.ContactHistoryItem": {
             "type": "object",
             "properties": {
                 "address": {
@@ -882,7 +882,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListRequest": {
+        "v1.ContactHistoryListRequest": {
             "type": "object",
             "properties": {
                 "biz_type": {
@@ -896,13 +896,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryListResponseData": {
+        "v1.ContactHistoryListResponseData": {
             "type": "object",
             "properties": {
                 "contacts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactHistoryItem"
+                        "$ref": "#/definitions/v1.ContactHistoryItem"
                     }
                 },
                 "total": {
@@ -910,7 +910,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyRequest": {
+        "v1.ContactVoucherBuyRequest": {
             "type": "object",
             "required": [
                 "contact_voucher_num",
@@ -925,7 +925,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherBuyResponseData": {
+        "v1.ContactVoucherBuyResponseData": {
             "type": "object",
             "properties": {
                 "buyer_user_id": {
@@ -948,7 +948,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherCostRequest": {
+        "v1.ContactVoucherCostRequest": {
             "type": "object",
             "properties": {
                 "purpose_id": {
@@ -965,7 +965,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem": {
+        "v1.ContactVoucherMyItem": {
             "type": "object",
             "properties": {
                 "change_num": {
@@ -985,7 +985,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyResponseData": {
+        "v1.ContactVoucherMyResponseData": {
             "type": "object",
             "properties": {
                 "contact_voucher_num": {
@@ -994,7 +994,7 @@ const docTemplate = `{
                 "list": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.ContactVoucherMyItem"
+                        "$ref": "#/definitions/v1.ContactVoucherMyItem"
                     }
                 },
                 "list_total": {
@@ -1002,7 +1002,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCancelCollectRequest": {
+        "v1.JobCancelCollectRequest": {
             "type": "object",
             "required": [
                 "job_id"
@@ -1013,7 +1013,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCloseRequest": {
+        "v1.JobCloseRequest": {
             "type": "object",
             "required": [
                 "job_id"
@@ -1024,7 +1024,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCollectRequest": {
+        "v1.JobCollectRequest": {
             "type": "object",
             "required": [
                 "job_id"
@@ -1035,7 +1035,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobCreateRequest": {
+        "v1.JobCreateRequest": {
             "type": "object",
             "required": [
                 "address",
@@ -1128,7 +1128,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter": {
+        "v1.JobFilter": {
             "type": "object",
             "properties": {
                 "attendance_leave": {
@@ -1166,7 +1166,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobInfoRequest": {
+        "v1.JobInfoRequest": {
             "type": "object",
             "required": [
                 "job_id"
@@ -1177,7 +1177,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem": {
+        "v1.JobListItem": {
             "type": "object",
             "properties": {
                 "address": {
@@ -1272,11 +1272,11 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListRequest": {
+        "v1.JobListRequest": {
             "type": "object",
             "properties": {
                 "filter": {
-                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobFilter"
+                    "$ref": "#/definitions/v1.JobFilter"
                 },
                 "page_num": {
                     "type": "integer"
@@ -1292,27 +1292,27 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponse": {
+        "v1.JobListResponse": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer"
                 },
                 "data": {
-                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData"
+                    "$ref": "#/definitions/v1.JobListResponseData"
                 },
                 "message": {
                     "type": "string"
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobListResponseData": {
+        "v1.JobListResponseData": {
             "type": "object",
             "properties": {
                 "jobs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobListItem"
+                        "$ref": "#/definitions/v1.JobListItem"
                     }
                 },
                 "total": {
@@ -1320,7 +1320,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem": {
+        "v1.JobMyItem": {
             "type": "object",
             "properties": {
                 "address": {
@@ -1358,7 +1358,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyRequest": {
+        "v1.JobMyRequest": {
             "type": "object",
             "properties": {
                 "biz_type": {
@@ -1372,13 +1372,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyResponseData": {
+        "v1.JobMyResponseData": {
             "type": "object",
             "properties": {
                 "jobs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.JobMyItem"
+                        "$ref": "#/definitions/v1.JobMyItem"
                     }
                 },
                 "total": {
@@ -1386,7 +1386,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobRefreshRequest": {
+        "v1.JobRefreshRequest": {
             "type": "object",
             "required": [
                 "job_id"
@@ -1397,7 +1397,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopRequest": {
+        "v1.JobTopRequest": {
             "type": "object",
             "required": [
                 "job_id"
@@ -1408,7 +1408,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobTopResponseData": {
+        "v1.JobTopResponseData": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -1431,7 +1431,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.JobUpdateRequest": {
+        "v1.JobUpdateRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -1514,7 +1514,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.Response": {
+        "v1.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -1526,7 +1526,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserGeoRequest": {
+        "v1.UpdateUserGeoRequest": {
             "type": "object",
             "properties": {
                 "address": {
@@ -1549,7 +1549,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.UpdateUserInfoRequest": {
+        "v1.UpdateUserInfoRequest": {
             "type": "object",
             "properties": {
                 "avatar": {
@@ -1566,7 +1566,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.UploadImageResponseData": {
+        "v1.UploadImageResponseData": {
             "type": "object",
             "properties": {
                 "url": {
@@ -1574,21 +1574,21 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponse": {
+        "v1.UserInfoResponse": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "integer"
                 },
                 "data": {
-                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData"
+                    "$ref": "#/definitions/v1.UserInfoResponseData"
                 },
                 "message": {
                     "type": "string"
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.UserInfoResponseData": {
+        "v1.UserInfoResponseData": {
             "type": "object",
             "properties": {
                 "avatar": {
@@ -1608,7 +1608,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginRequest": {
+        "v1.WechatLoginRequest": {
             "type": "object",
             "required": [
                 "code",
@@ -1626,18 +1626,18 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginResponseData": {
+        "v1.WechatLoginResponseData": {
             "type": "object",
             "properties": {
                 "expires_in": {
                     "type": "integer"
                 },
                 "user_info": {
-                    "$ref": "#/definitions/github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo"
+                    "$ref": "#/definitions/v1.WechatLoginUserInfo"
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatLoginUserInfo": {
+        "v1.WechatLoginUserInfo": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1645,7 +1645,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_go-nunu_nunu-layout-advanced_api_v1.WechatPayRequest": {
+        "v1.WechatPayRequest": {
             "type": "object",
             "properties": {
                 "order_id": {

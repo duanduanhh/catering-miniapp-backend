@@ -25,10 +25,15 @@ test:
 build:
 	go build -ldflags="-s -w" -o ./bin/server ./cmd/server
 
+.PHONY: build-linux
+build-linux:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o ./bin/server ./cmd/server
+
 .PHONY: docker
+TAG   ?= v1-20250111
 docker:
-	docker build -f deploy/build/Dockerfile --build-arg APP_RELATIVE_PATH=./cmd/task -t 1.1.1.1:5000/demo-task:v1 .
-	docker run --rm -i 1.1.1.1:5000/demo-task:v1
+	docker build -f deploy/build/Dockerfile --build-arg APP_RELATIVE_PATH=./cmd/server -t duanduan0820/catering:miniapp-backend-$(TAG) .
+	docker push duanduan0820/catering:miniapp-backend-$(TAG)
 
 .PHONY: swag
 swag:
