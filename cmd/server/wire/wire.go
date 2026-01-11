@@ -26,16 +26,34 @@ var repositorySet = wire.NewSet(
 	repository.NewRepository,
 	repository.NewTransaction,
 	repository.NewUserRepository,
+	repository.NewJobRepository,
+	repository.NewCollectRepository,
+	repository.NewContactHistoryRepository,
+	repository.NewOrderRepository,
+	repository.NewOrderItemRepository,
+	repository.NewCostHistoryRepository,
 )
 
 var serviceSet = wire.NewSet(
 	service.NewService,
 	service.NewUserService,
+	service.NewJobService,
+	service.NewCollectService,
+	service.NewContactHistoryService,
+	service.NewOrderService,
+	service.NewOrderItemService,
+	service.NewCostHistoryService,
 )
 
 var handlerSet = wire.NewSet(
 	handler.NewHandler,
 	handler.NewUserHandler,
+	handler.NewJobHandler,
+	handler.NewCollectHandler,
+	handler.NewContactHistoryHandler,
+	handler.NewCostHistoryHandler,
+	handler.NewWechatHandler,
+	handler.NewUploadHandler,
 )
 
 var jobSet = wire.NewSet(

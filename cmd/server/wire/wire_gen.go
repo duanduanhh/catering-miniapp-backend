@@ -33,13 +33,36 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	sidSid := sid.NewSid()
 	serviceService := service.NewService(transaction, logger, sidSid, jwtJWT)
 	userRepository := repository.NewUserRepository(repositoryRepository)
+	jobRepository := repository.NewJobRepository(repositoryRepository)
+	collectRepository := repository.NewCollectRepository(repositoryRepository)
+	contactHistoryRepository := repository.NewContactHistoryRepository(repositoryRepository)
+	orderRepository := repository.NewOrderRepository(repositoryRepository)
+	orderItemRepository := repository.NewOrderItemRepository(repositoryRepository)
+	costHistoryRepository := repository.NewCostHistoryRepository(repositoryRepository)
 	userService := service.NewUserService(serviceService, userRepository)
+	jobService := service.NewJobService(serviceService, jobRepository)
+	collectService := service.NewCollectService(serviceService, collectRepository, jobRepository)
+	contactHistoryService := service.NewContactHistoryService(serviceService, contactHistoryRepository, jobRepository, userRepository)
+	orderService := service.NewOrderService(serviceService, orderRepository, orderItemRepository, jobRepository, userRepository, costHistoryRepository)
+	costHistoryService := service.NewCostHistoryService(serviceService, costHistoryRepository, userRepository)
 	userHandler := handler.NewUserHandler(handlerHandler, userService)
+	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService)
+	collectHandler := handler.NewCollectHandler(handlerHandler, collectService)
+	contactHistoryHandler := handler.NewContactHistoryHandler(handlerHandler, contactHistoryService)
+	costHistoryHandler := handler.NewCostHistoryHandler(handlerHandler, costHistoryService, orderService, contactHistoryService)
+	wechatHandler := handler.NewWechatHandler(handlerHandler, orderService)
+	uploadHandler := handler.NewUploadHandler(handlerHandler)
 	routerDeps := router.RouterDeps{
-		Logger:      logger,
-		Config:      viperViper,
-		JWT:         jwtJWT,
-		UserHandler: userHandler,
+		Logger:               logger,
+		Config:               viperViper,
+		JWT:                  jwtJWT,
+		UserHandler:          userHandler,
+		JobHandler:           jobHandler,
+		CollectHandler:       collectHandler,
+		ContactHistoryHandler: contactHistoryHandler,
+		CostHistoryHandler:   costHistoryHandler,
+		WechatHandler:        wechatHandler,
+		UploadHandler:        uploadHandler,
 	}
 	httpServer := server.NewHTTPServer(routerDeps)
 	jobJob := job.NewJob(transaction, logger, sidSid)
@@ -52,11 +75,11 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 // wire.go:
 
-var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository)
+var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewCostHistoryRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewUserService)
+var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewCostHistoryService)
 
-var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler)
+var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewCostHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler)
 
 var jobSet = wire.NewSet(job.NewJob, job.NewUserJob)
 

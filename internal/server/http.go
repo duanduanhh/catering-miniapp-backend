@@ -25,7 +25,7 @@ func NewHTTPServer(
 	)
 
 	// swagger doc
-	docs.SwaggerInfo.BasePath = "/v1"
+	docs.SwaggerInfo.BasePath = "/"
 	s.GET("/swagger/*any", ginSwagger.WrapHandler(
 		swaggerfiles.Handler,
 		//ginSwagger.URL(fmt.Sprintf("http://localhost:%d/swagger/doc.json", deps.Config.GetInt("app.http.port"))),
@@ -46,8 +46,16 @@ func NewHTTPServer(
 		})
 	})
 
-	v1 := s.Group("/v1")
-	router.InitUserRouter(deps, v1)
+	root := s.Group("/")
+	router.InitUserRouter(deps, root)
+	router.InitJobRouter(deps, root)
+	router.InitCollectRouter(deps, root)
+	router.InitContactHistoryRouter(deps, root)
+	router.InitVoucherRouter(deps, root)
+	router.InitWechatRouter(deps, root)
+	router.InitUploadRouter(deps, root)
+
+	s.Static("/uploads", "./storage/uploads")
 
 	return s
 }

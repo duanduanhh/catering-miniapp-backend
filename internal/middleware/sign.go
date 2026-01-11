@@ -1,14 +1,16 @@
 package middleware
 
 import (
+	"fmt"
+	"net/http"
+	"sort"
+	"strings"
+
 	"github.com/duke-git/lancet/v2/cryptor"
 	"github.com/gin-gonic/gin"
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"github.com/spf13/viper"
-	"net/http"
-	"sort"
-	"strings"
 )
 
 func SignMiddleware(logger *log.Logger, conf *viper.Viper) gin.HandlerFunc {
@@ -18,7 +20,7 @@ func SignMiddleware(logger *log.Logger, conf *viper.Viper) gin.HandlerFunc {
 		for _, header := range requiredHeaders {
 			value, ok := ctx.Request.Header[header]
 			if !ok || len(value) == 0 {
-				v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+				v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, fmt.Sprintf("missing header %s", header))
 				ctx.Abort()
 				return
 			}
@@ -44,7 +46,7 @@ func SignMiddleware(logger *log.Logger, conf *viper.Viper) gin.HandlerFunc {
 		str += conf.GetString("security.api_sign.app_security")
 
 		if ctx.Request.Header.Get("Sign") != strings.ToUpper(cryptor.Md5String(str)) {
-			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "invalid sign")
 			ctx.Abort()
 			return
 		}

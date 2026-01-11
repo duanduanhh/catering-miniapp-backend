@@ -74,8 +74,8 @@ func NewDB(conf *viper.Viper, l *log.Logger) *gorm.DB {
 	)
 
 	logger := zapgorm2.New(l.Logger)
-	driver := conf.GetString("data.db.user.driver")
-	dsn := conf.GetString("data.db.user.dsn")
+	driver := conf.GetString("data.db.main.driver")
+	dsn := conf.GetString("data.db.main.dsn")
 
 	// GORM doc: https://gorm.io/docs/connecting_to_the_database.html
 	switch driver {

@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-nunu/nunu-layout-advanced/api/v1"
+	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 	"go.uber.org/zap"
 	"net/http"
@@ -20,109 +20,101 @@ func NewUserHandler(handler *Handler, userService service.UserService) *UserHand
 	}
 }
 
-// Register godoc
-// @Summary 用户注册
-// @Schemes
-// @Description 目前只支持邮箱登录
+// GetInfo godoc
+// @Summary 查询个人信息
 // @Tags 用户模块
 // @Accept json
 // @Produce json
-// @Param request body v1.RegisterRequest true "params"
-// @Success 200 {object} v1.Response
-// @Router /register [post]
-func (h *UserHandler) Register(ctx *gin.Context) {
-	req := new(v1.RegisterRequest)
-	if err := ctx.ShouldBindJSON(req); err != nil {
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+// @Security Bearer
+// @Success 200 {object} v1.UserInfoResponse
+// @Router /user/info [get]
+func (h *UserHandler) GetInfo(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
 		return
 	}
-
-	if err := h.userService.Register(ctx, req); err != nil {
-		h.logger.WithContext(ctx).Error("userService.Register error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusInternalServerError, err, nil)
-		return
-	}
-
-	v1.HandleSuccess(ctx, nil)
-}
-
-// Login godoc
-// @Summary 账号登录
-// @Schemes
-// @Description
-// @Tags 用户模块
-// @Accept json
-// @Produce json
-// @Param request body v1.LoginRequest true "params"
-// @Success 200 {object} v1.LoginResponse
-// @Router /login [post]
-func (h *UserHandler) Login(ctx *gin.Context) {
-	var req v1.LoginRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
-		return
-	}
-
-	token, err := h.userService.Login(ctx, &req)
+	user, err := h.userService.GetInfo(ctx, userID)
 	if err != nil {
-		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, nil)
+		h.logger.WithContext(ctx).Error("userService.GetInfo error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	v1.HandleSuccess(ctx, v1.LoginResponseData{
-		AccessToken: token,
+	v1.HandleSuccess(ctx, v1.UserInfoResponseData{
+		UserID: user.ID,
+		Avatar: user.Avatar,
+		Name:   user.Name,
+		Sex:    user.Sex,
+		Phone:  user.Phone,
 	})
 }
 
-// GetProfile godoc
-// @Summary 获取用户信息
-// @Schemes
-// @Description
+// UpdateGeo godoc
+// @Summary 更新位置信息
 // @Tags 用户模块
 // @Accept json
 // @Produce json
 // @Security Bearer
-// @Success 200 {object} v1.GetProfileResponse
-// @Router /user [get]
-func (h *UserHandler) GetProfile(ctx *gin.Context) {
-	userId := GetUserIdFromCtx(ctx)
-	if userId == "" {
-		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, nil)
+// @Param request body v1.UpdateUserGeoRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /user/update/geo [post]
+func (h *UserHandler) UpdateGeo(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
 		return
 	}
-
-	user, err := h.userService.GetProfile(ctx, userId)
-	if err != nil {
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+	var req v1.UpdateUserGeoRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-
-	v1.HandleSuccess(ctx, user)
+	input := service.UpdateUserGeoInput{
+		FirstAreaID:  req.FirstAreaID,
+		SecondAreaID: req.SecondAreaID,
+		ThirdAreaID:  req.ThirdAreaID,
+		Address:      req.Address,
+		Longitude:    req.Longitude,
+		Latitude:     req.Latitude,
+	}
+	if err := h.userService.UpdateGeo(ctx, userID, input); err != nil {
+		h.logger.WithContext(ctx).Error("userService.UpdateGeo error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
 }
 
-// UpdateProfile godoc
-// @Summary 修改用户信息
-// @Schemes
-// @Description
+// UpdateInfo godoc
+// @Summary 更新个人信息
 // @Tags 用户模块
 // @Accept json
 // @Produce json
 // @Security Bearer
-// @Param request body v1.UpdateProfileRequest true "params"
+// @Param request body v1.UpdateUserInfoRequest true "params"
 // @Success 200 {object} v1.Response
-// @Router /user [put]
-func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
-	userId := GetUserIdFromCtx(ctx)
-
-	var req v1.UpdateProfileRequest
+// @Router /user/update/info [post]
+func (h *UserHandler) UpdateInfo(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.UpdateUserInfoRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, nil)
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-
-	if err := h.userService.UpdateProfile(ctx, userId, &req); err != nil {
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, nil)
+	input := service.UpdateUserInfoInput{
+		Avatar: req.Avatar,
+		Name:   req.Name,
+		Sex:    req.Sex,
+		Phone:  req.Phone,
+	}
+	if err := h.userService.UpdateInfo(ctx, userID, input); err != nil {
+		h.logger.WithContext(ctx).Error("userService.UpdateInfo error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-
 	v1.HandleSuccess(ctx, nil)
 }

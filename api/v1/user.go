@@ -1,31 +1,30 @@
 package v1
 
-type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email" example:"1234@gmail.com"`
-	Password string `json:"password" binding:"required" example:"123456"`
+type UserInfoResponseData struct {
+	UserID int64  `json:"user_id"`
+	Avatar string `json:"avatar"`
+	Name   string `json:"name"`
+	Sex    int    `json:"sex"`
+	Phone  string `json:"phone"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email" example:"1234@gmail.com"`
-	Password string `json:"password" binding:"required" example:"123456"`
-}
-type LoginResponseData struct {
-	AccessToken string `json:"accessToken"`
-}
-type LoginResponse struct {
+type UserInfoResponse struct {
 	Response
-	Data LoginResponseData
+	Data UserInfoResponseData
 }
 
-type UpdateProfileRequest struct {
-	Nickname string `json:"nickname" example:"alan"`
-	Email    string `json:"email" binding:"required,email" example:"1234@gmail.com"`
+type UpdateUserInfoRequest struct {
+	Avatar *string `json:"avatar"`
+	Name   *string `json:"name"`
+	Sex    *int    `json:"sex"`
+	Phone  *string `json:"phone"`
 }
-type GetProfileResponseData struct {
-	UserId   string `json:"userId"`
-	Nickname string `json:"nickname" example:"alan"`
-}
-type GetProfileResponse struct {
-	Response
-	Data GetProfileResponseData
+
+type UpdateUserGeoRequest struct {
+	FirstAreaID  *int     `json:"first_area_id"`
+	SecondAreaID *int     `json:"second_area_id"`
+	ThirdAreaID  *int     `json:"third_area_id"`
+	Address      *string  `json:"address"`
+	Longitude    *float64 `json:"longitude"`
+	Latitude     *float64 `json:"latitude"`
 }
