@@ -44,6 +44,7 @@ var serviceSet = wire.NewSet(
 	service.NewOrderItemService,
 	service.NewCostHistoryService,
 	service.NewWechatService,
+	service.NewUploadService,
 )
 
 var handlerSet = wire.NewSet(

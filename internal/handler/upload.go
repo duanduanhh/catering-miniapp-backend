@@ -1,23 +1,28 @@
 package handler
 
 import (
+	"fmt"
+	"mime/multipart"
 	"net/http"
-	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
+	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 	"go.uber.org/zap"
 )
 
 type UploadHandler struct {
 	*Handler
+	uploadService service.UploadService
 }
 
-func NewUploadHandler(handler *Handler) *UploadHandler {
+func NewUploadHandler(handler *Handler, uploadService service.UploadService) *UploadHandler {
 	return &UploadHandler{
-		Handler: handler,
+		Handler:       handler,
+		uploadService: uploadService,
 	}
 }
 
@@ -37,19 +42,43 @@ func (h *UploadHandler) UploadImage(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	dir := filepath.Join("storage", "uploads")
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		h.logger.WithContext(ctx).Error("upload MkdirAll error", zap.Error(err))
+	if err := validateImageFile(file); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	localFile, err := file.Open()
+	if err != nil {
+		h.logger.WithContext(ctx).Error("upload Open file error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	defer localFile.Close()
+
+	userID := GetUserIdFromCtx(ctx)
+	ext := filepath.Ext(file.Filename)
+	if ext == "" {
+		ext = ".bin"
+	}
+	filename := fmt.Sprintf("%d_%d%s", userID, time.Now().UnixNano(), ext)
+	url, err := h.uploadService.Upload(ctx, localFile, filename)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("uploadService.Upload error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	filename := time.Now().Format("20060102150405") + "_" + filepath.Base(file.Filename)
-	target := filepath.Join(dir, filename)
-	if err := ctx.SaveUploadedFile(file, target); err != nil {
-		h.logger.WithContext(ctx).Error("upload SaveUploadedFile error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
-		return
-	}
-	url := "/uploads/" + filename
 	v1.HandleSuccess(ctx, v1.UploadImageResponseData{URL: url})
+}
+
+func validateImageFile(file *multipart.FileHeader) error {
+	const maxSize = 20 * 1024 * 1024
+	if file.Size > maxSize {
+		return fmt.Errorf("image size exceeds 20MB")
+	}
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".bmp", ".webp":
+		return nil
+	default:
+		return fmt.Errorf("unsupported image format")
+	}
 }

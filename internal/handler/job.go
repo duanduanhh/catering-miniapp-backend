@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -48,6 +49,10 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 	}
 	var req v1.JobCreateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	if err := validatePhotoURLs(req.PhotoURLs); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
@@ -102,6 +107,12 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
+	if req.PhotoURLs != nil {
+		if err := validatePhotoURLs(req.PhotoURLs); err != nil {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+			return
+		}
+	}
 	input := service.JobUpdateInput{
 		ID:            req.ID,
 		Positions:     req.Positions,
@@ -148,6 +159,13 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		return
 	}
 	v1.HandleSuccess(ctx, nil)
+}
+
+func validatePhotoURLs(urls []string) error {
+	if len(urls) > 4 {
+		return fmt.Errorf("photo_urls exceeds 4 images")
+	}
+	return nil
 }
 
 // Refresh godoc

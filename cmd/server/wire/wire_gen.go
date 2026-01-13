@@ -52,7 +52,8 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	costHistoryHandler := handler.NewCostHistoryHandler(handlerHandler, costHistoryService, orderService, contactHistoryService)
 	wechatService := service.NewWechatService(logger, viperViper, jwtJWT, userRepository)
 	wechatHandler := handler.NewWechatHandler(handlerHandler, orderService, wechatService)
-	uploadHandler := handler.NewUploadHandler(handlerHandler)
+	uploadService := service.NewUploadService(viperViper)
+	uploadHandler := handler.NewUploadHandler(handlerHandler, uploadService)
 	routerDeps := router.RouterDeps{
 		Logger:                logger,
 		Config:                viperViper,
@@ -78,7 +79,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewCostHistoryRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewCostHistoryService, service.NewWechatService)
+var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewCostHistoryService, service.NewWechatService, service.NewUploadService)
 
 var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewCostHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler)
 
