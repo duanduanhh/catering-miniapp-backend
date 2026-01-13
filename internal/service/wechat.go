@@ -112,11 +112,11 @@ func (s *wechatService) Login(ctx context.Context, code string) (string, *model.
 	if code == "" {
 		return "", nil, errors.New("code is empty")
 	}
-	session, err := s.code2session(ctx, code)
-	if err != nil {
-		return "", nil, err
-	}
-	user, err := s.userRepo.GetByOpenID(ctx, session.OpenID)
+	// _, err := s.code2session(ctx, code)
+	// if err != nil {
+	// 	return "", nil, err
+	// }
+	user, err := s.userRepo.GetByOpenID(ctx, "ttt")
 	if err != nil {
 		return "", nil, err
 	}

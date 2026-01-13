@@ -761,39 +761,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/wechat/login": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "用户模块"
-                ],
-                "summary": "微信登录",
-                "parameters": [
-                    {
-                        "description": "params",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.WechatLoginRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.WechatLoginResponseData"
-                        }
-                    }
-                }
-            }
-        },
         "/wechat/pay": {
             "post": {
                 "security": [
@@ -827,6 +794,72 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/wechat/user/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "微信登录",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.WechatLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.WechatLoginResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/wechat/user/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "微信注册",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.WechatRegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.WechatLoginResponseData"
                         }
                     }
                 }
@@ -1611,17 +1644,10 @@ const docTemplate = `{
         "v1.WechatLoginRequest": {
             "type": "object",
             "required": [
-                "code",
-                "loginCode"
+                "login_code"
             ],
             "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "inviter_id": {
-                    "type": "integer"
-                },
-                "loginCode": {
+                "login_code": {
                     "type": "string"
                 }
             }
@@ -1629,9 +1655,6 @@ const docTemplate = `{
         "v1.WechatLoginResponseData": {
             "type": "object",
             "properties": {
-                "expires_in": {
-                    "type": "integer"
-                },
                 "user_info": {
                     "$ref": "#/definitions/v1.WechatLoginUserInfo"
                 }
@@ -1656,6 +1679,24 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "v1.WechatRegisterRequest": {
+            "type": "object",
+            "required": [
+                "loginCode",
+                "phone_code"
+            ],
+            "properties": {
+                "inviter_id": {
+                    "type": "integer"
+                },
+                "loginCode": {
+                    "type": "string"
+                },
+                "phone_code": {
+                    "type": "string"
                 }
             }
         }

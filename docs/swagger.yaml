@@ -510,20 +510,13 @@ definitions:
     type: object
   v1.WechatLoginRequest:
     properties:
-      code:
-        type: string
-      inviter_id:
-        type: integer
-      loginCode:
+      login_code:
         type: string
     required:
-    - code
-    - loginCode
+    - login_code
     type: object
   v1.WechatLoginResponseData:
     properties:
-      expires_in:
-        type: integer
       user_info:
         $ref: '#/definitions/v1.WechatLoginUserInfo'
     type: object
@@ -540,6 +533,18 @@ definitions:
         type: string
       price:
         type: number
+    type: object
+  v1.WechatRegisterRequest:
+    properties:
+      inviter_id:
+        type: integer
+      loginCode:
+        type: string
+      phone_code:
+        type: string
+    required:
+    - loginCode
+    - phone_code
     type: object
 host: localhost:8000
 info:
@@ -1003,27 +1008,6 @@ paths:
       summary: 更新个人信息
       tags:
       - 用户模块
-  /wechat/login:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: params
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/v1.WechatLoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.WechatLoginResponseData'
-      summary: 微信登录
-      tags:
-      - 用户模块
   /wechat/pay:
     post:
       consumes:
@@ -1047,6 +1031,48 @@ paths:
       summary: 微信支付
       tags:
       - 支付模块
+  /wechat/user/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.WechatLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.WechatLoginResponseData'
+      summary: 微信登录
+      tags:
+      - 用户模块
+  /wechat/user/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.WechatRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.WechatLoginResponseData'
+      summary: 微信注册
+      tags:
+      - 用户模块
 securityDefinitions:
   Bearer:
     in: header

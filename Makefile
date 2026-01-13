@@ -30,7 +30,7 @@ build-linux:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o ./bin/server ./cmd/server
 
 .PHONY: docker
-TAG   ?= v1-20250111
+TAG   ?= v1-20250113
 docker:
 	docker buildx build --platform linux/amd64 --pull=false --load -f deploy/build/Dockerfile --build-arg APP_RELATIVE_PATH=./cmd/server -t duanduan0820/catering:miniapp-backend-$(TAG) --push .
 
