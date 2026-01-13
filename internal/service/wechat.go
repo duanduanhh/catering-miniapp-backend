@@ -19,7 +19,8 @@ import (
 )
 
 type WechatService interface {
-	Login(ctx context.Context, code, loginCode string, inviterID int64) (string, int64, *model.User, error)
+	Register(ctx context.Context, code, loginCode string, inviterID int64) (string, *model.User, error)
+	Login(ctx context.Context, code string) (string, *model.User, error)
 }
 
 func NewWechatService(
@@ -65,54 +66,73 @@ type wechatPhoneResponse struct {
 	} `json:"phone_info"`
 }
 
-func (s *wechatService) Login(ctx context.Context, code, loginCode string, inviterID int64) (string, int64, *model.User, error) {
+func (s *wechatService) Register(ctx context.Context, code, loginCode string, inviterID int64) (string, *model.User, error) {
 	if code == "" || loginCode == "" {
-		return "", 0, nil, errors.New("code or loginCode is empty")
+		return "", nil, errors.New("code or loginCode is empty")
 	}
 	session, err := s.code2session(ctx, loginCode)
 	if err != nil {
-		return "", 0, nil, err
+		return "", nil, err
 	}
 	phone, err := s.getPhone(ctx, code)
 	if err != nil {
-		return "", 0, nil, err
+		return "", nil, err
 	}
 	user, err := s.userRepo.GetByOpenID(ctx, session.OpenID)
 	if err != nil {
-		return "", 0, nil, err
+		return "", nil, err
 	}
 	now := time.Now()
-	if user == nil {
-		user = &model.User{
-			WechatOpenID: session.OpenID,
-			Phone:        phone,
-			InviteID:     inviterID,
-			CreateAt:     now,
-			UpdateAt:     now,
-		}
-		if err := s.userRepo.Create(ctx, user); err != nil {
-			return "", 0, nil, err
-		}
-	} else {
-		if user.Phone == "" && phone != "" {
-			user.Phone = phone
-		}
-		user.UpdateAt = now
-		if err := s.userRepo.Update(ctx, user); err != nil {
-			return "", 0, nil, err
-		}
+	if user != nil {
+		return "", nil, ErrUserExists
 	}
-	expiresIn := int64(7 * 24 * 60 * 60)
-	token, err := s.jwt.GenToken(strconv.FormatInt(user.ID, 10), time.Now().Add(time.Second*time.Duration(expiresIn)))
+	user = &model.User{
+		WechatOpenID: session.OpenID,
+		Phone:        phone,
+		InviteID:     inviterID,
+		CreateAt:     now,
+		UpdateAt:     now,
+	}
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return "", nil, err
+	}
+	token, err := s.jwt.GenToken(strconv.FormatInt(user.ID, 10), time.Time{})
 	if err != nil {
-		return "", 0, nil, err
+		return "", nil, err
 	}
 	user.Token = token
 	user.UpdateAt = time.Now()
 	if err := s.userRepo.Update(ctx, user); err != nil {
-		return "", 0, nil, err
+		return "", nil, err
 	}
-	return token, expiresIn, user, nil
+	return token, user, nil
+}
+
+func (s *wechatService) Login(ctx context.Context, code string) (string, *model.User, error) {
+	if code == "" {
+		return "", nil, errors.New("code is empty")
+	}
+	session, err := s.code2session(ctx, code)
+	if err != nil {
+		return "", nil, err
+	}
+	user, err := s.userRepo.GetByOpenID(ctx, session.OpenID)
+	if err != nil {
+		return "", nil, err
+	}
+	if user == nil {
+		return "", nil, ErrUserNotFound
+	}
+	token, err := s.jwt.GenToken(strconv.FormatInt(user.ID, 10), time.Time{})
+	if err != nil {
+		return "", nil, err
+	}
+	user.Token = token
+	user.UpdateAt = time.Now()
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		return "", nil, err
+	}
+	return token, user, nil
 }
 
 func (s *wechatService) code2session(ctx context.Context, code string) (wechatSessionResponse, error) {

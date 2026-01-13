@@ -23,17 +23,20 @@ func NewJwt(conf *viper.Viper) *JWT {
 }
 
 func (j *JWT) GenToken(userId string, expiresAt time.Time) (string, error) {
+	claims := jwt.RegisteredClaims{
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+		NotBefore: jwt.NewNumericDate(time.Now()),
+		Issuer:    "",
+		Subject:   "",
+		ID:        "",
+		Audience:  []string{},
+	}
+	if !expiresAt.IsZero() {
+		claims.ExpiresAt = jwt.NewNumericDate(expiresAt)
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MyCustomClaims{
-		UserId: userId,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expiresAt),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    "",
-			Subject:   "",
-			ID:        "",
-			Audience:  []string{},
-		},
+		UserId:           userId,
+		RegisteredClaims: claims,
 	})
 
 	// Sign and get the complete encoded token as a string using the key

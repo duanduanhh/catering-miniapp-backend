@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/spf13/viper"
@@ -36,7 +37,8 @@ func (s *uploadService) Upload(ctx context.Context, file io.Reader, filename str
 	if err != nil {
 		return "", err
 	}
-	objectKey := fmt.Sprintf("img/%s", filename)
+	month := time.Now().Format("2006-01")
+	objectKey := fmt.Sprintf("img/%s/%s", month, filename)
 	if err := bucket.PutObject(objectKey, file); err != nil {
 		return "", err
 	}
@@ -47,7 +49,7 @@ func (s *uploadService) Upload(ctx context.Context, file io.Reader, filename str
 	if !strings.HasSuffix(urlPrefix, "/") {
 		urlPrefix += "/"
 	}
-	return urlPrefix + filename, nil
+	return urlPrefix + month + "/" + filename, nil
 }
 
 func (s *uploadService) ensureClient() (*oss.Bucket, error) {

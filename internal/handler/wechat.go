@@ -24,6 +24,36 @@ func NewWechatHandler(handler *Handler, orderService service.OrderService, wecha
 	}
 }
 
+// Register godoc
+// @Summary 微信注册
+// @Tags 用户模块
+// @Accept json
+// @Produce json
+// @Param request body v1.WechatRegisterRequest true "params"
+// @Success 200 {object} v1.WechatLoginResponseData
+// @Router /wechat/user/register [post]
+func (h *WechatHandler) Register(ctx *gin.Context) {
+	var req v1.WechatRegisterRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	token, user, err := h.wechatService.Register(ctx, req.PhoneCode, req.LoginCode, req.InviterID)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("wechatService.Register error", zap.Error(err))
+		if err == service.ErrUserExists {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+			return
+		}
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	ctx.Header("Authorization", "Bearer "+token)
+	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
+		UserInfo: v1.WechatLoginUserInfo{ID: user.ID},
+	})
+}
+
 // Login godoc
 // @Summary 微信登录
 // @Tags 用户模块
@@ -31,23 +61,26 @@ func NewWechatHandler(handler *Handler, orderService service.OrderService, wecha
 // @Produce json
 // @Param request body v1.WechatLoginRequest true "params"
 // @Success 200 {object} v1.WechatLoginResponseData
-// @Router /wechat/login [post]
+// @Router /wechat/user/login [post]
 func (h *WechatHandler) Login(ctx *gin.Context) {
 	var req v1.WechatLoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	token, expiresIn, user, err := h.wechatService.Login(ctx, req.Code, req.LoginCode, req.InviterID)
+	token, user, err := h.wechatService.Login(ctx, req.LoginCode)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("wechatService.Login error", zap.Error(err))
+		if err == service.ErrUserNotFound {
+			v1.HandleError(ctx, http.StatusNotFound, v1.ErrNotFound, err.Error())
+			return
+		}
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
 	ctx.Header("Authorization", "Bearer "+token)
 	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
-		UserInfo:  v1.WechatLoginUserInfo{ID: user.ID},
-		ExpiresIn: expiresIn,
+		UserInfo: v1.WechatLoginUserInfo{ID: user.ID},
 	})
 }
 

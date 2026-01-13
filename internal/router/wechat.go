@@ -8,7 +8,8 @@ import (
 func InitWechatRouter(deps RouterDeps, r *gin.RouterGroup) {
 	noAuthRouter := r.Group("/")
 	{
-		noAuthRouter.POST("/wechat/login", deps.WechatHandler.Login)
+		noAuthRouter.POST("/wechat/user/register", deps.WechatHandler.Register)
+		noAuthRouter.POST("/wechat/user/login", deps.WechatHandler.Login)
 	}
 	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
 	{

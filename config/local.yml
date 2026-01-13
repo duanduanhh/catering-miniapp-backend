@@ -52,8 +52,8 @@ wxpay:
   serial_number: "59C25DA32E27760AEC1896AE734A3B735E3D306E"
   api_v3_key: "zhang131343567774953030040920xin"
 oss:
-  access_key_id: "YOUR_ACCESS_KEY_ID"
-  access_key_secret: "YOUR_ACCESS_KEY_SECRET"
+  access_key_id: "your_access_key_id"
+  access_key_secret: "your_access_key_secret"
   endpoint: "https://oss-cn-beijing.aliyuncs.com"
   bucket: "canyinxinxi"
   url_prefix: "https://canyinxinxi.oss-cn-beijing.aliyuncs.com/img/"
