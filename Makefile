@@ -33,7 +33,7 @@ build-linux:
 SWR_REGISTRY ?= swr.cn-north-1.myhuaweicloud.com
 SWR_ORG      ?= catering-cyxx
 IMAGE_NAME   ?= miniapp-backend
-IMAGE_TAG    ?= v1-20250114
+IMAGE_TAG    ?= v1-20250114.1
 
 docker:
 	docker buildx build --platform linux/amd64 --pull=false --load -f deploy/build/Dockerfile \

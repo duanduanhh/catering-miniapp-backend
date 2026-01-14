@@ -2,14 +2,21 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"os"
+	"strings"
+
+	"github.com/spf13/viper"
 )
 
 func NewConfig(p string) *viper.Viper {
 	envConf := os.Getenv("APP_CONF")
 	if envConf == "" {
-		envConf = p
+		appEnv := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV")))
+		if appEnv != "" {
+			envConf = fmt.Sprintf("config/%s.yml", appEnv)
+		} else {
+			envConf = p
+		}
 	}
 	fmt.Println("load conf file:", envConf)
 	return getConfig(envConf)
