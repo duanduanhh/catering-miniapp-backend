@@ -2,39 +2,41 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
-	"time"
 )
 
-type CostHistoryService interface {
-	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.CostHistory, int64, error)
-	AdjustVoucher(ctx context.Context, userID int64, bizType int, changeNum int, remark string) (int, error)
+type ContactVoucherHistoryService interface {
+	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.ContactVoucherHistory, int64, error)
+	AdjustVoucher(ctx context.Context, userID int64, bizType model.ContactVoucherHistoryBizType, changeNum int, remark string) (int, error)
 	GetUserVoucherNum(ctx context.Context, userID int64) (int, error)
 }
-func NewCostHistoryService(
-    service *Service,
-    costHistoryRepository repository.CostHistoryRepository,
+
+func NewContactVoucherHistoryService(
+	service *Service,
+	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository,
 	userRepository repository.UserRepository,
-) CostHistoryService {
-	return &costHistoryService{
-		Service:        service,
-		costHistoryRepository: costHistoryRepository,
-		userRepository: userRepository,
+) ContactVoucherHistoryService {
+	return &contactVoucherHistoryService{
+		Service:                         service,
+		contactVoucherHistoryRepository: contactVoucherHistoryRepository,
+		userRepository:                  userRepository,
 	}
 }
 
-type costHistoryService struct {
+type contactVoucherHistoryService struct {
 	*Service
-	costHistoryRepository repository.CostHistoryRepository
-	userRepository        repository.UserRepository
+	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository
+	userRepository                  repository.UserRepository
 }
 
-func (s *costHistoryService) ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.CostHistory, int64, error) {
-	return s.costHistoryRepository.ListByUser(ctx, userID, pageNum, pageSize)
+func (s *contactVoucherHistoryService) ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.ContactVoucherHistory, int64, error) {
+	return s.contactVoucherHistoryRepository.ListByUser(ctx, userID, pageNum, pageSize)
 }
 
-func (s *costHistoryService) GetUserVoucherNum(ctx context.Context, userID int64) (int, error) {
+func (s *contactVoucherHistoryService) GetUserVoucherNum(ctx context.Context, userID int64) (int, error) {
 	user, err := s.userRepository.GetByID(ctx, userID)
 	if err != nil {
 		return 0, err
@@ -42,7 +44,7 @@ func (s *costHistoryService) GetUserVoucherNum(ctx context.Context, userID int64
 	return user.ContactVoucherNum, nil
 }
 
-func (s *costHistoryService) AdjustVoucher(ctx context.Context, userID int64, bizType int, changeNum int, remark string) (int, error) {
+func (s *contactVoucherHistoryService) AdjustVoucher(ctx context.Context, userID int64, bizType model.ContactVoucherHistoryBizType, changeNum int, remark string) (int, error) {
 	var nextNum int
 	err := s.tm.Transaction(ctx, func(ctx context.Context) error {
 		user, err := s.userRepository.GetByID(ctx, userID)
@@ -59,7 +61,7 @@ func (s *costHistoryService) AdjustVoucher(ctx context.Context, userID int64, bi
 		if err := s.userRepository.Update(ctx, user); err != nil {
 			return err
 		}
-		history := &model.CostHistory{
+		history := &model.ContactVoucherHistory{
 			UserID:    userID,
 			BizType:   bizType,
 			ChangeNum: changeNum,
@@ -68,7 +70,7 @@ func (s *costHistoryService) AdjustVoucher(ctx context.Context, userID int64, bi
 			Remark:    remark,
 			CreateAt:  time.Now(),
 		}
-		return s.costHistoryRepository.Create(ctx, history)
+		return s.contactVoucherHistoryRepository.Create(ctx, history)
 	})
 	return nextNum, err
 }

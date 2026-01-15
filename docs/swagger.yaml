@@ -84,7 +84,7 @@ definitions:
       purpose_user_phone:
         type: string
     type: object
-  v1.ContactVoucherMyItem:
+  v1.ContactVoucherRecordsItem:
     properties:
       change_num:
         type: integer
@@ -97,13 +97,13 @@ definitions:
       type:
         type: string
     type: object
-  v1.ContactVoucherMyResponseData:
+  v1.ContactVoucherRecordsResponseData:
     properties:
       contact_voucher_num:
         type: integer
       list:
         items:
-          $ref: '#/definitions/v1.ContactVoucherMyItem'
+          $ref: '#/definitions/v1.ContactVoucherRecordsItem'
         type: array
       list_total:
         type: integer
@@ -692,7 +692,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.ContactVoucherMyResponseData'
+            $ref: '#/definitions/v1.ContactVoucherRecordsResponseData'
       security:
       - Bearer: []
       summary: 我的券包

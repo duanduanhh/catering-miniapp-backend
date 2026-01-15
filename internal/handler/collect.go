@@ -111,12 +111,12 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 		return
 	}
 	resp := v1.CollectMyResponseData{
-		Jobs:  make([]v1.JobMyItem, 0, len(jobs)),
+		List:  make([]v1.JobMyItem, 0, len(jobs)),
 		Total: total,
 	}
 	for _, job := range jobs {
-		resp.Jobs = append(resp.Jobs, v1.JobMyItem{
-			ID:              job.ID,
+		resp.List = append(resp.List, v1.JobMyItem{
+			JobID:           job.ID,
 			Positions:       job.Positions,
 			SalaryMin:       job.SalaryMin,
 			SalaryMax:       job.SalaryMax,
@@ -125,8 +125,8 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 			ThirdAreaDes:    job.ThirdAreaDes,
 			Address:         job.Address,
 			CreateAt:        formatTime(job.CreateAt),
-			IsTop:           job.IsTop,
-			LastRefreshTime: formatTimeMillis(job.RefreshTime),
+			IsTop:           isJobTop(job),
+			LastRefreshTime: formatTime(*job.RefreshTime),
 		})
 	}
 	v1.HandleSuccess(ctx, resp)

@@ -47,7 +47,7 @@ func (r *collectRepository) ListByUser(ctx context.Context, userID int64, bizTyp
 		collects []*model.Collect
 		total    int64
 	)
-	db := r.DB(ctx).Model(&model.Collect{}).Where("user_id = ? AND status = ?", userID, 1)
+	db := r.DB(ctx).Model(&model.Collect{}).Where("user_id = ? AND status = ?", userID, model.CollectStatusActive)
 	if bizType > 0 {
 		db = db.Where("type = ?", bizType)
 	}

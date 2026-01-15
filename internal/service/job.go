@@ -34,27 +34,28 @@ type jobService struct {
 }
 
 type JobCreateInput struct {
-	Positions       string
-	CompanyName     string
-	Longitude       float64
-	Latitude        float64
-	Address         string
-	Contact         string
-	Description     string
-	PhotoURLs       string
-	FirstAreaID     int
-	FirstAreaDes    string
-	SecondAreaID    int
-	SecondAreaDes   string
-	ThirdAreaID     int
-	ThirdAreaDes    string
-	FourAreaID      int
-	FourAreaDes     string
-	SalaryMin       int
-	SalaryMax       int
-	BasicProtection string
-	SalaryBenefits  string
-	AttendanceLeave string
+	Positions          string
+	CompanyName        string
+	Longitude          float64
+	Latitude           float64
+	Address            string
+	Contact            string
+	ContanctPersonName string
+	Description        string
+	PhotoURLs          string
+	FirstAreaID        int
+	FirstAreaDes       string
+	SecondAreaID       int
+	SecondAreaDes      string
+	ThirdAreaID        int
+	ThirdAreaDes       string
+	FourAreaID         int
+	FourAreaDes        string
+	SalaryMin          int
+	SalaryMax          int
+	BasicProtection    string
+	SalaryBenefits     string
+	AttendanceLeave    string
 }
 
 type JobUpdateInput struct {
@@ -83,36 +84,41 @@ type JobUpdateInput struct {
 }
 
 func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateInput) (*model.Job, error) {
+	total, err := s.jobRepository.CountByUser(ctx, userID, model.JobStatusActive)
+	if err != nil {
+		return nil, err
+	}
+	if total >= 5 {
+		return nil, ErrJobLimitExceeded
+	}
 	now := time.Now()
 	job := &model.Job{
-		UserID:          userID,
-		Positions:       input.Positions,
-		CompanyName:     input.CompanyName,
-		Longitude:       input.Longitude,
-		Latitude:        input.Latitude,
-		Address:         input.Address,
-		Contact:         input.Contact,
-		Description:     input.Description,
-		PhotoURLs:       input.PhotoURLs,
-		Status:          1,
-		FirstAreaID:     input.FirstAreaID,
-		FirstAreaDes:    input.FirstAreaDes,
-		SecondAreaID:    input.SecondAreaID,
-		SecondAreaDes:   input.SecondAreaDes,
-		ThirdAreaID:     input.ThirdAreaID,
-		ThirdAreaDes:    input.ThirdAreaDes,
-		FourAreaID:      input.FourAreaID,
-		FourAreaDes:     input.FourAreaDes,
-		SalaryMin:       input.SalaryMin,
-		SalaryMax:       input.SalaryMax,
-		BasicProtection: input.BasicProtection,
-		SalaryBenefits:  input.SalaryBenefits,
-		AttendanceLeave: input.AttendanceLeave,
-		CreateAt:        now,
-		UpdateAt:        now,
-		RefreshTime:     now.UnixMilli(),
-		IsTop:           0,
-		IsBuyTop:        0,
+		UserID:            userID,
+		Positions:         input.Positions,
+		CompanyName:       input.CompanyName,
+		Longitude:         input.Longitude,
+		Latitude:          input.Latitude,
+		Address:           input.Address,
+		Contact:           input.Contact,
+		ContactPersonName: input.ContanctPersonName,
+		Description:       input.Description,
+		PhotoURLs:         input.PhotoURLs,
+		Status:            model.JobStatusActive,
+		FirstAreaID:       input.FirstAreaID,
+		FirstAreaDes:      input.FirstAreaDes,
+		SecondAreaID:      input.SecondAreaID,
+		SecondAreaDes:     input.SecondAreaDes,
+		ThirdAreaID:       input.ThirdAreaID,
+		ThirdAreaDes:      input.ThirdAreaDes,
+		FourAreaID:        input.FourAreaID,
+		FourAreaDes:       input.FourAreaDes,
+		SalaryMin:         input.SalaryMin,
+		SalaryMax:         input.SalaryMax,
+		BasicProtection:   input.BasicProtection,
+		SalaryBenefits:    input.SalaryBenefits,
+		AttendanceLeave:   input.AttendanceLeave,
+		CreateAt:          now,
+		UpdateAt:          now,
 	}
 	if err := s.jobRepository.Create(ctx, job); err != nil {
 		return nil, err
@@ -191,7 +197,6 @@ func (s *jobService) Update(ctx context.Context, userID int64, input JobUpdateIn
 	if input.AttendanceLeave != nil {
 		job.AttendanceLeave = *input.AttendanceLeave
 	}
-	job.UpdateAt = time.Now()
 	return s.jobRepository.Update(ctx, job)
 }
 
@@ -203,8 +208,8 @@ func (s *jobService) Refresh(ctx context.Context, userID, jobID int64) error {
 	if job.UserID != userID {
 		return ErrForbidden
 	}
-	job.RefreshTime = time.Now().UnixMilli()
-	job.UpdateAt = time.Now()
+	now := time.Now()
+	job.RefreshTime = &now
 	return s.jobRepository.Update(ctx, job)
 }
 
@@ -216,8 +221,7 @@ func (s *jobService) Close(ctx context.Context, userID, jobID int64) error {
 	if job.UserID != userID {
 		return ErrForbidden
 	}
-	job.Status = 3
-	job.UpdateAt = time.Now()
+	job.Status = model.JobStatusUserClosed
 	return s.jobRepository.Update(ctx, job)
 }
 

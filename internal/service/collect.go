@@ -39,8 +39,8 @@ func (s *collectService) Collect(ctx context.Context, userID, contentID int64, b
 			collect := &model.Collect{
 				UserID:    userID,
 				ContentID: contentID,
-				Type:      bizType,
-				Status:    1,
+				Type:      model.CollectType(bizType),
+				Status:    model.CollectStatusActive,
 				CreateAt:  time.Now(),
 				UpdateAt:  time.Now(),
 			}
@@ -48,8 +48,8 @@ func (s *collectService) Collect(ctx context.Context, userID, contentID int64, b
 		}
 		return err
 	}
-	if existing.Status != 1 {
-		existing.Status = 1
+	if existing.Status != model.CollectStatusActive {
+		existing.Status = model.CollectStatusActive
 		existing.UpdateAt = time.Now()
 		return s.collectRepository.Update(ctx, existing)
 	}
@@ -64,8 +64,8 @@ func (s *collectService) Cancel(ctx context.Context, userID, contentID int64, bi
 		}
 		return err
 	}
-	if existing.Status != 2 {
-		existing.Status = 2
+	if existing.Status != model.CollectStatusDeleted {
+		existing.Status = model.CollectStatusDeleted
 		existing.UpdateAt = time.Now()
 		return s.collectRepository.Update(ctx, existing)
 	}

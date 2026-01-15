@@ -3,89 +3,71 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
-	"time"
 )
 
 type OrderService interface {
-	CreateTopOrder(ctx context.Context, userID, jobID int64) (*model.Order, *model.OrderItem, TopRule, error)
+	CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64) (*model.Order, *model.OrderItem, error)
 	CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int) (*model.Order, *model.OrderItem, error)
+	CreateRefreshOrder(ctx context.Context, userID, jobID int64, price float64) (*model.Order, *model.OrderItem, error)
 	PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
+	PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
 }
+
 func NewOrderService(
-    service *Service,
-    orderRepository repository.OrderRepository,
+	service *Service,
+	orderRepository repository.OrderRepository,
 	orderItemRepository repository.OrderItemRepository,
 	jobRepository repository.JobRepository,
 	userRepository repository.UserRepository,
-	costHistoryRepository repository.CostHistoryRepository,
+	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository,
 ) OrderService {
 	return &orderService{
-		Service:        service,
-		orderRepository: orderRepository,
-		orderItemRepository: orderItemRepository,
-		jobRepository: jobRepository,
-		userRepository: userRepository,
-		costHistoryRepository: costHistoryRepository,
+		Service:                         service,
+		orderRepository:                 orderRepository,
+		orderItemRepository:             orderItemRepository,
+		jobRepository:                   jobRepository,
+		userRepository:                  userRepository,
+		contactVoucherHistoryRepository: contactVoucherHistoryRepository,
 	}
 }
 
 type orderService struct {
 	*Service
-	orderRepository repository.OrderRepository
-	orderItemRepository repository.OrderItemRepository
-	jobRepository       repository.JobRepository
-	userRepository      repository.UserRepository
-	costHistoryRepository repository.CostHistoryRepository
+	orderRepository                 repository.OrderRepository
+	orderItemRepository             repository.OrderItemRepository
+	jobRepository                   repository.JobRepository
+	userRepository                  repository.UserRepository
+	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository
 }
 
-const (
-	OrderStatusPending = 1
-	OrderStatusPaid    = 2
-	OrderStatusCanceled = 3
-	OrderStatusRefunded = 4
-
-	ProductTypeTop           = 1
-	ProductTypeContactVoucher = 2
-)
-
-const (
-	CostHistoryRecharge = 1
-	CostHistoryConsume  = 2
-)
-
-type TopRule struct {
-	RuleID int64
-	Hours  int
-	Price  float64
-}
-
-func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64) (*model.Order, *model.OrderItem, TopRule, error) {
+func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64) (*model.Order, *model.OrderItem, error) {
 	job, err := s.jobRepository.GetByID(ctx, jobID)
 	if err != nil {
-		return nil, nil, TopRule{}, err
+		return nil, nil, err
 	}
 	if job.UserID != userID {
-		return nil, nil, TopRule{}, ErrForbidden
+		return nil, nil, ErrForbidden
 	}
-	rule := TopRule{RuleID: 2, Hours: 72, Price: 5.00}
 	order := &model.Order{
 		OrderNo:     s.generateOrderNo("TOP"),
 		UserID:      userID,
-		AmountTotal: model.NewDecimalFromFloat64(rule.Price),
+		AmountTotal: model.NewDecimalFromFloat64(price),
 		AmountPaid:  model.NewDecimalFromFloat64(0),
 		Currency:    "CNY",
-		Status:      OrderStatusPending,
+		Status:      model.OrderStatusPending,
 		CreateAt:    time.Now(),
 		UpdateAt:    time.Now(),
 	}
 	item := &model.OrderItem{
-		ProductType:       ProductTypeTop,
-		RuleID:            rule.RuleID,
-		TitleSnapshot:     fmt.Sprintf("置顶套餐-%d小时", rule.Hours),
-		UnitPriceSnapshot: rule.Price,
-		TargetType:        1,
+		ProductType:       model.ProductTypeTop,
+		TitleSnapshot:     fmt.Sprintf("置顶套餐-%d小时", topHour),
+		TopHour:           topHour,
+		UnitPriceSnapshot: price,
+		TargetType:        model.OrderTargetJob,
 		TargetID:          jobID,
 		CreateAt:          time.Now(),
 		UpdateAt:          time.Now(),
@@ -99,9 +81,9 @@ func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64) 
 		return s.orderItemRepository.Create(ctx, item)
 	})
 	if err != nil {
-		return nil, nil, rule, err
+		return nil, nil, err
 	}
-	return order, item, rule, nil
+	return order, item, nil
 }
 
 func (s *orderService) CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int) (*model.Order, *model.OrderItem, error) {
@@ -111,20 +93,59 @@ func (s *orderService) CreateContactVoucherOrder(ctx context.Context, userID int
 		AmountTotal: model.NewDecimalFromFloat64(price),
 		AmountPaid:  model.NewDecimalFromFloat64(0),
 		Currency:    "CNY",
-		Status:      OrderStatusPending,
+		Status:      model.OrderStatusPending,
 		CreateAt:    time.Now(),
 		UpdateAt:    time.Now(),
 	}
 	item := &model.OrderItem{
-		ProductType:       ProductTypeContactVoucher,
-		RuleID:            int64(voucherNum),
+		ProductType:       model.ProductTypeContactVoucher,
 		TitleSnapshot:     fmt.Sprintf("联系券-%d张", voucherNum),
 		UnitPriceSnapshot: price,
-		PurposeUserID:     0,
+		ContactVoucherNum: voucherNum,
 		CreateAt:          time.Now(),
 		UpdateAt:          time.Now(),
 	}
 	err := s.tm.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.orderRepository.Create(ctx, order); err != nil {
+			return err
+		}
+		item.OrderID = order.ID
+		return s.orderItemRepository.Create(ctx, item)
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return order, item, nil
+}
+
+func (s *orderService) CreateRefreshOrder(ctx context.Context, userID, jobID int64, price float64) (*model.Order, *model.OrderItem, error) {
+	job, err := s.jobRepository.GetByID(ctx, jobID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if job.UserID != userID {
+		return nil, nil, ErrForbidden
+	}
+	order := &model.Order{
+		OrderNo:     s.generateOrderNo("REF"),
+		UserID:      userID,
+		AmountTotal: model.NewDecimalFromFloat64(price),
+		AmountPaid:  model.NewDecimalFromFloat64(0),
+		Currency:    "CNY",
+		Status:      model.OrderStatusPending,
+		CreateAt:    time.Now(),
+		UpdateAt:    time.Now(),
+	}
+	item := &model.OrderItem{
+		ProductType:       model.ProductTypeRefresh,
+		TitleSnapshot:     "刷新招聘",
+		UnitPriceSnapshot: price,
+		TargetType:        model.OrderTargetJob,
+		TargetID:          jobID,
+		CreateAt:          time.Now(),
+		UpdateAt:          time.Now(),
+	}
+	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
 		if err := s.orderRepository.Create(ctx, order); err != nil {
 			return err
 		}
@@ -151,7 +172,19 @@ func (s *orderService) PayOrder(ctx context.Context, userID, orderID int64, orde
 	if order.UserID != userID {
 		return nil, ErrForbidden
 	}
-	if order.Status != OrderStatusPending {
+	return s.payOrderWithItems(ctx, order, amount, payChannel, payTradeNo)
+}
+
+func (s *orderService) PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
+	order, err := s.orderRepository.GetByOrderNo(ctx, orderNo)
+	if err != nil {
+		return nil, err
+	}
+	return s.payOrderWithItems(ctx, order, amount, payChannel, payTradeNo)
+}
+
+func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
+	if order.Status != model.OrderStatusPending {
 		return order, nil
 	}
 	if amount > 0 {
@@ -170,7 +203,7 @@ func (s *orderService) PayOrder(ctx context.Context, userID, orderID int64, orde
 	}
 
 	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
-		order.Status = OrderStatusPaid
+		order.Status = model.OrderStatusPaid
 		order.AmountPaid = order.AmountTotal
 		order.PayChannel = payChannel
 		order.PayTradeNo = payTradeNo
@@ -182,12 +215,16 @@ func (s *orderService) PayOrder(ctx context.Context, userID, orderID int64, orde
 		}
 		for _, item := range items {
 			switch item.ProductType {
-			case ProductTypeTop:
+			case model.ProductTypeTop:
 				if err := s.applyTop(ctx, item); err != nil {
 					return err
 				}
-			case ProductTypeContactVoucher:
+			case model.ProductTypeContactVoucher:
 				if err := s.applyContactVoucher(ctx, order.UserID, item); err != nil {
+					return err
+				}
+			case model.ProductTypeRefresh:
+				if err := s.applyRefresh(ctx, item); err != nil {
 					return err
 				}
 			}
@@ -205,20 +242,22 @@ func (s *orderService) applyTop(ctx context.Context, item *model.OrderItem) erro
 	if err != nil {
 		return err
 	}
-	hours := s.topHoursByRule(item.RuleID)
 	now := time.Now()
-	job.IsTop = 1
-	job.IsBuyTop = 1
-	job.TopHour = hours
-	job.TopStartTime = &now
-	end := now.Add(time.Duration(hours) * time.Hour)
+	baseTime := now
+	if job.TopEndTime != nil && job.TopEndTime.After(now) {
+		baseTime = *job.TopEndTime
+	}
+	if job.TopStartTime == nil || (job.TopEndTime != nil && !job.TopEndTime.After(now)) {
+		job.TopStartTime = &now
+	}
+	end := baseTime.Add(time.Duration(item.TopHour) * time.Hour)
 	job.TopEndTime = &end
 	job.UpdateAt = now
 	return s.jobRepository.Update(ctx, job)
 }
 
 func (s *orderService) applyContactVoucher(ctx context.Context, userID int64, item *model.OrderItem) error {
-	voucherNum := int(item.RuleID)
+	voucherNum := item.ContactVoucherNum
 	if voucherNum <= 0 {
 		voucherNum = parseVoucherNum(item.TitleSnapshot)
 	}
@@ -236,27 +275,26 @@ func (s *orderService) applyContactVoucher(ctx context.Context, userID int64, it
 	if err := s.userRepository.Update(ctx, user); err != nil {
 		return err
 	}
-	history := &model.CostHistory{
+	history := &model.ContactVoucherHistory{
 		UserID:    userID,
-		BizType:   CostHistoryRecharge,
+		BizType:   model.ContactVoucherHistoryBuy,
 		ChangeNum: voucherNum,
 		LastNum:   lastNum,
 		NextNum:   nextNum,
 		Remark:    "购买联系券",
 		CreateAt:  time.Now(),
 	}
-	return s.costHistoryRepository.Create(ctx, history)
+	return s.contactVoucherHistoryRepository.Create(ctx, history)
 }
 
-func (s *orderService) topHoursByRule(ruleID int64) int {
-	switch ruleID {
-	case 1:
-		return 24
-	case 2:
-		return 72
-	default:
-		return 24
+func (s *orderService) applyRefresh(ctx context.Context, item *model.OrderItem) error {
+	job, err := s.jobRepository.GetByID(ctx, item.TargetID)
+	if err != nil {
+		return err
 	}
+	now := time.Now()
+	job.RefreshTime = &now
+	return s.jobRepository.Update(ctx, job)
 }
 
 func (s *orderService) generateOrderNo(prefix string) string {

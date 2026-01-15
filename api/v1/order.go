@@ -6,27 +6,36 @@ type WechatPayRequest struct {
 	Price   float64 `json:"price"`
 }
 
+type WechatPayNotifyRequest struct {
+	OrderNo    string  `json:"order_no" binding:"required"`
+	Amount     float64 `json:"amount"`
+	PayChannel string  `json:"pay_channel"`
+	PayTradeNo string  `json:"pay_trade_no"`
+}
+
 type ContactVoucherBuyRequest struct {
 	Price             float64 `json:"price" binding:"required"`
 	ContactVoucherNum int     `json:"contact_voucher_num" binding:"required"`
 }
 
-type ContactVoucherBuyResponseData struct {
-	OrderID           int64   `json:"order_id"`
-	OrderNo           string  `json:"order_no"`
-	BuyerUserID       int64   `json:"buyer_user_id"`
-	ContactVoucherNum int     `json:"contact_voucher_num"`
-	Price             float64 `json:"price"`
-	CreatedAt         string  `json:"created_at"`
+type PayParams struct {
+	TimeStamp string `json:"timeStamp"`
+	NonceStr  string `json:"nonceStr"`
+	Package   string `json:"package"`
+	SignType  string `json:"signType"`
+	PaySign   string `json:"paySign"`
 }
 
-type JobTopResponseData struct {
-	OrderID   int64   `json:"order_id"`
-	OrderNo   string  `json:"order_no"`
-	RuleID    int64   `json:"rule_id"`
-	Price     float64 `json:"price"`
-	Currency  string  `json:"currency"`
-	CreatedAt string  `json:"created_at"`
+type PayOrderResponseData struct {
+	OrderID   int64     `json:"order_id"`
+	OrderNo   string    `json:"order_no"`
+	Amount    float64   `json:"amount"`
+	PayParams PayParams `json:"pay_params"`
+}
+
+type JobRefreshPayRequest struct {
+	JobID int64   `json:"job_id" binding:"required"`
+	Price float64 `json:"price" binding:"required"`
 }
 
 type ContactVoucherCostRequest struct {
@@ -36,16 +45,23 @@ type ContactVoucherCostRequest struct {
 	PurposeUserPhone *string `json:"purpose_user_phone"`
 }
 
-type ContactVoucherMyResponseData struct {
-	ContactVoucherNum int                     `json:"contact_voucher_num"`
-	List              []ContactVoucherMyItem  `json:"list"`
-	ListTotal         int64                   `json:"list_total"`
+type ContactVoucherRecordsResponseData struct {
+	ContactVoucherNum int                         `json:"contact_voucher_num"`
+	List              []ContactVoucherRecordsItem `json:"list"`
+	ListTotal         int64                       `json:"list_total"`
 }
 
-type ContactVoucherMyItem struct {
-	ID       int64  `json:"id"`
-	Type     string `json:"type"`
-	Title    string `json:"title"`
-	ChangeNum int   `json:"change_num"`
-	CreateAt string `json:"create_at"`
+type ContactVoucherRecordType string
+
+const (
+	ContactVoucherRecordBuy  ContactVoucherRecordType = "buy"
+	ContactVoucherRecordCost ContactVoucherRecordType = "cost"
+)
+
+type ContactVoucherRecordsItem struct {
+	ID        int64                    `json:"id"`
+	Type      ContactVoucherRecordType `json:"type"`
+	Title     string                   `json:"title"`
+	ChangeNum int                      `json:"change_num"`
+	CreateAt  string                   `json:"create_at"`
 }

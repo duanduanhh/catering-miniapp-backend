@@ -9,4 +9,5 @@ var (
 	ErrInvalidVoucherNum  = errors.New("invalid voucher number")
 	ErrUserExists         = errors.New("user already exists")
 	ErrUserNotFound       = errors.New("user not found")
+	ErrJobLimitExceeded   = errors.New("job limit exceeded")
 )

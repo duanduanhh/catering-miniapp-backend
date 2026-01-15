@@ -246,7 +246,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.ContactVoucherMyResponseData"
+                            "$ref": "#/definitions/v1.ContactVoucherRecordsResponseData"
                         }
                     }
                 }
@@ -998,7 +998,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.ContactVoucherMyItem": {
+        "v1.ContactVoucherRecordsItem": {
             "type": "object",
             "properties": {
                 "change_num": {
@@ -1018,7 +1018,7 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.ContactVoucherMyResponseData": {
+        "v1.ContactVoucherRecordsResponseData": {
             "type": "object",
             "properties": {
                 "contact_voucher_num": {
@@ -1027,7 +1027,7 @@ const docTemplate = `{
                 "list": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/v1.ContactVoucherMyItem"
+                        "$ref": "#/definitions/v1.ContactVoucherRecordsItem"
                     }
                 },
                 "list_total": {

@@ -7,32 +7,36 @@ import (
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
+	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 	"go.uber.org/zap"
 )
 
-type CostHistoryHandler struct {
+type ContactVoucherHistoryHandler struct {
 	*Handler
-	costHistoryService service.CostHistoryService
-	orderService       service.OrderService
-	contactHistoryService service.ContactHistoryService
+	contactVoucherHistoryService service.ContactVoucherHistoryService
+	orderService                 service.OrderService
+	contactHistoryService        service.ContactHistoryService
+	payService                   service.PayService
 }
 
-func NewCostHistoryHandler(
-    handler *Handler,
-    costHistoryService service.CostHistoryService,
-    orderService service.OrderService,
-    contactHistoryService service.ContactHistoryService,
-) *CostHistoryHandler {
-	return &CostHistoryHandler{
-		Handler:      handler,
-		costHistoryService: costHistoryService,
-		orderService: orderService,
-		contactHistoryService: contactHistoryService,
+func NewContactVoucherHistoryHandler(
+	handler *Handler,
+	contactVoucherHistoryService service.ContactVoucherHistoryService,
+	orderService service.OrderService,
+	contactHistoryService service.ContactHistoryService,
+	payService service.PayService,
+) *ContactVoucherHistoryHandler {
+	return &ContactVoucherHistoryHandler{
+		Handler:                      handler,
+		contactVoucherHistoryService: contactVoucherHistoryService,
+		orderService:                 orderService,
+		contactHistoryService:        contactHistoryService,
+		payService:                   payService,
 	}
 }
 
-func (h *CostHistoryHandler) GetCostHistory(ctx *gin.Context) {
+func (h *ContactVoucherHistoryHandler) GetContactVoucherHistory(ctx *gin.Context) {
 
 }
 
@@ -43,9 +47,9 @@ func (h *CostHistoryHandler) GetCostHistory(ctx *gin.Context) {
 // @Produce json
 // @Security Bearer
 // @Param request body v1.ContactVoucherBuyRequest true "params"
-// @Success 200 {object} v1.ContactVoucherBuyResponseData
+// @Success 200 {object} v1.PayOrderResponseData
 // @Router /contact_voucher/buy [post]
-func (h *CostHistoryHandler) Buy(ctx *gin.Context) {
+func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
@@ -62,13 +66,17 @@ func (h *CostHistoryHandler) Buy(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	v1.HandleSuccess(ctx, v1.ContactVoucherBuyResponseData{
-		OrderID:           order.ID,
-		OrderNo:           order.OrderNo,
-		BuyerUserID:       order.UserID,
-		ContactVoucherNum: req.ContactVoucherNum,
-		Price:             req.Price,
-		CreatedAt:         formatTime(order.CreateAt),
+	params, err := h.payService.BuildJSAPIPayParams(ctx, order.OrderNo, req.Price)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("payService.BuildJSAPIPayParams error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
+		OrderID:   order.ID,
+		OrderNo:   order.OrderNo,
+		Amount:    req.Price,
+		PayParams: params,
 	})
 }
 
@@ -81,7 +89,7 @@ func (h *CostHistoryHandler) Buy(ctx *gin.Context) {
 // @Param request body v1.ContactVoucherCostRequest true "params"
 // @Success 200 {object} v1.Response
 // @Router /contact_voucher/cost [post]
-func (h *CostHistoryHandler) Cost(ctx *gin.Context) {
+func (h *ContactVoucherHistoryHandler) Cost(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
@@ -92,9 +100,9 @@ func (h *CostHistoryHandler) Cost(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	_, err := h.costHistoryService.AdjustVoucher(ctx, userID, service.CostHistoryConsume, -1, "拨打电话")
+	_, err := h.contactVoucherHistoryService.AdjustVoucher(ctx, userID, model.ContactVoucherHistoryCost, -1, "拨打电话")
 	if err != nil {
-		h.logger.WithContext(ctx).Error("costHistoryService.AdjustVoucher error", zap.Error(err))
+		h.logger.WithContext(ctx).Error("contactVoucherHistoryService.AdjustVoucher error", zap.Error(err))
 		if err == service.ErrInsufficientVoucher {
 			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrInsufficientVoucher, err.Error())
 			return
@@ -114,16 +122,16 @@ func (h *CostHistoryHandler) Cost(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
-// My godoc
+// Records godoc
 // @Summary 我的券包
 // @Tags 联系券模块
 // @Accept json
 // @Produce json
 // @Security Bearer
 // @Param request body v1.ContactHistoryListRequest true "params"
-// @Success 200 {object} v1.ContactVoucherMyResponseData
-// @Router /contact_voucher/my [post]
-func (h *CostHistoryHandler) My(ctx *gin.Context) {
+// @Success 200 {object} v1.ContactVoucherRecordsResponseData
+// @Router /contact_voucher/records [post]
+func (h *ContactVoucherHistoryHandler) Records(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
@@ -134,36 +142,36 @@ func (h *CostHistoryHandler) My(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	histories, total, err := h.costHistoryService.ListByUser(ctx, userID, req.PageNum, req.PageSize)
+	histories, total, err := h.contactVoucherHistoryService.ListByUser(ctx, userID, req.PageNum, req.PageSize)
 	if err != nil {
-		h.logger.WithContext(ctx).Error("costHistoryService.ListByUser error", zap.Error(err))
+		h.logger.WithContext(ctx).Error("contactVoucherHistoryService.ListByUser error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	num, err := h.costHistoryService.GetUserVoucherNum(ctx, userID)
+	num, err := h.contactVoucherHistoryService.GetUserVoucherNum(ctx, userID)
 	if err != nil {
-		h.logger.WithContext(ctx).Error("costHistoryService.GetUserVoucherNum error", zap.Error(err))
+		h.logger.WithContext(ctx).Error("contactVoucherHistoryService.GetUserVoucherNum error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	resp := v1.ContactVoucherMyResponseData{
+	resp := v1.ContactVoucherRecordsResponseData{
 		ContactVoucherNum: num,
-		List:              make([]v1.ContactVoucherMyItem, 0, len(histories)),
+		List:              make([]v1.ContactVoucherRecordsItem, 0, len(histories)),
 		ListTotal:         total,
 	}
 	for _, history := range histories {
-		itemType := "consume"
+		itemType := v1.ContactVoucherRecordCost
 		title := "拨打电话"
-		if history.BizType == service.CostHistoryRecharge {
-			itemType = "recharge"
+		if history.BizType == model.ContactVoucherHistoryBuy {
+			itemType = v1.ContactVoucherRecordBuy
 			title = "购买"
 		}
-		resp.List = append(resp.List, v1.ContactVoucherMyItem{
-			ID:       history.ID,
-			Type:     itemType,
-			Title:    title,
+		resp.List = append(resp.List, v1.ContactVoucherRecordsItem{
+			ID:        history.ID,
+			Type:      itemType,
+			Title:     title,
 			ChangeNum: history.ChangeNum,
-			CreateAt: formatTime(history.CreateAt),
+			CreateAt:  formatTime(history.CreateAt),
 		})
 	}
 	v1.HandleSuccess(ctx, resp)

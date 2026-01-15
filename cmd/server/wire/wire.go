@@ -31,7 +31,7 @@ var repositorySet = wire.NewSet(
 	repository.NewContactHistoryRepository,
 	repository.NewOrderRepository,
 	repository.NewOrderItemRepository,
-	repository.NewCostHistoryRepository,
+	repository.NewContactVoucherHistoryRepository,
 )
 
 var serviceSet = wire.NewSet(
@@ -42,9 +42,10 @@ var serviceSet = wire.NewSet(
 	service.NewContactHistoryService,
 	service.NewOrderService,
 	service.NewOrderItemService,
-	service.NewCostHistoryService,
+	service.NewContactVoucherHistoryService,
 	service.NewWechatService,
 	service.NewUploadService,
+	service.NewPayService,
 )
 
 var handlerSet = wire.NewSet(
@@ -53,7 +54,7 @@ var handlerSet = wire.NewSet(
 	handler.NewJobHandler,
 	handler.NewCollectHandler,
 	handler.NewContactHistoryHandler,
-	handler.NewCostHistoryHandler,
+	handler.NewContactVoucherHistoryHandler,
 	handler.NewWechatHandler,
 	handler.NewUploadHandler,
 )

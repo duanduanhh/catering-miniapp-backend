@@ -120,3 +120,34 @@ func (h *WechatHandler) Pay(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, nil)
 }
+
+// PayNotify godoc
+// @Summary 微信支付回调
+// @Tags 支付模块
+// @Accept json
+// @Produce json
+// @Param request body v1.WechatPayNotifyRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /wechat/pay/notify [post]
+func (h *WechatHandler) PayNotify(ctx *gin.Context) {
+	var req v1.WechatPayNotifyRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	order, err := h.orderService.PayOrderByNotify(ctx, req.OrderNo, req.Amount, req.PayChannel, req.PayTradeNo)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("orderService.PayOrderByNotify error", zap.Error(err))
+		if err == service.ErrAmountMismatch {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrAmountMismatch, err.Error())
+			return
+		}
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	if order == nil {
+		v1.HandleError(ctx, http.StatusNotFound, v1.ErrNotFound, "order not found")
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
+}

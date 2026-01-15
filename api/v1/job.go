@@ -1,27 +1,30 @@
 package v1
 
+import "github.com/go-nunu/nunu-layout-advanced/internal/model"
+
 type JobCreateRequest struct {
-	Positions       string   `json:"positions" binding:"required"`
-	CompanyName     string   `json:"company_name" binding:"required"`
-	Longitude       float64  `json:"longitude" binding:"required"`
-	Latitude        float64  `json:"latitude" binding:"required"`
-	Address         string   `json:"address" binding:"required"`
-	Contact         string   `json:"contact" binding:"required"`
-	Description     string   `json:"description" binding:"required"`
-	PhotoURLs       []string `json:"photo_urls"`
-	FirstAreaID     int      `json:"first_area_id"`
-	FirstAreaDes    string   `json:"first_area_des" binding:"required"`
-	SecondAreaID    int      `json:"second_area_id"`
-	SecondAreaDes   string   `json:"second_area_des" binding:"required"`
-	ThirdAreaID     int      `json:"third_area_id"`
-	ThirdAreaDes    string   `json:"third_area_des"`
-	FourAreaID      int      `json:"four_area_id"`
-	FourAreaDes     string   `json:"four_area_des"`
-	SalaryMin       int      `json:"salary_min" binding:"required"`
-	SalaryMax       int      `json:"salary_max" binding:"required"`
-	BasicProtection []string `json:"basic_protection"`
-	SalaryBenefits  []string `json:"salary_benefits"`
-	AttendanceLeave []string `json:"attendance_leave"`
+	Positions         string   `json:"positions" binding:"required"`
+	CompanyName       string   `json:"company_name" binding:"required"`
+	Longitude         float64  `json:"longitude" binding:"required"`
+	Latitude          float64  `json:"latitude" binding:"required"`
+	Address           string   `json:"address" binding:"required"`
+	Contact           string   `json:"contact" binding:"required"`
+	ContactPersonName string   `json:"contact_person_name" binding:"required"`
+	Description       string   `json:"description" binding:"required"`
+	PhotoURLs         []string `json:"photo_urls"`
+	FirstAreaID       int      `json:"first_area_id"`
+	FirstAreaDes      string   `json:"first_area_des" binding:"required"`
+	SecondAreaID      int      `json:"second_area_id"`
+	SecondAreaDes     string   `json:"second_area_des" binding:"required"`
+	ThirdAreaID       int      `json:"third_area_id"`
+	ThirdAreaDes      string   `json:"third_area_des"`
+	FourAreaID        int      `json:"four_area_id"`
+	FourAreaDes       string   `json:"four_area_des"`
+	SalaryMin         int      `json:"salary_min" binding:"required"`
+	SalaryMax         int      `json:"salary_max" binding:"required"`
+	BasicProtection   []string `json:"basic_protection"`
+	SalaryBenefits    []string `json:"salary_benefits"`
+	AttendanceLeave   []string `json:"attendance_leave"`
 }
 
 type JobUpdateRequest struct {
@@ -49,7 +52,9 @@ type JobUpdateRequest struct {
 }
 
 type JobTopRequest struct {
-	JobID int64 `json:"job_id" binding:"required"`
+	JobID   int64   `json:"job_id" binding:"required"`
+	TopHour int     `json:"top_hour" binding:"required"`
+	Price   float64 `json:"price" binding:"required"`
 }
 
 type JobRefreshRequest struct {
@@ -74,6 +79,7 @@ type JobInfoRequest struct {
 
 type JobFilter struct {
 	Positions       string   `json:"positions"`
+	City            string   `json:"city"`
 	SalaryMin       int      `json:"salary_min"`
 	SalaryMax       int      `json:"salary_max"`
 	BasicProtection []string `json:"basic_protection"`
@@ -92,35 +98,33 @@ type JobListRequest struct {
 }
 
 type JobListItem struct {
-	ID              int64    `json:"id"`
-	UserID          int64    `json:"user_id"`
-	Positions       string   `json:"positions"`
-	Longitude       float64  `json:"longitude"`
-	Latitude        float64  `json:"latitude"`
-	Address         string   `json:"address"`
-	Contact         string   `json:"contact"`
-	Description     string   `json:"description"`
-	PhotoURLs       []string `json:"photo_urls"`
-	Status          int      `json:"status"`
-	FailReason      string   `json:"fail_reason"`
-	FirstAreaID     int      `json:"first_area_id"`
-	FirstAreaDes    string   `json:"first_area_des"`
-	SecondAreaID    int      `json:"second_area_id"`
-	SecondAreaDes   string   `json:"second_area_des"`
-	ThirdAreaID     int      `json:"third_area_id"`
-	ThirdAreaDes    string   `json:"third_area_des"`
-	FourAreaID      int      `json:"four_area_id"`
-	FourAreaDes     string   `json:"four_area_des"`
-	SalaryMin       int      `json:"salary_min"`
-	SalaryMax       int      `json:"salary_max"`
-	CreateAt        string   `json:"create_at"`
-	UpdateAt        string   `json:"update_at"`
-	RefreshTime     int64    `json:"refresh_time"`
-	IsTop           int      `json:"is_top"`
-	TopHour         int      `json:"top_hour"`
-	TopStartTime    string   `json:"top_start_time"`
-	TopEndTime      string   `json:"top_end_time"`
-	LastRefreshTime string   `json:"last_refresh_time,omitempty"`
+	ID                int64           `json:"id"`
+	UserID            int64           `json:"user_id"`
+	Positions         string          `json:"positions"`
+	Longitude         float64         `json:"longitude"`
+	Latitude          float64         `json:"latitude"`
+	Address           string          `json:"address"`
+	Contact           string          `json:"contact"`
+	ContactPersonName string          `json:"contact_person_name"`
+	Description       string          `json:"description"`
+	PhotoURLs         []string        `json:"photo_urls"`
+	Status            model.JobStatus `json:"status"`
+	FirstAreaID       int             `json:"first_area_id"`
+	FirstAreaDes      string          `json:"first_area_des"`
+	SecondAreaID      int             `json:"second_area_id"`
+	SecondAreaDes     string          `json:"second_area_des"`
+	ThirdAreaID       int             `json:"third_area_id"`
+	ThirdAreaDes      string          `json:"third_area_des"`
+	FourAreaID        int             `json:"four_area_id"`
+	FourAreaDes       string          `json:"four_area_des"`
+	SalaryMin         int             `json:"salary_min"`
+	SalaryMax         int             `json:"salary_max"`
+	CreateAt          string          `json:"create_at"`
+	UpdateAt          string          `json:"update_at"`
+	IsTop             int             `json:"is_top"`
+	TopStartTime      string          `json:"top_start_time"`
+	TopEndTime        string          `json:"top_end_time"`
+	LastRefreshTime   string          `json:"last_refresh_time,omitempty"`
 }
 
 type JobListResponseData struct {
@@ -140,7 +144,7 @@ type JobMyRequest struct {
 }
 
 type JobMyItem struct {
-	ID              int64  `json:"id"`
+	JobID           int64  `json:"job_id"`
 	Positions       string `json:"positions"`
 	SalaryMin       int    `json:"salary_min"`
 	SalaryMax       int    `json:"salary_max"`
@@ -154,6 +158,6 @@ type JobMyItem struct {
 }
 
 type JobMyResponseData struct {
-	Jobs  []JobMyItem `json:"jobs"`
+	List  []JobMyItem `json:"list"`
 	Total int64       `json:"total"`
 }

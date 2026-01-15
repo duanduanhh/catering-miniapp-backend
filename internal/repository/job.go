@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 )
 
@@ -13,6 +14,7 @@ type JobRepository interface {
 	List(ctx context.Context, query JobListQuery) ([]*model.Job, int64, error)
 	ListByUser(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]*model.Job, int64, error)
 	ListByIDs(ctx context.Context, ids []int64) ([]*model.Job, error)
+	CountByUser(ctx context.Context, userID int64, status model.JobStatus) (int64, error)
 }
 
 func NewJobRepository(
@@ -28,17 +30,18 @@ type jobRepository struct {
 }
 
 type JobListQuery struct {
-	QueryType        int
-	Positions        string
-	SalaryMin        int
-	SalaryMax        int
-	BasicProtection  []string
-	SalaryBenefits   []string
-	AttendanceLeave  []string
-	Longitude        float64
-	Latitude         float64
-	PageNum          int
-	PageSize         int
+	QueryType       int
+	Positions       string
+	City            string
+	SalaryMin       int
+	SalaryMax       int
+	BasicProtection []string
+	SalaryBenefits  []string
+	AttendanceLeave []string
+	Longitude       float64
+	Latitude        float64
+	PageNum         int
+	PageSize        int
 }
 
 func (r *jobRepository) Create(ctx context.Context, job *model.Job) error {
@@ -62,10 +65,13 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 		jobs  []*model.Job
 		total int64
 	)
-	db := r.DB(ctx).Model(&model.Job{}).Where("status = ?", 1)
+	db := r.DB(ctx).Model(&model.Job{}).Where("status = ?", model.JobStatusActive)
 
 	if query.Positions != "" {
 		db = db.Where("positions LIKE ?", "%"+query.Positions+"%")
+	}
+	if query.City != "" {
+		db = db.Where("second_area_des LIKE ?", "%"+query.City+"%")
 	}
 	if query.SalaryMin > 0 {
 		db = db.Where("salary_max >= ?", query.SalaryMin)
@@ -85,7 +91,9 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 
 	switch query.QueryType {
 	case 1:
-		db = db.Order("is_top DESC").Order("refresh_time DESC")
+		orderClause := "CASE WHEN top_start_time IS NOT NULL AND top_end_time IS NOT NULL AND top_start_time <= NOW() AND top_end_time >= NOW() THEN 1 ELSE 0 END DESC"
+		db = db.Order(orderClause).
+			Order("refresh_time DESC")
 	case 2:
 		if query.Longitude != 0 || query.Latitude != 0 {
 			db = db.Order(fmt.Sprintf("((longitude-%f)*(longitude-%f)+(latitude-%f)*(latitude-%f)) ASC",
@@ -145,4 +153,14 @@ func (r *jobRepository) ListByIDs(ctx context.Context, ids []int64) ([]*model.Jo
 		return nil, err
 	}
 	return jobs, nil
+}
+
+func (r *jobRepository) CountByUser(ctx context.Context, userID int64, status model.JobStatus) (int64, error) {
+	var total int64
+	if err := r.DB(ctx).Model(&model.Job{}).
+		Where("user_id = ? AND status = ?", userID, status).
+		Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
 }

@@ -2,6 +2,15 @@ package model
 
 import "time"
 
+type OrderStatus int
+
+const (
+	OrderStatusPending  OrderStatus = 1
+	OrderStatusPaid     OrderStatus = 2
+	OrderStatusCanceled OrderStatus = 3
+	OrderStatusRefunded OrderStatus = 4
+)
+
 type Order struct {
 	ID          int64      `gorm:"primaryKey;column:id"`
 	OrderNo     string     `gorm:"column:order_no"`
@@ -9,7 +18,7 @@ type Order struct {
 	AmountTotal Decimal    `gorm:"column:amount_total;type:decimal(10,2)"`
 	AmountPaid  Decimal    `gorm:"column:amount_paid;type:decimal(10,2)"`
 	Currency    string     `gorm:"column:currency"`
-	Status      int        `gorm:"column:status"`
+	Status      OrderStatus `gorm:"column:status"`
 	PayChannel  string     `gorm:"column:pay_channel"`
 	PayTradeNo  string     `gorm:"column:pay_trade_no"`
 	PaidAt      *time.Time `gorm:"column:paid_at"`
@@ -21,5 +30,5 @@ type Order struct {
 }
 
 func (m *Order) TableName() string {
-	return "order"
+	return "orders"
 }

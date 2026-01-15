@@ -2,36 +2,37 @@ package repository
 
 import (
 	"context"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 )
 
-type CostHistoryRepository interface {
-	Create(ctx context.Context, history *model.CostHistory) error
-	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.CostHistory, int64, error)
+type ContactVoucherHistoryRepository interface {
+	Create(ctx context.Context, history *model.ContactVoucherHistory) error
+	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.ContactVoucherHistory, int64, error)
 }
 
-func NewCostHistoryRepository(
+func NewContactVoucherHistoryRepository(
 	repository *Repository,
-) CostHistoryRepository {
-	return &costHistoryRepository{
+) ContactVoucherHistoryRepository {
+	return &contactVoucherHistoryRepository{
 		Repository: repository,
 	}
 }
 
-type costHistoryRepository struct {
+type contactVoucherHistoryRepository struct {
 	*Repository
 }
 
-func (r *costHistoryRepository) Create(ctx context.Context, history *model.CostHistory) error {
+func (r *contactVoucherHistoryRepository) Create(ctx context.Context, history *model.ContactVoucherHistory) error {
 	return r.DB(ctx).Create(history).Error
 }
 
-func (r *costHistoryRepository) ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.CostHistory, int64, error) {
+func (r *contactVoucherHistoryRepository) ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.ContactVoucherHistory, int64, error) {
 	var (
-		histories []*model.CostHistory
+		histories []*model.ContactVoucherHistory
 		total     int64
 	)
-	db := r.DB(ctx).Model(&model.CostHistory{}).Where("user_id = ?", userID)
+	db := r.DB(ctx).Model(&model.ContactVoucherHistory{}).Where("user_id = ?", userID)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}

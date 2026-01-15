@@ -18,17 +18,20 @@ type JobHandler struct {
 	*Handler
 	jobService   service.JobService
 	orderService service.OrderService
+	payService   service.PayService
 }
 
 func NewJobHandler(
 	handler *Handler,
 	jobService service.JobService,
 	orderService service.OrderService,
+	payService service.PayService,
 ) *JobHandler {
 	return &JobHandler{
 		Handler:      handler,
 		jobService:   jobService,
 		orderService: orderService,
+		payService:   payService,
 	}
 }
 
@@ -57,30 +60,35 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 		return
 	}
 	input := service.JobCreateInput{
-		Positions:       req.Positions,
-		CompanyName:     req.CompanyName,
-		Longitude:       req.Longitude,
-		Latitude:        req.Latitude,
-		Address:         req.Address,
-		Contact:         req.Contact,
-		Description:     req.Description,
-		PhotoURLs:       strings.Join(req.PhotoURLs, ","),
-		FirstAreaID:     req.FirstAreaID,
-		FirstAreaDes:    req.FirstAreaDes,
-		SecondAreaID:    req.SecondAreaID,
-		SecondAreaDes:   req.SecondAreaDes,
-		ThirdAreaID:     req.ThirdAreaID,
-		ThirdAreaDes:    req.ThirdAreaDes,
-		FourAreaID:      req.FourAreaID,
-		FourAreaDes:     req.FourAreaDes,
-		SalaryMin:       req.SalaryMin,
-		SalaryMax:       req.SalaryMax,
-		BasicProtection: strings.Join(req.BasicProtection, ","),
-		SalaryBenefits:  strings.Join(req.SalaryBenefits, ","),
-		AttendanceLeave: strings.Join(req.AttendanceLeave, ","),
+		Positions:          req.Positions,
+		CompanyName:        req.CompanyName,
+		Longitude:          req.Longitude,
+		Latitude:           req.Latitude,
+		Address:            req.Address,
+		Contact:            req.Contact,
+		ContanctPersonName: req.ContactPersonName,
+		Description:        req.Description,
+		PhotoURLs:          strings.Join(req.PhotoURLs, ","),
+		FirstAreaID:        req.FirstAreaID,
+		FirstAreaDes:       req.FirstAreaDes,
+		SecondAreaID:       req.SecondAreaID,
+		SecondAreaDes:      req.SecondAreaDes,
+		ThirdAreaID:        req.ThirdAreaID,
+		ThirdAreaDes:       req.ThirdAreaDes,
+		FourAreaID:         req.FourAreaID,
+		FourAreaDes:        req.FourAreaDes,
+		SalaryMin:          req.SalaryMin,
+		SalaryMax:          req.SalaryMax,
+		BasicProtection:    strings.Join(req.BasicProtection, ","),
+		SalaryBenefits:     strings.Join(req.SalaryBenefits, ","),
+		AttendanceLeave:    strings.Join(req.AttendanceLeave, ","),
 	}
 	if _, err := h.jobService.Create(ctx, userID, input); err != nil {
 		h.logger.WithContext(ctx).Error("jobService.Create error", zap.Error(err))
+		if err == service.ErrJobLimitExceeded {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+			return
+		}
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
@@ -200,6 +208,50 @@ func (h *JobHandler) Refresh(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// RefreshPay godoc
+// @Summary 付费刷新招聘信息
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobRefreshPayRequest true "params"
+// @Success 200 {object} v1.PayOrderResponseData
+// @Router /jobs/refresh/pay [post]
+func (h *JobHandler) RefreshPay(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.JobRefreshPayRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	order, _, err := h.orderService.CreateRefreshOrder(ctx, userID, req.JobID, req.Price)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("orderService.CreateRefreshOrder error", zap.Error(err))
+		if err == service.ErrForbidden {
+			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
+			return
+		}
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	params, err := h.payService.BuildJSAPIPayParams(ctx, order.OrderNo, req.Price)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("payService.BuildJSAPIPayParams error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
+		OrderID:   order.ID,
+		OrderNo:   order.OrderNo,
+		Amount:    req.Price,
+		PayParams: params,
+	})
+}
+
 // Close godoc
 // @Summary 关闭招聘信息
 // @Tags 招聘模块
@@ -253,6 +305,7 @@ func (h *JobHandler) List(ctx *gin.Context) {
 	query := repository.JobListQuery{
 		QueryType:       req.QueryType,
 		Positions:       req.Filter.Positions,
+		City:            req.Filter.City,
 		SalaryMin:       req.Filter.SalaryMin,
 		SalaryMax:       salaryMax,
 		BasicProtection: req.Filter.BasicProtection,
@@ -330,12 +383,12 @@ func (h *JobHandler) My(ctx *gin.Context) {
 		return
 	}
 	resp := v1.JobMyResponseData{
-		Jobs:  make([]v1.JobMyItem, 0, len(jobs)),
+		List:  make([]v1.JobMyItem, 0, len(jobs)),
 		Total: total,
 	}
 	for _, job := range jobs {
-		resp.Jobs = append(resp.Jobs, v1.JobMyItem{
-			ID:              job.ID,
+		resp.List = append(resp.List, v1.JobMyItem{
+			JobID:           job.ID,
 			Positions:       job.Positions,
 			SalaryMin:       job.SalaryMin,
 			SalaryMax:       job.SalaryMax,
@@ -344,8 +397,8 @@ func (h *JobHandler) My(ctx *gin.Context) {
 			ThirdAreaDes:    job.ThirdAreaDes,
 			Address:         job.Address,
 			CreateAt:        formatTime(job.CreateAt),
-			IsTop:           job.IsTop,
-			LastRefreshTime: formatTimeMillis(job.RefreshTime),
+			IsTop:           isJobTop(job),
+			LastRefreshTime: formatOptionalTime(job.RefreshTime),
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
@@ -358,7 +411,7 @@ func (h *JobHandler) My(ctx *gin.Context) {
 // @Produce json
 // @Security Bearer
 // @Param request body v1.JobTopRequest true "params"
-// @Success 200 {object} v1.JobTopResponseData
+// @Success 200 {object} v1.PayOrderResponseData
 // @Router /jobs/top [post]
 func (h *JobHandler) Top(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
@@ -371,7 +424,11 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	order, _, rule, err := h.orderService.CreateTopOrder(ctx, userID, req.JobID)
+	if req.TopHour <= 0 || req.Price <= 0 {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "top_hour and price must be positive")
+		return
+	}
+	order, _, err := h.orderService.CreateTopOrder(ctx, userID, req.JobID, req.TopHour, req.Price)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("orderService.CreateTopOrder error", zap.Error(err))
 		if err == service.ErrForbidden {
@@ -381,50 +438,63 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	v1.HandleSuccess(ctx, v1.JobTopResponseData{
+	params, err := h.payService.BuildJSAPIPayParams(ctx, order.OrderNo, req.Price)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("payService.BuildJSAPIPayParams error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
 		OrderID:   order.ID,
 		OrderNo:   order.OrderNo,
-		RuleID:    rule.RuleID,
-		Price:     rule.Price,
-		Currency:  order.Currency,
-		CreatedAt: formatTime(order.CreateAt),
+		Amount:    req.Price,
+		PayParams: params,
 	})
 }
 
 func buildJobListItem(job *model.Job) v1.JobListItem {
 	photos := splitCSV(job.PhotoURLs)
 	item := v1.JobListItem{
-		ID:              job.ID,
-		UserID:          job.UserID,
-		Positions:       job.Positions,
-		Longitude:       job.Longitude,
-		Latitude:        job.Latitude,
-		Address:         job.Address,
-		Contact:         maskPhone(job.Contact),
-		Description:     job.Description,
-		PhotoURLs:       photos,
-		Status:          job.Status,
-		FailReason:      job.FailReason,
-		FirstAreaID:     job.FirstAreaID,
-		FirstAreaDes:    job.FirstAreaDes,
-		SecondAreaID:    job.SecondAreaID,
-		SecondAreaDes:   job.SecondAreaDes,
-		ThirdAreaID:     job.ThirdAreaID,
-		ThirdAreaDes:    job.ThirdAreaDes,
-		FourAreaID:      job.FourAreaID,
-		FourAreaDes:     job.FourAreaDes,
-		SalaryMin:       job.SalaryMin,
-		SalaryMax:       job.SalaryMax,
-		CreateAt:        formatTime(job.CreateAt),
-		UpdateAt:        formatTime(job.UpdateAt),
-		RefreshTime:     job.RefreshTime,
-		IsTop:           job.IsTop,
-		TopHour:         job.TopHour,
-		TopStartTime:    formatOptionalTime(job.TopStartTime),
-		TopEndTime:      formatOptionalTime(job.TopEndTime),
-		LastRefreshTime: formatTimeMillis(job.RefreshTime),
+		ID:                job.ID,
+		UserID:            job.UserID,
+		Positions:         job.Positions,
+		Longitude:         job.Longitude,
+		Latitude:          job.Latitude,
+		Address:           job.Address,
+		Contact:           job.Contact,
+		ContactPersonName: job.ContactPersonName,
+		Description:       job.Description,
+		PhotoURLs:         photos,
+		Status:            job.Status,
+		FirstAreaID:       job.FirstAreaID,
+		FirstAreaDes:      job.FirstAreaDes,
+		SecondAreaID:      job.SecondAreaID,
+		SecondAreaDes:     job.SecondAreaDes,
+		ThirdAreaID:       job.ThirdAreaID,
+		ThirdAreaDes:      job.ThirdAreaDes,
+		FourAreaID:        job.FourAreaID,
+		FourAreaDes:       job.FourAreaDes,
+		SalaryMin:         job.SalaryMin,
+		SalaryMax:         job.SalaryMax,
+		CreateAt:          formatTime(job.CreateAt),
+		UpdateAt:          formatTime(job.UpdateAt),
+		IsTop:             isJobTop(job),
+		TopStartTime:      formatOptionalTime(job.TopStartTime),
+		TopEndTime:        formatOptionalTime(job.TopEndTime),
+		LastRefreshTime:   formatOptionalTime(job.RefreshTime),
 	}
 	return item
+}
+
+func isJobTop(job *model.Job) int {
+	if job == nil || job.TopStartTime == nil || job.TopEndTime == nil {
+		return 0
+	}
+	now := time.Now()
+	if now.Before(*job.TopStartTime) || now.After(*job.TopEndTime) {
+		return 0
+	}
+	return 1
 }
 
 func splitCSV(value string) []string {

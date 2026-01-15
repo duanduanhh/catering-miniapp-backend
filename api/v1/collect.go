@@ -7,6 +7,6 @@ type CollectMyRequest struct {
 }
 
 type CollectMyResponseData struct {
-	Jobs  []JobMyItem `json:"jobs"`
+	List  []JobMyItem `json:"list"`
 	Total int64       `json:"total"`
 }
