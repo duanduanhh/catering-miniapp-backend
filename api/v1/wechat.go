@@ -14,6 +14,6 @@ type WechatLoginUserInfo struct {
 
 type WechatRegisterRequest struct {
 	PhoneCode string `json:"phone_code" binding:"required"`
-	LoginCode string `json:"loginCode" binding:"required"`
+	LoginCode string `json:"login_code" binding:"required"`
 	InviterID int64  `json:"inviter_id"`
 }

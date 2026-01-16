@@ -7,14 +7,16 @@ type ContactHistoryListRequest struct {
 }
 
 type ContactHistoryItem struct {
-	ID              int64  `json:"id"`
-	Positions       string `json:"positions"`
-	Address         string `json:"address"`
-	PurposeUserName string `json:"purpose_user_name"`
-	CreateAt        string `json:"create_at"`
+	ID               int64  `json:"id"`
+	Positions        string `json:"positions"`
+	Address          string `json:"address"`
+	PurposeUserID    int64  `json:"purpose_user_id"`
+	PurposeUserName  string `json:"purpose_user_name"`
+	PurposeUserPhone string `json:"purpose_user_phone"`
+	CreateAt         string `json:"create_at"`
 }
 
 type ContactHistoryListResponseData struct {
-	Contacts []ContactHistoryItem `json:"contacts"`
-	Total    int64                `json:"total"`
+	List  []ContactHistoryItem `json:"list"`
+	Total int64                `json:"total"`
 }

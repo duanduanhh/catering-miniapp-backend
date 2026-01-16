@@ -126,7 +126,7 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 			Address:         job.Address,
 			CreateAt:        formatTime(job.CreateAt),
 			IsTop:           isJobTop(job),
-			LastRefreshTime: formatTime(*job.RefreshTime),
+			LastRefreshTime: formatOptionalTime(job.RefreshTime),
 		})
 	}
 	v1.HandleSuccess(ctx, resp)

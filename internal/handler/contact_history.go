@@ -15,11 +15,11 @@ type ContactHistoryHandler struct {
 }
 
 func NewContactHistoryHandler(
-    handler *Handler,
-    contactHistoryService service.ContactHistoryService,
+	handler *Handler,
+	contactHistoryService service.ContactHistoryService,
 ) *ContactHistoryHandler {
 	return &ContactHistoryHandler{
-		Handler:      handler,
+		Handler:               handler,
 		contactHistoryService: contactHistoryService,
 	}
 }
@@ -55,16 +55,18 @@ func (h *ContactHistoryHandler) ListOut(ctx *gin.Context) {
 		return
 	}
 	resp := v1.ContactHistoryListResponseData{
-		Contacts: make([]v1.ContactHistoryItem, 0, len(items)),
-		Total:    total,
+		List:  make([]v1.ContactHistoryItem, 0, len(items)),
+		Total: total,
 	}
 	for _, item := range items {
-		resp.Contacts = append(resp.Contacts, v1.ContactHistoryItem{
-			ID:              item.ID,
-			Positions:       item.Positions,
-			Address:         item.Address,
-			PurposeUserName: item.PurposeUserName,
-			CreateAt:        formatTime(item.CreateAt),
+		resp.List = append(resp.List, v1.ContactHistoryItem{
+			ID:               item.ID,
+			Positions:        item.Positions,
+			Address:          item.Address,
+			PurposeUserID:    item.PurposeUserID,
+			PurposeUserName:  item.PurposeUserName,
+			PurposeUserPhone: item.PurposeUserPhone,
+			CreateAt:         formatTime(item.CreateAt),
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
@@ -97,11 +99,11 @@ func (h *ContactHistoryHandler) ListIn(ctx *gin.Context) {
 		return
 	}
 	resp := v1.ContactHistoryListResponseData{
-		Contacts: make([]v1.ContactHistoryItem, 0, len(items)),
-		Total:    total,
+		List:  make([]v1.ContactHistoryItem, 0, len(items)),
+		Total: total,
 	}
 	for _, item := range items {
-		resp.Contacts = append(resp.Contacts, v1.ContactHistoryItem{
+		resp.List = append(resp.List, v1.ContactHistoryItem{
 			ID:              item.ID,
 			Positions:       item.Positions,
 			Address:         item.Address,

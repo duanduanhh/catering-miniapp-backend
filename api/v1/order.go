@@ -42,6 +42,7 @@ type ContactVoucherCostRequest struct {
 	PurposeID        *int64  `json:"purpose_id"`
 	PurposeType      *int    `json:"purpose_type"`
 	PurposeUserID    *int64  `json:"purpose_user_id"`
+	PurposeUserName  *string `json:"purpose_user_name"`
 	PurposeUserPhone *string `json:"purpose_user_phone"`
 }
 

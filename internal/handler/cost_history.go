@@ -116,6 +116,7 @@ func (h *ContactVoucherHistoryHandler) Cost(ctx *gin.Context) {
 			PurposeID:        *req.PurposeID,
 			PurposeType:      *req.PurposeType,
 			PurposeUserID:    getInt64(req.PurposeUserID),
+			PurposeUserName:  getString(req.PurposeUserName),
 			PurposeUserPhone: getString(req.PurposeUserPhone),
 		})
 	}

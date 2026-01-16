@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
-	"time"
 )
 
 type ContactHistoryService interface {
@@ -12,17 +13,18 @@ type ContactHistoryService interface {
 	ListOut(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]ContactHistoryItem, int64, error)
 	ListIn(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]ContactHistoryItem, int64, error)
 }
+
 func NewContactHistoryService(
-    service *Service,
-    contactHistoryRepository repository.ContactHistoryRepository,
+	service *Service,
+	contactHistoryRepository repository.ContactHistoryRepository,
 	jobRepository repository.JobRepository,
 	userRepository repository.UserRepository,
 ) ContactHistoryService {
 	return &contactHistoryService{
-		Service:        service,
+		Service:                  service,
 		contactHistoryRepository: contactHistoryRepository,
-		jobRepository: jobRepository,
-		userRepository: userRepository,
+		jobRepository:            jobRepository,
+		userRepository:           userRepository,
 	}
 }
 
@@ -38,15 +40,18 @@ type ContactHistoryCreateInput struct {
 	PurposeID        int64
 	PurposeType      int
 	PurposeUserID    int64
+	PurposeUserName  string
 	PurposeUserPhone string
 }
 
 type ContactHistoryItem struct {
-	ID              int64
-	Positions       string
-	Address         string
-	PurposeUserName string
-	CreateAt        time.Time
+	ID               int64
+	Positions        string
+	Address          string
+	PurposeUserID    int64
+	PurposeUserName  string
+	PurposeUserPhone string
+	CreateAt         time.Time
 }
 
 func (s *contactHistoryService) Create(ctx context.Context, input ContactHistoryCreateInput) (*model.ContactHistory, error) {
@@ -55,6 +60,7 @@ func (s *contactHistoryService) Create(ctx context.Context, input ContactHistory
 		PurposeID:        input.PurposeID,
 		PurposeType:      input.PurposeType,
 		PurposeUserID:    input.PurposeUserID,
+		PurposeUserName:  input.PurposeUserName,
 		PurposeUserPhone: input.PurposeUserPhone,
 		CreateAt:         time.Now(),
 		UpdateAt:         time.Now(),
@@ -89,29 +95,24 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 		userIDs = append(userIDs, item.PurposeUserID)
 	}
 	jobs, _ := s.jobRepository.ListByIDs(ctx, jobIDs)
-	users, _ := s.userRepository.ListByIDs(ctx, userIDs)
 
 	jobMap := make(map[int64]*model.Job, len(jobs))
 	for _, job := range jobs {
 		jobMap[job.ID] = job
 	}
-	userMap := make(map[int64]*model.User, len(users))
-	for _, user := range users {
-		userMap[user.ID] = user
-	}
 
 	items := make([]ContactHistoryItem, 0, len(histories))
 	for _, history := range histories {
 		item := ContactHistoryItem{
-			ID:       history.ID,
-			CreateAt: history.CreateAt,
+			ID:               history.ID,
+			CreateAt:         history.CreateAt,
+			PurposeUserID:    history.PurposeID,
+			PurposeUserName:  history.PurposeUserName,
+			PurposeUserPhone: history.PurposeUserPhone,
 		}
 		if job, ok := jobMap[history.PurposeID]; ok {
 			item.Positions = job.Positions
 			item.Address = job.Address
-		}
-		if user, ok := userMap[history.PurposeUserID]; ok {
-			item.PurposeUserName = user.Name
 		}
 		items = append(items, item)
 	}
