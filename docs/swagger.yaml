@@ -1,4 +1,16 @@
 definitions:
+  model.JobStatus:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    type: integer
+    x-enum-varnames:
+    - JobStatusActive
+    - JobStatusUserClosed
+    - JobStatusAdminDisabled
+    - JobStatusDeleted
   v1.CollectMyRequest:
     properties:
       biz_type:
@@ -10,7 +22,7 @@ definitions:
     type: object
   v1.CollectMyResponseData:
     properties:
-      jobs:
+      list:
         items:
           $ref: '#/definitions/v1.JobMyItem'
         type: array
@@ -27,7 +39,11 @@ definitions:
         type: integer
       positions:
         type: string
+      purpose_user_id:
+        type: integer
       purpose_user_name:
+        type: string
+      purpose_user_phone:
         type: string
     type: object
   v1.ContactHistoryListRequest:
@@ -41,7 +57,7 @@ definitions:
     type: object
   v1.ContactHistoryListResponseData:
     properties:
-      contacts:
+      list:
         items:
           $ref: '#/definitions/v1.ContactHistoryItem'
         type: array
@@ -58,21 +74,6 @@ definitions:
     - contact_voucher_num
     - price
     type: object
-  v1.ContactVoucherBuyResponseData:
-    properties:
-      buyer_user_id:
-        type: integer
-      contact_voucher_num:
-        type: integer
-      created_at:
-        type: string
-      order_id:
-        type: integer
-      order_no:
-        type: string
-      price:
-        type: number
-    type: object
   v1.ContactVoucherCostRequest:
     properties:
       purpose_id:
@@ -81,9 +82,19 @@ definitions:
         type: integer
       purpose_user_id:
         type: integer
+      purpose_user_name:
+        type: string
       purpose_user_phone:
         type: string
     type: object
+  v1.ContactVoucherRecordType:
+    enum:
+    - buy
+    - cost
+    type: string
+    x-enum-varnames:
+    - ContactVoucherRecordBuy
+    - ContactVoucherRecordCost
   v1.ContactVoucherRecordsItem:
     properties:
       change_num:
@@ -95,7 +106,7 @@ definitions:
       title:
         type: string
       type:
-        type: string
+        $ref: '#/definitions/v1.ContactVoucherRecordType'
     type: object
   v1.ContactVoucherRecordsResponseData:
     properties:
@@ -106,6 +117,15 @@ definitions:
           $ref: '#/definitions/v1.ContactVoucherRecordsItem'
         type: array
       list_total:
+        type: integer
+    type: object
+  v1.GetPositionCategoryResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.PositionCategory'
+        type: array
+      total:
         type: integer
     type: object
   v1.JobCancelCollectRequest:
@@ -144,6 +164,8 @@ definitions:
       company_name:
         type: string
       contact:
+        type: string
+      contact_person_name:
         type: string
       description:
         type: string
@@ -185,6 +207,7 @@ definitions:
     - address
     - company_name
     - contact
+    - contact_person_name
     - description
     - first_area_des
     - latitude
@@ -204,6 +227,8 @@ definitions:
         items:
           type: string
         type: array
+      city:
+        type: string
       latitude:
         type: number
       longitude:
@@ -232,11 +257,11 @@ definitions:
         type: string
       contact:
         type: string
+      contact_person_name:
+        type: string
       create_at:
         type: string
       description:
-        type: string
-      fail_reason:
         type: string
       first_area_des:
         type: string
@@ -262,8 +287,6 @@ definitions:
         type: array
       positions:
         type: string
-      refresh_time:
-        type: integer
       salary_max:
         type: integer
       salary_min:
@@ -273,15 +296,13 @@ definitions:
       second_area_id:
         type: integer
       status:
-        type: integer
+        $ref: '#/definitions/model.JobStatus'
       third_area_des:
         type: string
       third_area_id:
         type: integer
       top_end_time:
         type: string
-      top_hour:
-        type: integer
       top_start_time:
         type: string
       update_at:
@@ -328,9 +349,9 @@ definitions:
         type: string
       first_area_des:
         type: string
-      id:
-        type: integer
       is_top:
+        type: integer
+      job_id:
         type: integer
       last_refresh_time:
         type: string
@@ -356,12 +377,22 @@ definitions:
     type: object
   v1.JobMyResponseData:
     properties:
-      jobs:
+      list:
         items:
           $ref: '#/definitions/v1.JobMyItem'
         type: array
       total:
         type: integer
+    type: object
+  v1.JobRefreshPayRequest:
+    properties:
+      job_id:
+        type: integer
+      price:
+        type: number
+    required:
+    - job_id
+    - price
     type: object
   v1.JobRefreshRequest:
     properties:
@@ -374,23 +405,14 @@ definitions:
     properties:
       job_id:
         type: integer
-    required:
-    - job_id
-    type: object
-  v1.JobTopResponseData:
-    properties:
-      created_at:
-        type: string
-      currency:
-        type: string
-      order_id:
-        type: integer
-      order_no:
-        type: string
       price:
         type: number
-      rule_id:
+      top_hour:
         type: integer
+    required:
+    - job_id
+    - price
+    - top_hour
     type: object
   v1.JobUpdateRequest:
     properties:
@@ -446,6 +468,48 @@ definitions:
         type: integer
     required:
     - id
+    type: object
+  v1.PayOrderResponseData:
+    properties:
+      amount:
+        type: number
+      order_id:
+        type: integer
+      order_no:
+        type: string
+      pay_params:
+        $ref: '#/definitions/v1.PayParams'
+    type: object
+  v1.PayParams:
+    properties:
+      nonceStr:
+        type: string
+      package:
+        type: string
+      paySign:
+        type: string
+      signType:
+        type: string
+      timeStamp:
+        type: string
+    type: object
+  v1.PositionCategory:
+    properties:
+      category_name:
+        type: string
+      id:
+        type: integer
+      subcategories:
+        items:
+          $ref: '#/definitions/v1.PositionSubcategory'
+        type: array
+    type: object
+  v1.PositionSubcategory:
+    properties:
+      id:
+        type: integer
+      subcategory_name:
+        type: string
     type: object
   v1.Response:
     properties:
@@ -525,6 +589,19 @@ definitions:
       id:
         type: integer
     type: object
+  v1.WechatPayNotifyRequest:
+    properties:
+      amount:
+        type: number
+      order_no:
+        type: string
+      pay_channel:
+        type: string
+      pay_trade_no:
+        type: string
+    required:
+    - order_no
+    type: object
   v1.WechatPayRequest:
     properties:
       order_id:
@@ -538,12 +615,12 @@ definitions:
     properties:
       inviter_id:
         type: integer
-      loginCode:
+      login_code:
         type: string
       phone_code:
         type: string
     required:
-    - loginCode
+    - login_code
     - phone_code
     type: object
 host: localhost:8000
@@ -646,7 +723,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.ContactVoucherBuyResponseData'
+            $ref: '#/definitions/v1.PayOrderResponseData'
       security:
       - Bearer: []
       summary: 联系券充值
@@ -675,7 +752,7 @@ paths:
       summary: 联系券消费
       tags:
       - 联系券模块
-  /contact_voucher/my:
+  /contact_voucher/records:
     post:
       consumes:
       - application/json
@@ -900,6 +977,29 @@ paths:
       summary: 刷新招聘信息
       tags:
       - 招聘模块
+  /jobs/refresh/pay:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.JobRefreshPayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.PayOrderResponseData'
+      security:
+      - Bearer: []
+      summary: 付费刷新招聘信息
+      tags:
+      - 招聘模块
   /jobs/top:
     post:
       consumes:
@@ -917,7 +1017,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.JobTopResponseData'
+            $ref: '#/definitions/v1.PayOrderResponseData'
       security:
       - Bearer: []
       summary: 置顶招聘信息
@@ -946,6 +1046,20 @@ paths:
       summary: 修改招聘信息
       tags:
       - 招聘模块
+  /positions/all:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.GetPositionCategoryResponseData'
+      summary: 获取岗位分类列表
+      tags:
+      - 通用接口
   /user/info:
     get:
       consumes:
@@ -1029,6 +1143,27 @@ paths:
       security:
       - Bearer: []
       summary: 微信支付
+      tags:
+      - 支付模块
+  /wechat/pay/notify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.WechatPayNotifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 微信支付回调
       tags:
       - 支付模块
   /wechat/user/login:

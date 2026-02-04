@@ -170,7 +170,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.ContactVoucherBuyResponseData"
+                            "$ref": "#/definitions/v1.PayOrderResponseData"
                         }
                     }
                 }
@@ -214,7 +214,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/contact_voucher/my": {
+        "/contact_voucher/records": {
             "post": {
                 "security": [
                     {
@@ -582,6 +582,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/refresh/pay": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "付费刷新招聘信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.JobRefreshPayRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.PayOrderResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/jobs/top": {
             "post": {
                 "security": [
@@ -614,7 +652,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.JobTopResponseData"
+                            "$ref": "#/definitions/v1.PayOrderResponseData"
                         }
                     }
                 }
@@ -653,6 +691,28 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/positions/all": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "通用接口"
+                ],
+                "summary": "获取岗位分类列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.GetPositionCategoryResponseData"
                         }
                     }
                 }
@@ -799,6 +859,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/wechat/pay/notify": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "微信支付回调",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.WechatPayNotifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/wechat/user/login": {
             "post": {
                 "consumes": [
@@ -867,6 +960,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.JobStatus": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "JobStatusActive",
+                "JobStatusUserClosed",
+                "JobStatusAdminDisabled",
+                "JobStatusDeleted"
+            ]
+        },
         "v1.CollectMyRequest": {
             "type": "object",
             "properties": {
@@ -884,7 +992,7 @@ const docTemplate = `{
         "v1.CollectMyResponseData": {
             "type": "object",
             "properties": {
-                "jobs": {
+                "list": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.JobMyItem"
@@ -910,7 +1018,13 @@ const docTemplate = `{
                 "positions": {
                     "type": "string"
                 },
+                "purpose_user_id": {
+                    "type": "integer"
+                },
                 "purpose_user_name": {
+                    "type": "string"
+                },
+                "purpose_user_phone": {
                     "type": "string"
                 }
             }
@@ -932,7 +1046,7 @@ const docTemplate = `{
         "v1.ContactHistoryListResponseData": {
             "type": "object",
             "properties": {
-                "contacts": {
+                "list": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.ContactHistoryItem"
@@ -958,29 +1072,6 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.ContactVoucherBuyResponseData": {
-            "type": "object",
-            "properties": {
-                "buyer_user_id": {
-                    "type": "integer"
-                },
-                "contact_voucher_num": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "order_id": {
-                    "type": "integer"
-                },
-                "order_no": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                }
-            }
-        },
         "v1.ContactVoucherCostRequest": {
             "type": "object",
             "properties": {
@@ -993,10 +1084,24 @@ const docTemplate = `{
                 "purpose_user_id": {
                     "type": "integer"
                 },
+                "purpose_user_name": {
+                    "type": "string"
+                },
                 "purpose_user_phone": {
                     "type": "string"
                 }
             }
+        },
+        "v1.ContactVoucherRecordType": {
+            "type": "string",
+            "enum": [
+                "buy",
+                "cost"
+            ],
+            "x-enum-varnames": [
+                "ContactVoucherRecordBuy",
+                "ContactVoucherRecordCost"
+            ]
         },
         "v1.ContactVoucherRecordsItem": {
             "type": "object",
@@ -1014,7 +1119,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "$ref": "#/definitions/v1.ContactVoucherRecordType"
                 }
             }
         },
@@ -1031,6 +1136,20 @@ const docTemplate = `{
                     }
                 },
                 "list_total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.GetPositionCategoryResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.PositionCategory"
+                    }
+                },
+                "total": {
                     "type": "integer"
                 }
             }
@@ -1074,6 +1193,7 @@ const docTemplate = `{
                 "address",
                 "company_name",
                 "contact",
+                "contact_person_name",
                 "description",
                 "first_area_des",
                 "latitude",
@@ -1103,6 +1223,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "contact": {
+                    "type": "string"
+                },
+                "contact_person_name": {
                     "type": "string"
                 },
                 "description": {
@@ -1176,6 +1299,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "city": {
+                    "type": "string"
+                },
                 "latitude": {
                     "type": "number"
                 },
@@ -1219,13 +1345,13 @@ const docTemplate = `{
                 "contact": {
                     "type": "string"
                 },
+                "contact_person_name": {
+                    "type": "string"
+                },
                 "create_at": {
                     "type": "string"
                 },
                 "description": {
-                    "type": "string"
-                },
-                "fail_reason": {
                     "type": "string"
                 },
                 "first_area_des": {
@@ -1264,9 +1390,6 @@ const docTemplate = `{
                 "positions": {
                     "type": "string"
                 },
-                "refresh_time": {
-                    "type": "integer"
-                },
                 "salary_max": {
                     "type": "integer"
                 },
@@ -1280,7 +1403,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/model.JobStatus"
                 },
                 "third_area_des": {
                     "type": "string"
@@ -1290,9 +1413,6 @@ const docTemplate = `{
                 },
                 "top_end_time": {
                     "type": "string"
-                },
-                "top_hour": {
-                    "type": "integer"
                 },
                 "top_start_time": {
                     "type": "string"
@@ -1365,10 +1485,10 @@ const docTemplate = `{
                 "first_area_des": {
                     "type": "string"
                 },
-                "id": {
+                "is_top": {
                     "type": "integer"
                 },
-                "is_top": {
+                "job_id": {
                     "type": "integer"
                 },
                 "last_refresh_time": {
@@ -1408,7 +1528,7 @@ const docTemplate = `{
         "v1.JobMyResponseData": {
             "type": "object",
             "properties": {
-                "jobs": {
+                "list": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.JobMyItem"
@@ -1416,6 +1536,21 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.JobRefreshPayRequest": {
+            "type": "object",
+            "required": [
+                "job_id",
+                "price"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
                 }
             }
         },
@@ -1433,33 +1568,18 @@ const docTemplate = `{
         "v1.JobTopRequest": {
             "type": "object",
             "required": [
-                "job_id"
+                "job_id",
+                "price",
+                "top_hour"
             ],
             "properties": {
                 "job_id": {
                     "type": "integer"
-                }
-            }
-        },
-        "v1.JobTopResponseData": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
-                },
-                "order_id": {
-                    "type": "integer"
-                },
-                "order_no": {
-                    "type": "string"
                 },
                 "price": {
                     "type": "number"
                 },
-                "rule_id": {
+                "top_hour": {
                     "type": "integer"
                 }
             }
@@ -1544,6 +1664,71 @@ const docTemplate = `{
                 },
                 "third_area_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.PayOrderResponseData": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "pay_params": {
+                    "$ref": "#/definitions/v1.PayParams"
+                }
+            }
+        },
+        "v1.PayParams": {
+            "type": "object",
+            "properties": {
+                "nonceStr": {
+                    "type": "string"
+                },
+                "package": {
+                    "type": "string"
+                },
+                "paySign": {
+                    "type": "string"
+                },
+                "signType": {
+                    "type": "string"
+                },
+                "timeStamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.PositionCategory": {
+            "type": "object",
+            "properties": {
+                "category_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "subcategories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.PositionSubcategory"
+                    }
+                }
+            }
+        },
+        "v1.PositionSubcategory": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "subcategory_name": {
+                    "type": "string"
                 }
             }
         },
@@ -1668,6 +1853,26 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.WechatPayNotifyRequest": {
+            "type": "object",
+            "required": [
+                "order_no"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "pay_channel": {
+                    "type": "string"
+                },
+                "pay_trade_no": {
+                    "type": "string"
+                }
+            }
+        },
         "v1.WechatPayRequest": {
             "type": "object",
             "properties": {
@@ -1685,14 +1890,14 @@ const docTemplate = `{
         "v1.WechatRegisterRequest": {
             "type": "object",
             "required": [
-                "loginCode",
+                "login_code",
                 "phone_code"
             ],
             "properties": {
                 "inviter_id": {
                     "type": "integer"
                 },
-                "loginCode": {
+                "login_code": {
                     "type": "string"
                 },
                 "phone_code": {

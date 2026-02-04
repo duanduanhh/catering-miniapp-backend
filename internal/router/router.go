@@ -18,4 +18,5 @@ type RouterDeps struct {
 	ContactVoucherHistoryHandler *handler.ContactVoucherHistoryHandler
 	WechatHandler                *handler.WechatHandler
 	UploadHandler                *handler.UploadHandler
+	PositionCategoryHandler      *handler.PositionCategoryHandler
 }
