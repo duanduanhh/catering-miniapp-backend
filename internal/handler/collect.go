@@ -4,9 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
-	"go.uber.org/zap"
 )
 
 type CollectHandler struct {
@@ -24,9 +25,7 @@ func NewCollectHandler(
 	}
 }
 
-func (h *CollectHandler) GetCollect(ctx *gin.Context) {
-
-}
+func (h *CollectHandler) GetCollect(ctx *gin.Context) {}
 
 // Collect godoc
 // @Summary 收藏招聘信息

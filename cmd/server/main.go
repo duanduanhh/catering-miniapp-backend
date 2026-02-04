@@ -5,10 +5,11 @@ import (
 	"flag"
 	"fmt"
 
+	"go.uber.org/zap"
+
 	"github.com/go-nunu/nunu-layout-advanced/cmd/server/wire"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/config"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
-	"go.uber.org/zap"
 )
 
 // @title           Nunu Example API

@@ -2,8 +2,9 @@ package job
 
 import (
 	"context"
-	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 	"time"
+
+	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 )
 
 type UserJob interface {

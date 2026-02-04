@@ -5,20 +5,21 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/jwt"
-	"github.com/go-nunu/nunu-layout-advanced/test/mocks/repository"
 	"os"
 	"testing"
 
-	"github.com/go-nunu/nunu-layout-advanced/internal/model"
-	"github.com/go-nunu/nunu-layout-advanced/internal/service"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/config"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/sid"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
+
+	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
+	"github.com/go-nunu/nunu-layout-advanced/internal/model"
+	"github.com/go-nunu/nunu-layout-advanced/internal/service"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/config"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/jwt"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/sid"
+	"github.com/go-nunu/nunu-layout-advanced/test/mocks/repository"
 )
 
 var (

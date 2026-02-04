@@ -2,11 +2,12 @@ package app
 
 import (
 	"context"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/server"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/go-nunu/nunu-layout-advanced/pkg/server"
 )
 
 type App struct {

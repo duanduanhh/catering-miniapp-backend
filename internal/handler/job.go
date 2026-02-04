@@ -1,17 +1,18 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
-	"go.uber.org/zap"
 )
 
 type JobHandler struct {
@@ -171,7 +172,7 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 
 func validatePhotoURLs(urls []string) error {
 	if len(urls) > 4 {
-		return fmt.Errorf("photo_urls exceeds 4 images")
+		return errors.New("photo_urls exceeds 4 images")
 	}
 	return nil
 }

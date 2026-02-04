@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
+
+	"gorm.io/gorm"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
-	"gorm.io/gorm"
-	"time"
 )
 
 type CollectService interface {
@@ -14,15 +16,16 @@ type CollectService interface {
 	Cancel(ctx context.Context, userID, contentID int64, bizType int) error
 	ListByUser(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]*model.Job, int64, error)
 }
+
 func NewCollectService(
-    service *Service,
-    collectRepository repository.CollectRepository,
+	service *Service,
+	collectRepository repository.CollectRepository,
 	jobRepository repository.JobRepository,
 ) CollectService {
 	return &collectService{
-		Service:        service,
+		Service:           service,
 		collectRepository: collectRepository,
-		jobRepository: jobRepository,
+		jobRepository:     jobRepository,
 	}
 }
 

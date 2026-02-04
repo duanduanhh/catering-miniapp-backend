@@ -1,10 +1,10 @@
 package model
 
 type PositionCategory struct {
-	ID            int64               `gorm:"primaryKey" json:"id"`
-	CategoryName  string              `gorm:"size:64;not null" json:"category_name"`
-	SortOrder     int                 `gorm:"not null;default:0" json:"-"`
-	Status        int8                `gorm:"not null;default:1" json:"-"`
+	ID            int64                 `gorm:"primaryKey" json:"id"`
+	CategoryName  string                `gorm:"size:64;not null" json:"category_name"`
+	SortOrder     int                   `gorm:"not null;default:0" json:"-"`
+	Status        int8                  `gorm:"not null;default:1" json:"-"`
 	Subcategories []PositionSubcategory `gorm:"foreignKey:CategoryID" json:"subcategories"`
 }
 

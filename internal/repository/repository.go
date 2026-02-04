@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/glebarez/sqlite"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/zapgorm2"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,15 +13,18 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"time"
+
+	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/zapgorm2"
 )
 
 const ctxTxKey = "TxKey"
 
 type Repository struct {
 	db *gorm.DB
-	//rdb    *redis.Client
-	//mongo  *mongo.Client
+
+	// rdb    *redis.Client
+	// mongo  *mongo.Client
 	logger *log.Logger
 }
 
@@ -34,8 +37,8 @@ func NewRepository(
 ) *Repository {
 	return &Repository{
 		db: db,
-		//rdb:    rdb,
-		//mongo:  mongo,
+		// rdb:    rdb,
+		// mongo:  mongo,
 		logger: logger,
 	}
 }
@@ -108,6 +111,7 @@ func NewDB(conf *viper.Viper, l *log.Logger) *gorm.DB {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	return db
 }
+
 func NewRedis(conf *viper.Viper) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     conf.GetString("data.redis.addr"),
@@ -125,6 +129,7 @@ func NewRedis(conf *viper.Viper) *redis.Client {
 
 	return rdb
 }
+
 func NewMongo(conf *viper.Viper) (*mongo.Client, func(), error) {
 	// https://www.mongodb.com/zh-cn/docs/drivers/go/current/
 	uri := conf.GetString("data.mongo.uri")

@@ -37,7 +37,7 @@ func (d Decimal) Value() (driver.Value, error) {
 	return d.value, nil
 }
 
-func (d *Decimal) Scan(value interface{}) error {
+func (d *Decimal) Scan(value any) error {
 	switch v := value.(type) {
 	case nil:
 		d.value = "0.00"

@@ -52,7 +52,7 @@ func (j *JWT) ParseToken(tokenString string) (*MyCustomClaims, error) {
 	if strings.TrimSpace(tokenString) == "" {
 		return nil, errors.New("token is empty")
 	}
-	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (any, error) {
 		return j.key, nil
 	})
 	if err != nil {

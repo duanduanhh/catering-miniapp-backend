@@ -3,9 +3,11 @@ package repository
 import (
 	"context"
 	"errors"
+
+	"gorm.io/gorm"
+
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
-	"gorm.io/gorm"
 )
 
 type UserRepository interface {

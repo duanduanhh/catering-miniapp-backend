@@ -2,13 +2,16 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
+	"io"
+	"time"
+
 	"github.com/duke-git/lancet/v2/cryptor"
 	"github.com/duke-git/lancet/v2/random"
 	"github.com/gin-gonic/gin"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"go.uber.org/zap"
-	"io"
-	"time"
+
+	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 )
 
 func RequestLogMiddleware(logger *log.Logger) gin.HandlerFunc {
@@ -26,12 +29,22 @@ func RequestLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 		if ctx.Request.Body != nil {
 			bodyBytes, _ := ctx.GetRawData()
 			ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes)) // 关键点
-			logger.WithValue(ctx, zap.String("request_params", string(bodyBytes)))
+
+			// Format JSON request body for better readability
+			var formattedBody any
+			if len(bodyBytes) > 0 {
+				if err := json.Unmarshal(bodyBytes, &formattedBody); err == nil {
+					logger.WithValue(ctx, zap.Any("request_params", formattedBody))
+				} else {
+					logger.WithValue(ctx, zap.String("request_params", string(bodyBytes)))
+				}
+			}
 		}
 		logger.WithContext(ctx).Info("Request")
 		ctx.Next()
 	}
 }
+
 func ResponseLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
@@ -39,7 +52,16 @@ func ResponseLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 		startTime := time.Now()
 		ctx.Next()
 		duration := time.Since(startTime).String()
-		logger.WithContext(ctx).Info("Response", zap.Any("response_body", blw.body.String()), zap.Any("time", duration))
+
+		// Format JSON response body for better readability
+		responseBody := blw.body.String()
+		var formattedBody any
+		if err := json.Unmarshal([]byte(responseBody), &formattedBody); err == nil {
+			logger.WithContext(ctx).Info("Response", zap.Any("response_body", formattedBody), zap.Any("time", duration))
+		} else {
+			// Fallback to string if JSON parsing fails
+			logger.WithContext(ctx).Info("Response", zap.String("response_body", responseBody), zap.Any("time", duration))
+		}
 	}
 }
 

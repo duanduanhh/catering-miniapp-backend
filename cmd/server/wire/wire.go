@@ -4,6 +4,9 @@
 package wire
 
 import (
+	"github.com/google/wire"
+	"github.com/spf13/viper"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/handler"
 	"github.com/go-nunu/nunu-layout-advanced/internal/job"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
@@ -15,14 +18,12 @@ import (
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/server/http"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/sid"
-	"github.com/google/wire"
-	"github.com/spf13/viper"
 )
 
 var repositorySet = wire.NewSet(
 	repository.NewDB,
-	//repository.NewRedis,
-	//repository.NewMongo,
+	// repository.NewRedis,
+	// repository.NewMongo,
 	repository.NewRepository,
 	repository.NewTransaction,
 	repository.NewUserRepository,

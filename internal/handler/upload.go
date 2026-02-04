@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -9,9 +10,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
-	"go.uber.org/zap"
 )
 
 type UploadHandler struct {
@@ -72,13 +74,13 @@ func (h *UploadHandler) UploadImage(ctx *gin.Context) {
 func validateImageFile(file *multipart.FileHeader) error {
 	const maxSize = 20 * 1024 * 1024
 	if file.Size > maxSize {
-		return fmt.Errorf("image size exceeds 20MB")
+		return errors.New("image size exceeds 20MB")
 	}
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".bmp", ".webp":
 		return nil
 	default:
-		return fmt.Errorf("unsupported image format")
+		return errors.New("unsupported image format")
 	}
 }

@@ -8,9 +8,10 @@ import (
 
 	"github.com/duke-git/lancet/v2/cryptor"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
-	"github.com/spf13/viper"
 )
 
 func SignMiddleware(logger *log.Logger, conf *viper.Viper) gin.HandlerFunc {

@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/jwt"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
-	"go.uber.org/zap"
 )
 
 func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
@@ -18,7 +19,7 @@ func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
 				ctx.Next()
 				return
 			}
-			logger.WithContext(ctx).Warn("No token", zap.Any("data", map[string]interface{}{
+			logger.WithContext(ctx).Warn("No token", zap.Any("data", map[string]any{
 				"url":    ctx.Request.URL,
 				"params": ctx.Params,
 			}))
@@ -29,7 +30,7 @@ func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
 
 		claims, err := j.ParseToken(tokenString)
 		if err != nil {
-			logger.WithContext(ctx).Error("token error", zap.Any("data", map[string]interface{}{
+			logger.WithContext(ctx).Error("token error", zap.Any("data", map[string]any{
 				"url":    ctx.Request.URL,
 				"params": ctx.Params,
 			}), zap.Error(err))

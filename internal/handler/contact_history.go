@@ -4,9 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
-	"go.uber.org/zap"
 )
 
 type ContactHistoryHandler struct {
@@ -24,9 +25,7 @@ func NewContactHistoryHandler(
 	}
 }
 
-func (h *ContactHistoryHandler) GetContactHistory(ctx *gin.Context) {
-
-}
+func (h *ContactHistoryHandler) GetContactHistory(ctx *gin.Context) {}
 
 // ListOut godoc
 // @Summary 我联系的

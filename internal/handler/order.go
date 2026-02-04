@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 )
 
@@ -11,8 +12,8 @@ type OrderHandler struct {
 }
 
 func NewOrderHandler(
-    handler *Handler,
-    orderService service.OrderService,
+	handler *Handler,
+	orderService service.OrderService,
 ) *OrderHandler {
 	return &OrderHandler{
 		Handler:      handler,
@@ -20,6 +21,4 @@ func NewOrderHandler(
 	}
 }
 
-func (h *OrderHandler) GetOrder(ctx *gin.Context) {
-
-}
+func (h *OrderHandler) GetOrder(ctx *gin.Context) {}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 )
@@ -9,12 +10,13 @@ import (
 type OrderItemService interface {
 	ListByOrderID(ctx context.Context, orderID int64) ([]*model.OrderItem, error)
 }
+
 func NewOrderItemService(
-    service *Service,
-    orderItemRepository repository.OrderItemRepository,
+	service *Service,
+	orderItemRepository repository.OrderItemRepository,
 ) OrderItemService {
 	return &orderItemService{
-		Service:        service,
+		Service:             service,
 		orderItemRepository: orderItemRepository,
 	}
 }

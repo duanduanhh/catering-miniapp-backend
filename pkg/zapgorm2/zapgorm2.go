@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	gormlogger "gorm.io/gorm/logger"
 )
@@ -43,21 +43,21 @@ func (l *Logger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 }
 
 // Info print info
-func (l Logger) Info(ctx context.Context, msg string, data ...interface{}) {
+func (l Logger) Info(ctx context.Context, msg string, data ...any) {
 	if l.LogLevel >= gormlogger.Info {
 		l.logger(ctx).Sugar().Infof(msg, data...)
 	}
 }
 
 // Warn print warn messages
-func (l Logger) Warn(ctx context.Context, msg string, data ...interface{}) {
+func (l Logger) Warn(ctx context.Context, msg string, data ...any) {
 	if l.LogLevel >= gormlogger.Warn {
 		l.logger(ctx).Sugar().Warnf(msg, data...)
 	}
 }
 
 // Error print error messages
-func (l Logger) Error(ctx context.Context, msg string, data ...interface{}) {
+func (l Logger) Error(ctx context.Context, msg string, data ...any) {
 	if l.LogLevel >= gormlogger.Error {
 		l.logger(ctx).Sugar().Errorf(msg, data...)
 	}

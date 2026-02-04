@@ -2,16 +2,17 @@ package repository
 
 import (
 	"context"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"testing"
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-nunu/nunu-layout-advanced/internal/model"
-	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
+	"github.com/go-nunu/nunu-layout-advanced/internal/model"
+	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 )
 
 var logger *log.Logger
@@ -30,7 +31,7 @@ func setupRepository(t *testing.T) (repository.UserRepository, sqlmock.Sqlmock) 
 		t.Fatalf("failed to open gorm connection: %v", err)
 	}
 
-	//rdb, _ := redismock.NewClientMock()
+	// rdb, _ := redismock.NewClientMock()
 
 	repo := repository.NewRepository(logger, db)
 	userRepo := repository.NewUserRepository(repo)

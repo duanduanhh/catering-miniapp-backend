@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
+
 	"github.com/go-nunu/nunu-layout-advanced/pkg/jwt"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
-	"strconv"
 )
 
 type Handler struct {
@@ -18,6 +20,7 @@ func NewHandler(
 		logger: logger,
 	}
 }
+
 func GetUserIdFromCtx(ctx *gin.Context) int64 {
 	v, exists := ctx.Get("claims")
 	if !exists {
