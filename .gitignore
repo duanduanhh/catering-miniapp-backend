@@ -6,3 +6,4 @@ deploy/docker-compose/data
 bin
 .DS_Store
 config/*
+.baidu-cc/

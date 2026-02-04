@@ -14,7 +14,6 @@
 
 // Header
 Content-Type: application/json
-Authorization: Bearer <token> // 登录成功后返回在响应头
 
 // 请求体
 {
@@ -43,7 +42,6 @@ Authorization: Bearer <token> // 登录成功后返回在响应头
 
 // Header
 Content-Type: application/json
-Authorization: Bearer <token> // 登录成功后返回在响应头
 
 // 请求体
 {
@@ -378,7 +376,7 @@ Content-Type: application/json
                 "create_at": "2026-01-16 14:36:00.998"
             }
         ],
-        "list_total": 15
+        "total": 15
     }
 }
 ```
@@ -901,3 +899,36 @@ file(binary)    // 字段类型
     }
 }
 ```
+
+### 岗位列表
+
+```json
+// 接口地址：positions/all
+// 请求方式：GET
+
+// 响应体：
+{
+    "code": 0,
+    "message": "ok",
+    "data": {
+        "list": [
+            {
+                "id": 1,
+                "category_name": "前厅/门店服务",
+                "subcategories": [
+                    {
+                        "id": 1,
+                        "subcategory_name": "店长/副店长"
+                    },
+                    {
+                        "id": 2,
+                        "subcategory_name": "大堂经理"
+                    }
+                ]
+            }
+        ],
+        "total": 2
+    }
+}
+```
+

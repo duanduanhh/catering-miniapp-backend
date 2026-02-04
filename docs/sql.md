@@ -188,3 +188,108 @@ CREATE TABLE `contact_voucher_history` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='联系券变更表';
 ```
+
+## 岗位列表（新建）
+
+### 一级分类表 
+
+```mysql
+CREATE TABLE `position_category` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `category_name` varchar(64) NOT NULL COMMENT '分类名称',
+  `sort_order` int NOT NULL DEFAULT 0 COMMENT '排序序号',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1=生效 0=禁用',
+  `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_sort_order` (`sort_order`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='岗位一级分类表';
+
+INSERT INTO `position_category` (`id`, `category_name`, `sort_order`, `status`) VALUES
+(1, '前厅/门店服务', 1, 1),
+(2, '后厨-厨师', 2, 1),
+(3, '后厨-其他', 3, 1),
+(4, '饮品/甜点', 4, 1),
+(5, '综合职能支持', 5, 1),
+(6, '其他', 6, 1);
+```
+
+### 二级分类表
+
+```mysql
+CREATE TABLE `position_subcategory` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `category_id` bigint NOT NULL COMMENT '一级分类ID',
+  `subcategory_name` varchar(64) NOT NULL COMMENT '二级分类名称',
+  `sort_order` int NOT NULL DEFAULT 0 COMMENT '排序序号',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1=生效 0=禁用',
+  `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_category_id` (`category_id`),
+  KEY `idx_sort_order` (`sort_order`),
+  KEY `idx_status` (`status`),
+  CONSTRAINT `fk_category_id` FOREIGN KEY (`category_id`) REFERENCES `position_category` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='岗位二级分类表';
+
+-- 前厅/门店服务
+INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_order`, `status`) VALUES
+(1, '店长/副店长', 1, 1),
+(1, '大堂经理', 2, 1),
+(1, '领班/主管', 3, 1),
+(1, '服务员/传菜', 4, 1),
+(1, '迎宾/接待', 5, 1),
+(1, '收银员/前台', 6, 1),
+(1, '打包/送餐', 7, 1),
+(1, '营业/售卖员', 8, 1);
+
+-- 后厨-厨师
+INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_order`, `status`) VALUES
+(2, '厨师长', 1, 1),
+(2, '炉子/主厨/炒锅', 2, 1),
+(2, '白案/面条/饺子', 3, 1),
+(2, '凉菜/冷盘/腊卤', 4, 1),
+(2, '点心/烘焙', 5, 1),
+(2, '蒸菜/上什', 6, 1),
+(2, '汤锅/煲汤/粥水', 7, 1),
+(2, '火锅底料/打锅', 8, 1),
+(2, '烧烤/烤鸭/穿串', 9, 1),
+(2, '西餐厨师', 10, 1),
+(2, '日料/寿司/刺身', 11, 1),
+(2, '韩料', 12, 1),
+(2, '小吃厨师', 13, 1),
+(2, '雕刻/姿造', 14, 1);
+
+-- 后厨-其他
+INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_order`, `status`) VALUES
+(3, '勤杂工/洗碗工', 1, 1),
+(3, '配菜/切配/墩子', 2, 1),
+(3, '打荷', 3, 1),
+(3, '快餐备餐员', 4, 1),
+(3, '后厨学徒/帮厨', 5, 1);
+
+-- 饮品/甜点
+INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_order`, `status`) VALUES
+(4, '咖啡师', 1, 1),
+(4, '奶茶师', 2, 1),
+(4, '茶艺师', 3, 1),
+(4, '烘焙/裱花', 4, 1),
+(4, '水吧', 5, 1),
+(4, '调酒师', 6, 1);
+
+-- 综合职能支持
+INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_order`, `status`) VALUES
+(5, '文员/库管', 1, 1),
+(5, '人力资源', 2, 1),
+(5, '财务/出纳', 3, 1),
+(5, '采购', 4, 1),
+(5, '运营/营销/销售', 5, 1),
+(5, '品控/食安/督导', 6, 1);
+
+-- 其他
+INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_order`, `status`) VALUES
+(6, '其他', 1, 1);
+```
+
+## 
