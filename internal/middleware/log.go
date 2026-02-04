@@ -22,6 +22,7 @@ func RequestLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 			return
 		}
 		trace := cryptor.Md5String(uuid)
+		ctx.Set("trace", trace) // 设置到gin.Context
 		logger.WithValue(ctx, zap.String("trace", trace))
 		logger.WithValue(ctx, zap.String("request_method", ctx.Request.Method))
 		logger.WithValue(ctx, zap.Any("request_headers", ctx.Request.Header))

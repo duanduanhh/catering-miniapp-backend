@@ -36,11 +36,27 @@ func NewLog(conf *viper.Viper) *Logger {
 	default:
 		level = zap.InfoLevel
 	}
+	// Add timestamp to filename for daily rotation
+	currentTime := time.Now()
+	datedFileName := currentTime.Format("20060102")
+	// Simple string replacement for %Y%m%d pattern
+	actualLogPath := lp
+	if len(lp) > 0 {
+		// Replace %Y%m%d with actual date
+		actualLogPath = lp
+		for i := 0; i <= len(lp)-6; i++ {
+			if lp[i:i+6] == "%Y%m%d" {
+				actualLogPath = lp[:i] + datedFileName + lp[i+6:]
+				break
+			}
+		}
+	}
+
 	hook := lumberjack.Logger{
-		Filename:   lp,                             // Log file path
+		Filename:   actualLogPath,                  // Log file path
 		MaxSize:    conf.GetInt("log.max_size"),    // Maximum size unit for each log file: M
 		MaxBackups: conf.GetInt("log.max_backups"), // The maximum number of backups that can be saved for log files
-		MaxAge:     conf.GetInt("log.max_age"),     // Maximum number of days the file can be saved
+		MaxAge:     conf.GetInt("log.max_age"),     // Maximum number of days the file can be saved (30 days)
 		Compress:   conf.GetBool("log.compress"),   // Compression or not
 	}
 
@@ -103,8 +119,8 @@ func NewLog(conf *viper.Viper) *Logger {
 }
 
 func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	// enc.AppendString(t.Format("2006-01-02 15:04:05"))
-	enc.AppendString(t.Format("2006-01-02 15:04:05.000000000"))
+	// Use custom format to remove leading zeros in day
+	enc.AppendString(t.Format("2006-01-2 15:04:05.000000000"))
 }
 
 // WithValue Adds a field to the specified context

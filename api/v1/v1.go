@@ -10,16 +10,31 @@ import (
 type Response struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+	TraceID string `json:"trace_id"`
 	Data    any    `json:"data"`
+}
+
+func getTraceID(ctx *gin.Context) string {
+	if trace, exists := ctx.Get("trace"); exists {
+		if traceID, ok := trace.(string); ok {
+			return traceID
+		}
+	}
+	return ""
 }
 
 func HandleSuccess(ctx *gin.Context, data any) {
 	if data == nil {
 		data = map[string]any{}
 	}
-	resp := Response{Code: errorCodeMap[ErrSuccess], Message: ErrSuccess.Error(), Data: data}
+	resp := Response{
+		Code:    errorCodeMap[ErrSuccess],
+		Message: ErrSuccess.Error(),
+		Data:    data,
+		TraceID: getTraceID(ctx),
+	}
 	if _, ok := errorCodeMap[ErrSuccess]; !ok {
-		resp = Response{Code: 0, Message: "", Data: data}
+		resp = Response{Code: 0, Message: "", Data: data, TraceID: getTraceID(ctx)}
 	}
 	ctx.JSON(http.StatusOK, resp)
 }
@@ -28,9 +43,14 @@ func HandleError(ctx *gin.Context, httpCode int, err error, data any) {
 	if data == nil {
 		data = map[string]string{}
 	}
-	resp := Response{Code: errorCodeMap[err], Message: err.Error(), Data: data}
+	resp := Response{
+		Code:    errorCodeMap[err],
+		Message: err.Error(),
+		Data:    data,
+		TraceID: getTraceID(ctx),
+	}
 	if _, ok := errorCodeMap[err]; !ok {
-		resp = Response{Code: 500, Message: "unknown error", Data: data}
+		resp = Response{Code: 500, Message: "unknown error", Data: data, TraceID: getTraceID(ctx)}
 	}
 	ctx.JSON(httpCode, resp)
 }
