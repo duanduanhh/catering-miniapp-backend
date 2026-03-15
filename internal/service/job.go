@@ -88,7 +88,7 @@ func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateIn
 	if err != nil {
 		return nil, err
 	}
-	if total >= 5 {
+	if total >= 10 {
 		return nil, ErrJobLimitExceeded
 	}
 	now := time.Now()

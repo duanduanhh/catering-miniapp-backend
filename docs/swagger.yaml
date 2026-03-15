@@ -217,6 +217,22 @@ definitions:
     - salary_min
     - second_area_des
     type: object
+  v1.JobCreateResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/v1.JobCreateResponseData'
+      message:
+        type: string
+      trace_id:
+        type: string
+    type: object
+  v1.JobCreateResponseData:
+    properties:
+      job_id:
+        type: integer
+    type: object
   v1.JobFilter:
     properties:
       attendance_leave:
@@ -255,6 +271,18 @@ definitions:
     properties:
       address:
         type: string
+      attendance_leave:
+        items:
+          type: string
+        type: array
+      avatar:
+        type: string
+      basic_protection:
+        items:
+          type: string
+        type: array
+      company_name:
+        type: string
       contact:
         type: string
       contact_person_name:
@@ -287,6 +315,10 @@ definitions:
         type: array
       positions:
         type: string
+      salary_benefits:
+        items:
+          type: string
+        type: array
       salary_max:
         type: integer
       salary_min:
@@ -330,6 +362,8 @@ definitions:
       data:
         $ref: '#/definitions/v1.JobListResponseData'
       message:
+        type: string
+      trace_id:
         type: string
     type: object
   v1.JobListResponseData:
@@ -499,6 +533,8 @@ definitions:
         type: string
       id:
         type: integer
+      sub_total:
+        type: integer
       subcategories:
         items:
           $ref: '#/definitions/v1.PositionSubcategory'
@@ -517,6 +553,8 @@ definitions:
         type: integer
       data: {}
       message:
+        type: string
+      trace_id:
         type: string
     type: object
   v1.UpdateUserGeoRequest:
@@ -558,6 +596,8 @@ definitions:
         $ref: '#/definitions/v1.UserInfoResponseData'
       message:
         type: string
+      trace_id:
+        type: string
     type: object
   v1.UserInfoResponseData:
     properties:
@@ -581,6 +621,8 @@ definitions:
     type: object
   v1.WechatLoginResponseData:
     properties:
+      token:
+        type: string
       user_info:
         $ref: '#/definitions/v1.WechatLoginUserInfo'
     type: object
@@ -883,7 +925,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.Response'
+            $ref: '#/definitions/v1.JobCreateResponse'
       security:
       - Bearer: []
       summary: 发布招聘信息

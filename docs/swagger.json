@@ -427,7 +427,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.Response"
+                            "$ref": "#/definitions/v1.JobCreateResponse"
                         }
                     }
                 }
@@ -1277,6 +1277,31 @@
                 }
             }
         },
+        "v1.JobCreateResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/v1.JobCreateResponseData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.JobCreateResponseData": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "v1.JobFilter": {
             "type": "object",
             "properties": {
@@ -1335,6 +1360,24 @@
                 "address": {
                     "type": "string"
                 },
+                "attendance_leave": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "basic_protection": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "company_name": {
+                    "type": "string"
+                },
                 "contact": {
                     "type": "string"
                 },
@@ -1382,6 +1425,12 @@
                 },
                 "positions": {
                     "type": "string"
+                },
+                "salary_benefits": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "salary_max": {
                     "type": "integer"
@@ -1448,6 +1497,9 @@
                     "$ref": "#/definitions/v1.JobListResponseData"
                 },
                 "message": {
+                    "type": "string"
+                },
+                "trace_id": {
                     "type": "string"
                 }
             }
@@ -1706,6 +1758,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "sub_total": {
+                    "type": "integer"
+                },
                 "subcategories": {
                     "type": "array",
                     "items": {
@@ -1733,6 +1788,9 @@
                 },
                 "data": {},
                 "message": {
+                    "type": "string"
+                },
+                "trace_id": {
                     "type": "string"
                 }
             }
@@ -1796,6 +1854,9 @@
                 },
                 "message": {
                     "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1833,6 +1894,9 @@
         "v1.WechatLoginResponseData": {
             "type": "object",
             "properties": {
+                "token": {
+                    "type": "string"
+                },
                 "user_info": {
                     "$ref": "#/definitions/v1.WechatLoginUserInfo"
                 }

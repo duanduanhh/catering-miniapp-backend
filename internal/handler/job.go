@@ -43,7 +43,7 @@ func NewJobHandler(
 // @Produce json
 // @Security Bearer
 // @Param request body v1.JobCreateRequest true "params"
-// @Success 200 {object} v1.JobCreateResponseData
+// @Success 200 {object} v1.JobCreateResponse
 // @Router /jobs/create [post]
 func (h *JobHandler) Create(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)

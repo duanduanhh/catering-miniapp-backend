@@ -31,6 +31,11 @@ type JobCreateResponseData struct {
 	JobID int64 `json:"job_id"`
 }
 
+type JobCreateResponse struct {
+	Response
+	Data JobCreateResponseData
+}
+
 type JobUpdateRequest struct {
 	ID              int64    `json:"id" binding:"required"`
 	Positions       *string  `json:"positions"`

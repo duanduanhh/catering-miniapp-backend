@@ -434,7 +434,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.Response"
+                            "$ref": "#/definitions/v1.JobCreateResponse"
                         }
                     }
                 }
@@ -1284,6 +1284,31 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.JobCreateResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/v1.JobCreateResponseData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.JobCreateResponseData": {
+            "type": "object",
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "v1.JobFilter": {
             "type": "object",
             "properties": {
@@ -1342,6 +1367,24 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "attendance_leave": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "basic_protection": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "company_name": {
+                    "type": "string"
+                },
                 "contact": {
                     "type": "string"
                 },
@@ -1389,6 +1432,12 @@ const docTemplate = `{
                 },
                 "positions": {
                     "type": "string"
+                },
+                "salary_benefits": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "salary_max": {
                     "type": "integer"
@@ -1455,6 +1504,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/v1.JobListResponseData"
                 },
                 "message": {
+                    "type": "string"
+                },
+                "trace_id": {
                     "type": "string"
                 }
             }
@@ -1713,6 +1765,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "sub_total": {
+                    "type": "integer"
+                },
                 "subcategories": {
                     "type": "array",
                     "items": {
@@ -1740,6 +1795,9 @@ const docTemplate = `{
                 },
                 "data": {},
                 "message": {
+                    "type": "string"
+                },
+                "trace_id": {
                     "type": "string"
                 }
             }
@@ -1803,6 +1861,9 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1840,6 +1901,9 @@ const docTemplate = `{
         "v1.WechatLoginResponseData": {
             "type": "object",
             "properties": {
+                "token": {
+                    "type": "string"
+                },
                 "user_info": {
                     "$ref": "#/definitions/v1.WechatLoginUserInfo"
                 }
