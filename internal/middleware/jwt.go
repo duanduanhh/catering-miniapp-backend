@@ -13,12 +13,8 @@ import (
 
 func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		tokenString := ctx.Request.Header.Get("Authorization")
+		tokenString := ctx.Request.Header.Get("token")
 		if tokenString == "" {
-			if ctx.GetHeader("user_id") != "" {
-				ctx.Next()
-				return
-			}
 			logger.WithContext(ctx).Warn("No token", zap.Any("data", map[string]any{
 				"url":    ctx.Request.URL,
 				"params": ctx.Params,

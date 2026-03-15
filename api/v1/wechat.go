@@ -5,6 +5,7 @@ type WechatLoginRequest struct {
 }
 
 type WechatLoginResponseData struct {
+	Token    string              `json:"token"`
 	UserInfo WechatLoginUserInfo `json:"user_info"`
 }
 

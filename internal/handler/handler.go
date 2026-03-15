@@ -24,23 +24,11 @@ func NewHandler(
 func GetUserIdFromCtx(ctx *gin.Context) int64 {
 	v, exists := ctx.Get("claims")
 	if !exists {
-		return getUserIdFromHeader(ctx)
+		return 0
 	}
 	userID := v.(*jwt.MyCustomClaims).UserId
 	parsed, err := strconv.ParseInt(userID, 10, 64)
 	if err != nil || parsed <= 0 {
-		return getUserIdFromHeader(ctx)
-	}
-	return parsed
-}
-
-func getUserIdFromHeader(ctx *gin.Context) int64 {
-	userID := ctx.GetHeader("user_id")
-	if userID == "" {
-		return 0
-	}
-	parsed, err := strconv.ParseInt(userID, 10, 64)
-	if err != nil {
 		return 0
 	}
 	return parsed

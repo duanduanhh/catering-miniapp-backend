@@ -39,7 +39,7 @@ func (h *WechatHandler) Register(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	token, user, err := h.wechatService.Register(ctx, req.PhoneCode, req.LoginCode, req.InviterID)
+	_, user, err := h.wechatService.Register(ctx, req.PhoneCode, req.LoginCode, req.InviterID)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("wechatService.Register error", zap.Error(err))
 		if err == service.ErrUserExists {
@@ -49,7 +49,6 @@ func (h *WechatHandler) Register(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	ctx.Header("Authorization", "Bearer "+token)
 	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
 		UserInfo: v1.WechatLoginUserInfo{ID: user.ID},
 	})
@@ -79,8 +78,8 @@ func (h *WechatHandler) Login(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	ctx.Header("Authorization", "Bearer "+token)
 	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
+		Token:    token,
 		UserInfo: v1.WechatLoginUserInfo{ID: user.ID},
 	})
 }
