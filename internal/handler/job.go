@@ -458,10 +458,14 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 
 func buildJobListItem(job *model.Job) v1.JobListItem {
 	photos := splitCSV(job.PhotoURLs)
+	basicProtection := splitCSV(job.BasicProtection)
+	salaryBenefits := splitCSV(job.SalaryBenefits)
+	attendanceLeave := splitCSV(job.AttendanceLeave)
 	item := v1.JobListItem{
 		ID:                job.ID,
 		UserID:            job.UserID,
 		Positions:         job.Positions,
+		CompanyName:       job.CompanyName,
 		Longitude:         job.Longitude,
 		Latitude:          job.Latitude,
 		Address:           job.Address,
@@ -480,6 +484,10 @@ func buildJobListItem(job *model.Job) v1.JobListItem {
 		FourAreaDes:       job.FourAreaDes,
 		SalaryMin:         job.SalaryMin,
 		SalaryMax:         job.SalaryMax,
+		BasicProtection:   basicProtection,
+		SalaryBenefits:    salaryBenefits,
+		AttendanceLeave:   attendanceLeave,
+		Avatar:            job.Avatar,
 		CreateAt:          formatTime(job.CreateAt),
 		UpdateAt:          formatTime(job.UpdateAt),
 		IsTop:             isJobTop(job),

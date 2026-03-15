@@ -42,6 +42,7 @@ type Job struct {
 	RefreshTime       *time.Time `gorm:"column:refresh_time"`
 	TopStartTime      *time.Time `gorm:"column:top_start_time"`
 	TopEndTime        *time.Time `gorm:"column:top_end_time"`
+	Avatar            string     `gorm:"column:avatar;<-:false"` // 发布人头像，只读字段
 }
 
 func (m *Job) TableName() string {

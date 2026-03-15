@@ -54,7 +54,10 @@ func (r *jobRepository) Update(ctx context.Context, job *model.Job) error {
 
 func (r *jobRepository) GetByID(ctx context.Context, id int64) (*model.Job, error) {
 	var job model.Job
-	if err := r.DB(ctx).Where("id = ?", id).First(&job).Error; err != nil {
+	if err := r.DB(ctx).Table("job").
+		Select("job.*, user.avatar").
+		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Where("job.id = ?", id).First(&job).Error; err != nil {
 		return nil, err
 	}
 	return &job, nil
@@ -65,7 +68,10 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 		jobs  []*model.Job
 		total int64
 	)
-	db := r.DB(ctx).Model(&model.Job{}).Where("status = ?", model.JobStatusActive)
+	db := r.DB(ctx).Table("job").
+		Select("job.*, user.avatar").
+		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Where("job.status = ?", model.JobStatusActive)
 
 	if query.Positions != "" {
 		db = db.Where("positions LIKE ?", "%"+query.Positions+"%")

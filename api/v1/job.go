@@ -105,6 +105,7 @@ type JobListItem struct {
 	ID                int64           `json:"id"`
 	UserID            int64           `json:"user_id"`
 	Positions         string          `json:"positions"`
+	CompanyName       string          `json:"company_name"`
 	Longitude         float64         `json:"longitude"`
 	Latitude          float64         `json:"latitude"`
 	Address           string          `json:"address"`
@@ -123,6 +124,10 @@ type JobListItem struct {
 	FourAreaDes       string          `json:"four_area_des"`
 	SalaryMin         int             `json:"salary_min"`
 	SalaryMax         int             `json:"salary_max"`
+	BasicProtection   []string        `json:"basic_protection"`
+	SalaryBenefits    []string        `json:"salary_benefits"`
+	AttendanceLeave   []string        `json:"attendance_leave"`
+	Avatar            string          `json:"avatar"`
 	CreateAt          string          `json:"create_at"`
 	UpdateAt          string          `json:"update_at"`
 	IsTop             int             `json:"is_top"`
