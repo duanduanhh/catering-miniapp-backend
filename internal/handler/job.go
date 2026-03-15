@@ -43,7 +43,7 @@ func NewJobHandler(
 // @Produce json
 // @Security Bearer
 // @Param request body v1.JobCreateRequest true "params"
-// @Success 200 {object} v1.Response
+// @Success 200 {object} v1.JobCreateResponseData
 // @Router /jobs/create [post]
 func (h *JobHandler) Create(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
@@ -84,7 +84,8 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 		SalaryBenefits:     strings.Join(req.SalaryBenefits, ","),
 		AttendanceLeave:    strings.Join(req.AttendanceLeave, ","),
 	}
-	if _, err := h.jobService.Create(ctx, userID, input); err != nil {
+	job, err := h.jobService.Create(ctx, userID, input)
+	if err != nil {
 		h.logger.WithContext(ctx).Error("jobService.Create error", zap.Error(err))
 		if err == service.ErrJobLimitExceeded {
 			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
@@ -93,7 +94,9 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	v1.HandleSuccess(ctx, nil)
+	v1.HandleSuccess(ctx, v1.JobCreateResponseData{
+		JobID: job.ID,
+	})
 }
 
 // Update godoc
