@@ -141,6 +141,8 @@ type JobListItem struct {
 	TopEndTime        string          `json:"top_end_time"`
 	LastRefreshTime   string          `json:"last_refresh_time,omitempty"`
 	IsCollected       int             `json:"is_collected"` // 是否收藏：0=未收藏，1=已收藏
+	CloseReason       string          `json:"close_reason"` // 关闭原因
+	CloseTime         string          `json:"close_time"`   // 关闭时间
 }
 
 type JobListResponseData struct {

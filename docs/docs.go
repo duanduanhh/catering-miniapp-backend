@@ -1454,6 +1454,14 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "close_reason": {
+                    "description": "关闭原因",
+                    "type": "string"
+                },
+                "close_time": {
+                    "description": "关闭时间",
+                    "type": "string"
+                },
                 "company_name": {
                     "type": "string"
                 },

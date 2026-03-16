@@ -566,6 +566,8 @@ func buildJobListItem(job *model.Job) v1.JobListItem {
 		TopStartTime:      formatOptionalTime(job.TopStartTime),
 		TopEndTime:        formatOptionalTime(job.TopEndTime),
 		LastRefreshTime:   formatOptionalTime(job.RefreshTime),
+		CloseReason:       job.CloseReason,
+		CloseTime:         formatOptionalTime(job.CloseTime),
 	}
 	return item
 }

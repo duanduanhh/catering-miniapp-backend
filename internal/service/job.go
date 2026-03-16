@@ -221,8 +221,10 @@ func (s *jobService) Close(ctx context.Context, userID, jobID int64, closeReason
 	if job.UserID != userID {
 		return ErrForbidden
 	}
+	now := time.Now().Truncate(time.Second)
 	job.Status = model.JobStatusUserClosed
 	job.CloseReason = closeReason
+	job.CloseTime = &now
 	return s.jobRepository.Update(ctx, job)
 }
 

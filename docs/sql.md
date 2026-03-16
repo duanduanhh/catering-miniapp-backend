@@ -95,13 +95,15 @@ CREATE TABLE `job` (
   `positions` varchar(64) NOT NULL COMMENT '岗位名称',
   `company_name` varchar(128) DEFAULT NULL COMMENT '企业名称',
   `longitude` decimal(10,7) DEFAULT NULL COMMENT '岗位所在地经度',
-  `latitude`  decimal(10,7) DEFAULT NULL COMMENT '岗位所在地纬度',
+  `latitude` decimal(10,7) DEFAULT NULL COMMENT '岗位所在地纬度',
   `address` varchar(512) DEFAULT NULL COMMENT '岗位详细地址',
   `contact_person_name` varchar(64) NOT NULL COMMENT '联系人昵称',
   `contact` varchar(64) NOT NULL COMMENT '联系方式（手机号）',
   `description` text COMMENT '岗位描述',
   `photo_urls` longtext COMMENT '岗位相关图片URL列表（支持多个, 逗号分割）',
-  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1=生效 2=用户关闭 3=管理员下架 4=删除',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=生效 2=用户关闭 3=管理员下架 4=删除',
+  `close_reason` varchar(255) DEFAULT NULL COMMENT '关闭原因：用户关闭/管理员下架时填写',
+  `close_time` datetime(3) DEFAULT NULL COMMENT '关闭时间',
   `first_area_id` int DEFAULT NULL COMMENT '一级地区ID（省）',
   `first_area_des` varchar(64) DEFAULT NULL COMMENT '一级地区名称',
   `second_area_id` int DEFAULT NULL COMMENT '二级地区ID（市）',
@@ -119,21 +121,23 @@ CREATE TABLE `job` (
   `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   `refresh_time` datetime(3) DEFAULT NULL COMMENT '刷新时间',
   `top_start_time` datetime(3) DEFAULT NULL COMMENT '置顶开始时间',
-  `top_end_time`   datetime(3) DEFAULT NULL COMMENT '置顶结束时间',
-  `is_top` tinyint NOT NULL DEFAULT 0 COMMENT '是否置顶（冗余字段, 便于列表排序/筛选）',
-
+  `top_end_time` datetime(3) DEFAULT NULL COMMENT '置顶结束时间',
+  `is_top` tinyint NOT NULL DEFAULT '0' COMMENT '是否置顶（冗余字段，便于列表排序/筛选）',
+  
   PRIMARY KEY (`id`),
   KEY `idx_job_user_id` (`user_id`),
-  KEY `idx_status_refresh` (`status`, `refresh_time`),
-  KEY `idx_status_four_area_refresh` (`status`, `four_area_id`, `refresh_time`),
-  KEY `idx_status_top_refresh` (`status`, `is_top`, `refresh_time`),
-  KEY `idx_top_time` (`top_start_time`, `top_end_time`),
+  KEY `idx_status_refresh` (`status`,`refresh_time`),
+  KEY `idx_status_four_area_refresh` (`status`,`four_area_id`,`refresh_time`),
+  KEY `idx_status_top_refresh` (`status`,`is_top`,`refresh_time`),
+  KEY `idx_top_time` (`top_start_time`,`top_end_time`),
 
   CONSTRAINT `chk_salary_range` CHECK (
-    (`salary_min` IS NULL AND `salary_max` IS NULL)
-    OR (`salary_min` IS NOT NULL AND `salary_max` IS NULL)
-    OR (`salary_min` IS NULL AND `salary_max` IS NOT NULL)
-    OR (`salary_min` IS NOT NULL AND `salary_max` IS NOT NULL AND `salary_max` >= `salary_min`)
+    (
+      (`salary_min` IS NULL AND `salary_max` IS NULL)
+      OR (`salary_min` IS NOT NULL AND `salary_max` IS NULL)
+      OR (`salary_min` IS NULL AND `salary_max` IS NOT NULL)
+      OR (`salary_min` IS NOT NULL AND `salary_max` IS NOT NULL AND `salary_max` >= `salary_min`)
+    )
   )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='岗位详情表';
 
