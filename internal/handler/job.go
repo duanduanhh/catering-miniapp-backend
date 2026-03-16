@@ -18,9 +18,10 @@ import (
 
 type JobHandler struct {
 	*Handler
-	jobService   service.JobService
-	orderService service.OrderService
-	payService   service.PayService
+	jobService        service.JobService
+	orderService      service.OrderService
+	payService        service.PayService
+	collectRepository repository.CollectRepository
 }
 
 func NewJobHandler(
@@ -28,12 +29,14 @@ func NewJobHandler(
 	jobService service.JobService,
 	orderService service.OrderService,
 	payService service.PayService,
+	collectRepository repository.CollectRepository,
 ) *JobHandler {
 	return &JobHandler{
-		Handler:      handler,
-		jobService:   jobService,
-		orderService: orderService,
-		payService:   payService,
+		Handler:           handler,
+		jobService:        jobService,
+		orderService:      orderService,
+		payService:        payService,
+		collectRepository: collectRepository,
 	}
 }
 
@@ -291,7 +294,7 @@ func (h *JobHandler) Close(ctx *gin.Context) {
 
 // GetCloseReasons godoc
 // @Summary 获取关闭原因列表
-// @Tags 通用模块
+// @Tags 通用接口
 // @Accept json
 // @Produce json
 // @Param type query int true "类型：1=招聘，2=求职，3=招租"
@@ -397,10 +400,13 @@ func (h *JobHandler) List(ctx *gin.Context) {
 // @Tags 招聘模块
 // @Accept json
 // @Produce json
+// @Security Bearer
 // @Param request body v1.JobInfoRequest true "params"
 // @Success 200 {object} v1.JobListItem
 // @Router /jobs/info [post]
 func (h *JobHandler) Info(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+
 	var req v1.JobInfoRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
@@ -412,7 +418,17 @@ func (h *JobHandler) Info(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
+
 	item := buildJobListItem(job)
+
+	// 查询当前用户是否收藏
+	if userID > 0 {
+		collect, err := h.collectRepository.Get(ctx, userID, job.ID, int(model.CollectTypeJob))
+		if err == nil && collect != nil && collect.Status == model.CollectStatusActive {
+			item.IsCollected = 1
+		}
+	}
+
 	v1.HandleSuccess(ctx, item)
 }
 

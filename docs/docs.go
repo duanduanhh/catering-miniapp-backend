@@ -24,6 +24,37 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/close_reasons": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "通用接口"
+                ],
+                "summary": "获取关闭原因列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "类型：1=招聘，2=求职，3=招租",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.JobCloseReasonResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/collect/my": {
             "post": {
                 "security": [
@@ -442,6 +473,11 @@ const docTemplate = `{
         },
         "/jobs/info": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -1165,12 +1201,48 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.JobCloseReasonResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/v1.JobCloseReasonResponseData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.JobCloseReasonResponseData": {
+            "type": "object",
+            "properties": {
+                "reasons": {
+                    "description": "关闭原因列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "description": "关闭类型：1=招聘，2=求职，3=招租",
+                    "type": "integer"
+                }
+            }
+        },
         "v1.JobCloseRequest": {
             "type": "object",
             "required": [
                 "job_id"
             ],
             "properties": {
+                "close_reason": {
+                    "type": "string"
+                },
                 "job_id": {
                     "type": "integer"
                 }
@@ -1410,6 +1482,10 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "is_collected": {
+                    "description": "是否收藏：0=未收藏，1=已收藏",
                     "type": "integer"
                 },
                 "is_top": {

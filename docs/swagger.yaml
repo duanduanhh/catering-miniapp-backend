@@ -135,8 +135,32 @@ definitions:
     required:
     - job_id
     type: object
+  v1.JobCloseReasonResponse:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/v1.JobCloseReasonResponseData'
+      message:
+        type: string
+      trace_id:
+        type: string
+    type: object
+  v1.JobCloseReasonResponseData:
+    properties:
+      reasons:
+        description: 关闭原因列表
+        items:
+          type: string
+        type: array
+      type:
+        description: 关闭类型：1=招聘，2=求职，3=招租
+        type: integer
+    type: object
   v1.JobCloseRequest:
     properties:
+      close_reason:
+        type: string
       job_id:
         type: integer
     required:
@@ -300,6 +324,9 @@ definitions:
       four_area_id:
         type: integer
       id:
+        type: integer
+      is_collected:
+        description: 是否收藏：0=未收藏，1=已收藏
         type: integer
       is_top:
         type: integer
@@ -679,6 +706,26 @@ info:
   title: Nunu Example API
   version: 1.0.0
 paths:
+  /close_reasons:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 类型：1=招聘，2=求职，3=招租
+        in: query
+        name: type
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.JobCloseReasonResponse'
+      summary: 获取关闭原因列表
+      tags:
+      - 通用接口
   /collect/my:
     post:
       consumes:
@@ -949,6 +996,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.JobListItem'
+      security:
+      - Bearer: []
       summary: 招聘信息详情
       tags:
       - 招聘模块
