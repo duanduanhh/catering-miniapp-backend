@@ -71,7 +71,8 @@ type JobRefreshRequest struct {
 }
 
 type JobCloseRequest struct {
-	JobID int64 `json:"job_id" binding:"required"`
+	JobID       int64  `json:"job_id" binding:"required"`
+	CloseReason string `json:"close_reason"`
 }
 
 type JobCollectRequest struct {
@@ -174,4 +175,25 @@ type JobMyItem struct {
 type JobMyResponseData struct {
 	List  []JobMyItem `json:"list"`
 	Total int64       `json:"total"`
+}
+
+// 内容类型常量
+const (
+	BizTypeRecruit = 1 // 招聘
+	BizTypeResume  = 2 // 求职
+	BizTypeRent    = 3 // 招租
+)
+
+type JobCloseReasonItem struct {
+	Type    int      `json:"type"`    // 关闭类型：1=招聘，2=求职，3=招租
+	Reasons []string `json:"reasons"` // 关闭原因列表
+}
+
+type JobCloseReasonResponseData struct {
+	JobCloseReasonItem
+}
+
+type JobCloseReasonResponse struct {
+	Response
+	Data JobCloseReasonResponseData
 }

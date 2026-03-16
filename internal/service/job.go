@@ -12,7 +12,7 @@ type JobService interface {
 	Create(ctx context.Context, userID int64, input JobCreateInput) (*model.Job, error)
 	Update(ctx context.Context, userID int64, input JobUpdateInput) error
 	Refresh(ctx context.Context, userID, jobID int64) error
-	Close(ctx context.Context, userID, jobID int64) error
+	Close(ctx context.Context, userID, jobID int64, closeReason string) error
 	GetByID(ctx context.Context, jobID int64) (*model.Job, error)
 	List(ctx context.Context, query repository.JobListQuery) ([]*model.Job, int64, error)
 	ListByUser(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]*model.Job, int64, error)
@@ -213,7 +213,7 @@ func (s *jobService) Refresh(ctx context.Context, userID, jobID int64) error {
 	return s.jobRepository.Update(ctx, job)
 }
 
-func (s *jobService) Close(ctx context.Context, userID, jobID int64) error {
+func (s *jobService) Close(ctx context.Context, userID, jobID int64, closeReason string) error {
 	job, err := s.jobRepository.GetByID(ctx, jobID)
 	if err != nil {
 		return err
@@ -222,6 +222,7 @@ func (s *jobService) Close(ctx context.Context, userID, jobID int64) error {
 		return ErrForbidden
 	}
 	job.Status = model.JobStatusUserClosed
+	job.CloseReason = closeReason
 	return s.jobRepository.Update(ctx, job)
 }
 

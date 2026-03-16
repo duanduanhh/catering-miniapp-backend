@@ -56,6 +56,7 @@ func NewHTTPServer(
 	router.InitWechatRouter(deps, root)
 	router.InitUploadRouter(deps, root)
 	router.InitPositionCategoryRouter(deps, root)
+	router.InitCommonRouter(deps, root)
 
 	s.Static("/uploads", "./storage/uploads")
 

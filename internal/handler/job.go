@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -276,7 +277,7 @@ func (h *JobHandler) Close(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	if err := h.jobService.Close(ctx, userID, req.JobID); err != nil {
+	if err := h.jobService.Close(ctx, userID, req.JobID, req.CloseReason); err != nil {
 		h.logger.WithContext(ctx).Error("jobService.Close error", zap.Error(err))
 		if err == service.ErrForbidden {
 			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
@@ -286,6 +287,61 @@ func (h *JobHandler) Close(ctx *gin.Context) {
 		return
 	}
 	v1.HandleSuccess(ctx, nil)
+}
+
+// GetCloseReasons godoc
+// @Summary 获取关闭原因列表
+// @Tags 通用模块
+// @Accept json
+// @Produce json
+// @Param type query int true "类型：1=招聘，2=求职，3=招租"
+// @Success 200 {object} v1.JobCloseReasonResponse
+// @Router /close_reasons [get]
+func (h *JobHandler) GetCloseReasons(ctx *gin.Context) {
+	bizTypeStr := ctx.Query("type")
+	var bizType int
+	if bizTypeStr == "" {
+		bizType = v1.BizTypeRecruit // 默认招聘
+	} else {
+		fmt.Sscanf(bizTypeStr, "%d", &bizType)
+	}
+
+	var reasons []string
+	switch bizType {
+	case v1.BizTypeRecruit:
+		reasons = []string{
+			"招到人了",
+			"不想招了",
+			"效果不好，没人联系我",
+			"信息有误，需要重新发布",
+			"其他原因",
+		}
+	case v1.BizTypeResume:
+		reasons = []string{
+			"找到工作了",
+			"暂时不想找工作了",
+			"效果不好，没人联系我",
+			"信息有误，需要重新发布",
+			"其他原因",
+		}
+	case v1.BizTypeRent:
+		reasons = []string{
+			"租出去了",
+			"暂时不租了",
+			"效果不好，没人联系我",
+			"信息有误，需要重新发布",
+			"其他原因",
+		}
+	default:
+		reasons = []string{}
+	}
+
+	v1.HandleSuccess(ctx, v1.JobCloseReasonResponseData{
+		JobCloseReasonItem: v1.JobCloseReasonItem{
+			Type:    bizType,
+			Reasons: reasons,
+		},
+	})
 }
 
 // List godoc
