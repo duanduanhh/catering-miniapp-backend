@@ -1396,8 +1396,8 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "city": {
-                    "type": "string"
+                "first_area_id": {
+                    "type": "integer"
                 },
                 "latitude": {
                     "type": "number"
@@ -1418,6 +1418,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "salary_min": {
+                    "type": "integer"
+                },
+                "second_area_id": {
                     "type": "integer"
                 }
             }

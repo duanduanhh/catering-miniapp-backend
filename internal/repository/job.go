@@ -32,7 +32,8 @@ type jobRepository struct {
 type JobListQuery struct {
 	QueryType       int
 	Positions       string
-	City            string
+	FirstAreaID     int
+	SecondAreaID    int
 	SalaryMin       int
 	SalaryMax       int
 	BasicProtection []string
@@ -73,17 +74,20 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 		Joins("LEFT JOIN user ON job.user_id = user.id").
 		Where("job.status = ?", model.JobStatusActive)
 
-	if query.Positions != "" {
-		db = db.Where("positions LIKE ?", "%"+query.Positions+"%")
+	if query.FirstAreaID > 0 {
+		db = db.Where("job.first_area_id = ?", query.FirstAreaID)
 	}
-	if query.City != "" {
-		db = db.Where("second_area_des LIKE ?", "%"+query.City+"%")
+	if query.SecondAreaID > 0 {
+		db = db.Where("job.second_area_id = ?", query.SecondAreaID)
 	}
 	if query.SalaryMin > 0 {
 		db = db.Where("salary_max >= ?", query.SalaryMin)
 	}
 	if query.SalaryMax > 0 {
 		db = db.Where("salary_min <= ?", query.SalaryMax)
+	}
+	if query.Positions != "" {
+		db = db.Where("positions LIKE ?", "%"+query.Positions+"%")
 	}
 	for _, item := range query.BasicProtection {
 		db = db.Where("basic_protection LIKE ?", "%"+item+"%")

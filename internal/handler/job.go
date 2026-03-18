@@ -361,14 +361,12 @@ func (h *JobHandler) List(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	salaryMax := req.Filter.SalaryMax
-	if salaryMax < 0 {
-		salaryMax = 0
-	}
+	salaryMax := max(req.Filter.SalaryMax, 0)
 	query := repository.JobListQuery{
 		QueryType:       req.QueryType,
 		Positions:       req.Filter.Positions,
-		City:            req.Filter.City,
+		FirstAreaID:     req.Filter.FirstAreaID,
+		SecondAreaID:    req.Filter.SecondAreaID,
 		SalaryMin:       req.Filter.SalaryMin,
 		SalaryMax:       salaryMax,
 		BasicProtection: req.Filter.BasicProtection,

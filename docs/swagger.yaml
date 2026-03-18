@@ -267,8 +267,8 @@ definitions:
         items:
           type: string
         type: array
-      city:
-        type: string
+      first_area_id:
+        type: integer
       latitude:
         type: number
       longitude:
@@ -282,6 +282,8 @@ definitions:
       salary_max:
         type: integer
       salary_min:
+        type: integer
+      second_area_id:
         type: integer
     type: object
   v1.JobInfoRequest:

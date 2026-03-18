@@ -89,7 +89,8 @@ type JobInfoRequest struct {
 
 type JobFilter struct {
 	Positions       string   `json:"positions"`
-	City            string   `json:"city"`
+	FirstAreaID     int      `json:"first_area_id"`
+	SecondAreaID    int      `json:"second_area_id"`
 	SalaryMin       int      `json:"salary_min"`
 	SalaryMax       int      `json:"salary_max"`
 	BasicProtection []string `json:"basic_protection"`
@@ -146,8 +147,8 @@ type JobListItem struct {
 }
 
 type JobListResponseData struct {
-	Jobs  []JobListItem `json:"jobs"`
 	Total int64         `json:"total"`
+	Jobs  []JobListItem `json:"jobs"`
 }
 
 type JobListResponse struct {
