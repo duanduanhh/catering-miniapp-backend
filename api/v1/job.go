@@ -79,6 +79,10 @@ type JobReopenRequest struct {
 	JobID int64 `json:"job_id" binding:"required"`
 }
 
+type JobDeleteRequest struct {
+	JobID int64 `json:"job_id" binding:"required"`
+}
+
 type JobCollectRequest struct {
 	JobID int64 `json:"job_id" binding:"required"`
 }

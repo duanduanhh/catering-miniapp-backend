@@ -257,6 +257,13 @@ definitions:
       job_id:
         type: integer
     type: object
+  v1.JobDeleteRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
   v1.JobFilter:
     properties:
       attendance_leave:
@@ -432,6 +439,8 @@ definitions:
         type: integer
       second_area_des:
         type: string
+      status:
+        type: integer
       third_area_des:
         type: string
     type: object
@@ -991,6 +1000,29 @@ paths:
       security:
       - Bearer: []
       summary: 发布招聘信息
+      tags:
+      - 招聘模块
+  /jobs/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.JobDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 删除职位
       tags:
       - 招聘模块
   /jobs/info:

@@ -471,6 +471,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/delete": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "删除职位",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.JobDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/jobs/info": {
             "post": {
                 "security": [
@@ -1419,6 +1457,17 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.JobDeleteRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "v1.JobFilter": {
             "type": "object",
             "properties": {
@@ -1682,6 +1731,9 @@ const docTemplate = `{
                 },
                 "second_area_des": {
                     "type": "string"
+                },
+                "status": {
+                    "type": "integer"
                 },
                 "third_area_des": {
                     "type": "string"

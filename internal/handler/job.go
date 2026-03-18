@@ -324,6 +324,38 @@ func (h *JobHandler) Reopen(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// Delete godoc
+// @Summary 删除职位
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobDeleteRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/delete [post]
+func (h *JobHandler) Delete(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.JobDeleteRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	if err := h.jobService.Delete(ctx, userID, req.JobID); err != nil {
+		h.logger.WithContext(ctx).Error("jobService.Delete error", zap.Error(err))
+		if err == service.ErrForbidden {
+			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
+			return
+		}
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
+}
+
 // GetCloseReasons godoc
 // @Summary 获取关闭原因列表
 // @Tags 通用接口
