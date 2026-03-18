@@ -504,6 +504,7 @@ func (h *JobHandler) My(ctx *gin.Context) {
 			Address:         job.Address,
 			CreateAt:        formatTime(job.CreateAt),
 			IsTop:           isJobTop(job),
+			Status:          int(job.Status),
 			LastRefreshTime: formatOptionalTime(job.RefreshTime),
 		})
 	}

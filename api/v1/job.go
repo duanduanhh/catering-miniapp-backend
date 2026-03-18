@@ -177,6 +177,7 @@ type JobMyItem struct {
 	Address         string `json:"address"`
 	CreateAt        string `json:"create_at"`
 	IsTop           int    `json:"is_top"`
+	Status          int    `json:"status"`
 	LastRefreshTime string `json:"last_refresh_time"`
 }
 
