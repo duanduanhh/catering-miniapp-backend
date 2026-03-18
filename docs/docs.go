@@ -656,6 +656,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/reopen": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "招聘模块"
+                ],
+                "summary": "重新打开职位",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.JobReopenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/jobs/top": {
             "post": {
                 "security": [
@@ -1694,6 +1732,17 @@ const docTemplate = `{
             }
         },
         "v1.JobRefreshRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.JobReopenRequest": {
             "type": "object",
             "required": [
                 "job_id"

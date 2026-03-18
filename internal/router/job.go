@@ -20,6 +20,7 @@ func InitJobRouter(deps RouterDeps, r *gin.RouterGroup) {
 		strictAuthRouter.POST("/jobs/refresh", deps.JobHandler.Refresh)
 		strictAuthRouter.POST("/jobs/refresh/pay", deps.JobHandler.RefreshPay)
 		strictAuthRouter.POST("/jobs/close", deps.JobHandler.Close)
+		strictAuthRouter.POST("/jobs/reopen", deps.JobHandler.Reopen)
 		strictAuthRouter.POST("/jobs/my", deps.JobHandler.My)
 		strictAuthRouter.POST("/jobs/top", deps.JobHandler.Top)
 	}

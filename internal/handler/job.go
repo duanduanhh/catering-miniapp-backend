@@ -292,6 +292,38 @@ func (h *JobHandler) Close(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// Reopen godoc
+// @Summary 重新打开职位
+// @Tags 招聘模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobReopenRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/reopen [post]
+func (h *JobHandler) Reopen(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.JobReopenRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	if err := h.jobService.Reopen(ctx, userID, req.JobID); err != nil {
+		h.logger.WithContext(ctx).Error("jobService.Reopen error", zap.Error(err))
+		if err == service.ErrForbidden {
+			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
+			return
+		}
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
+}
+
 // GetCloseReasons godoc
 // @Summary 获取关闭原因列表
 // @Tags 通用接口

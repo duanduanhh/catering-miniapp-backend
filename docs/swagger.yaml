@@ -470,6 +470,13 @@ definitions:
     required:
     - job_id
     type: object
+  v1.JobReopenRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
   v1.JobTopRequest:
     properties:
       job_id:
@@ -1097,6 +1104,29 @@ paths:
       security:
       - Bearer: []
       summary: 付费刷新招聘信息
+      tags:
+      - 招聘模块
+  /jobs/reopen:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.JobReopenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 重新打开职位
       tags:
       - 招聘模块
   /jobs/top:
