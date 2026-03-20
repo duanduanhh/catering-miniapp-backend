@@ -695,15 +695,6 @@ definitions:
     required:
     - order_no
     type: object
-  v1.WechatPayRequest:
-    properties:
-      order_id:
-        type: integer
-      order_no:
-        type: string
-      price:
-        type: number
-    type: object
   v1.WechatRegisterRequest:
     properties:
       inviter_id:
@@ -1283,29 +1274,6 @@ paths:
       summary: 更新个人信息
       tags:
       - 用户模块
-  /wechat/pay:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: params
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/v1.WechatPayRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.Response'
-      security:
-      - Bearer: []
-      summary: 微信支付
-      tags:
-      - 支付模块
   /wechat/pay/notify:
     post:
       consumes:

@@ -1,11 +1,5 @@
 package v1
 
-type WechatPayRequest struct {
-	OrderID int64   `json:"order_id"`
-	OrderNo string  `json:"order_no"`
-	Price   float64 `json:"price"`
-}
-
 type WechatPayNotifyRequest struct {
 	OrderNo    string  `json:"order_no" binding:"required"`
 	Amount     float64 `json:"amount"`

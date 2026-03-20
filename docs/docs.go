@@ -933,44 +933,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/wechat/pay": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "支付模块"
-                ],
-                "summary": "微信支付",
-                "parameters": [
-                    {
-                        "description": "params",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.WechatPayRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/wechat/pay/notify": {
             "post": {
                 "consumes": [
@@ -2122,20 +2084,6 @@ const docTemplate = `{
                 },
                 "pay_trade_no": {
                     "type": "string"
-                }
-            }
-        },
-        "v1.WechatPayRequest": {
-            "type": "object",
-            "properties": {
-                "order_id": {
-                    "type": "integer"
-                },
-                "order_no": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },
