@@ -54,6 +54,12 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
 		return
 	}
+	openid := GetOpenidFromCtx(ctx)
+	if openid == "" {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "openid not found in token")
+		return
+	}
+
 	var req v1.ContactVoucherBuyRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
@@ -65,9 +71,19 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	params, err := h.payService.BuildJSAPIPayParams(ctx, order.OrderNo, req.Price)
+
+	// 获取金额（分）
+	amountCents, err := order.AmountTotal.ToCents()
 	if err != nil {
-		h.logger.WithContext(ctx).Error("payService.BuildJSAPIPayParams error", zap.Error(err))
+		h.logger.WithContext(ctx).Error("order.AmountTotal.ToCents error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+
+	// 调用新的支付服务，获取支付参数
+	params, err := h.payService.BuildPayParams(ctx, order.OrderNo, amountCents, openid, "购买联系券")
+	if err != nil {
+		h.logger.WithContext(ctx).Error("payService.BuildPayParams error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}

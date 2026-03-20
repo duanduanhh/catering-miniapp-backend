@@ -15,6 +15,7 @@ type JWT struct {
 
 type MyCustomClaims struct {
 	UserId string
+	Openid string // 微信 OpenID
 	jwt.RegisteredClaims
 }
 
@@ -23,6 +24,10 @@ func NewJwt(conf *viper.Viper) *JWT {
 }
 
 func (j *JWT) GenToken(userId string, expiresAt time.Time) (string, error) {
+	return j.GenTokenWithOpenid(userId, "", expiresAt)
+}
+
+func (j *JWT) GenTokenWithOpenid(userId, openid string, expiresAt time.Time) (string, error) {
 	claims := jwt.RegisteredClaims{
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		NotBefore: jwt.NewNumericDate(time.Now()),
@@ -36,6 +41,7 @@ func (j *JWT) GenToken(userId string, expiresAt time.Time) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, MyCustomClaims{
 		UserId:           userId,
+		Openid:           openid,
 		RegisteredClaims: claims,
 	})
 

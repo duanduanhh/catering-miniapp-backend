@@ -97,7 +97,7 @@ func (s *wechatService) Register(ctx context.Context, code, loginCode string, in
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return "", nil, err
 	}
-	token, err := s.jwt.GenToken(strconv.FormatInt(user.ID, 10), time.Time{})
+	token, err := s.jwt.GenTokenWithOpenid(strconv.FormatInt(user.ID, 10), user.WechatOpenID, time.Time{})
 	if err != nil {
 		return "", nil, err
 	}
@@ -124,7 +124,7 @@ func (s *wechatService) Login(ctx context.Context, code string) (string, *model.
 	if user == nil {
 		return "", nil, ErrUserNotFound
 	}
-	token, err := s.jwt.GenToken(strconv.FormatInt(user.ID, 10), time.Time{})
+	token, err := s.jwt.GenTokenWithOpenid(strconv.FormatInt(user.ID, 10), user.WechatOpenID, time.Time{})
 	if err != nil {
 		return "", nil, err
 	}

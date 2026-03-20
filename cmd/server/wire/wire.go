@@ -47,7 +47,7 @@ var serviceSet = wire.NewSet(
 	service.NewContactVoucherHistoryService,
 	service.NewWechatService,
 	service.NewUploadService,
-	service.NewPayService,
+	NewPayServiceProvider,
 	service.NewPositionCategoryService,
 )
 
@@ -71,6 +71,11 @@ var serverSet = wire.NewSet(
 	server.NewHTTPServer,
 	server.NewJobServer,
 )
+
+// NewPayServiceProvider 提供 PayService
+func NewPayServiceProvider(config *viper.Viper, logger *log.Logger) (service.PayService, error) {
+	return service.NewPayService(config, logger.Logger)
+}
 
 // build App
 func newApp(

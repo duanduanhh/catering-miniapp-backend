@@ -33,3 +33,11 @@ func GetUserIdFromCtx(ctx *gin.Context) int64 {
 	}
 	return parsed
 }
+
+func GetOpenidFromCtx(ctx *gin.Context) string {
+	v, exists := ctx.Get("claims")
+	if !exists {
+		return ""
+	}
+	return v.(*jwt.MyCustomClaims).Openid
+}
