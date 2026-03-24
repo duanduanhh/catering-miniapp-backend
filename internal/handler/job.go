@@ -496,6 +496,11 @@ func (h *JobHandler) Info(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
+	// 校验：删除状态的 job 不允许查询
+	if job.Status == model.JobStatusDeleted {
+		v1.HandleError(ctx, http.StatusNotFound, v1.ErrNotFound, "job not found")
+		return
+	}
 
 	item := buildJobListItem(job)
 

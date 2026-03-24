@@ -137,7 +137,7 @@ func (r *jobRepository) ListByUser(ctx context.Context, userID int64, bizType in
 		jobs  []*model.Job
 		total int64
 	)
-	db := r.DB(ctx).Model(&model.Job{}).Where("user_id = ?", userID)
+	db := r.DB(ctx).Model(&model.Job{}).Where("user_id = ? AND status != ?", userID, model.JobStatusDeleted)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
