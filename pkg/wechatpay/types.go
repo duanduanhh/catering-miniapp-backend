@@ -1,13 +1,13 @@
 package wechatpay
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -46,16 +46,16 @@ func (p *PayParams) Sign(privateKey *rsa.PrivateKey) error {
 	p.SignType = "RSA"
 
 	// 生成签名
-	payload := strings.Join([]string{
+	payload := fmt.Sprintf("%s\n%s\n%s\n%s\n",
 		p.AppID,
 		p.TimeStamp,
 		p.NonceStr,
 		p.Package,
-	}, "\n")
+	)
 
 	// 使用 SHA256 + RSA 签名
 	hash := sha256.Sum256([]byte(payload))
-	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, 5, hash[:])
+	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hash[:])
 	if err != nil {
 		return fmt.Errorf("sign failed: %w", err)
 	}
