@@ -1,10 +1,10 @@
 package v1
 
+// WechatPayNotifyRequest 微信支付回调请求
+// 微信支付回调是 JSON 请求体，需要直接接收原始 Body 进行验签和解密
 type WechatPayNotifyRequest struct {
-	OrderNo    string  `json:"order_no" binding:"required"`
-	Amount     float64 `json:"amount"`
-	PayChannel string  `json:"pay_channel"`
-	PayTradeNo string  `json:"pay_trade_no"`
+	// RawBody 用于接收原始请求体，在 middleware 中填充
+	RawBody []byte `json:"-"`
 }
 
 type ContactVoucherBuyRequest struct {

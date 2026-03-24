@@ -2,7 +2,12 @@ package wechatpay
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rsa"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 
@@ -137,4 +142,83 @@ func (c *WechatPayClient) GetAppID() string {
 // GetMchID 获取商户ID
 func (c *WechatPayClient) GetMchID() string {
 	return c.mchID
+}
+
+// GetAPIV3Key 获取 API v3 密钥（用于解密回调数据）
+func (c *WechatPayClient) GetAPIV3Key() string {
+	return c.apiV3Key
+}
+
+// DecryptNotifyResource 解密通知资源数据
+// ciphertext: Base64 编码的加密数据
+// nonce: 随机字符串
+// associatedData: 关联数据
+func (c *WechatPayClient) DecryptNotifyResource(ciphertext, nonce, associatedData string) ([]byte, error) {
+	if c.apiV3Key == "" {
+		return nil, errors.New("api v3 key is not configured")
+	}
+
+	// Base64 解码
+	cipherBytes, err := base64.StdEncoding.DecodeString(ciphertext)
+	if err != nil {
+		return nil, errors.New("failed to decode ciphertext: " + err.Error())
+	}
+
+	// 创建 AES GCM  cipher
+	block, err := aes.NewCipher([]byte(c.apiV3Key))
+	if err != nil {
+		return nil, errors.New("failed to create cipher: " + err.Error())
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, errors.New("failed to create gcm: " + err.Error())
+	}
+
+	// 解密
+	plaintext, err := gcm.Open(nil, []byte(nonce), cipherBytes, []byte(associatedData))
+	if err != nil {
+		return nil, errors.New("failed to decrypt: " + err.Error())
+	}
+
+	return plaintext, nil
+}
+
+// DecryptPaymentNotify 解密支付通知
+// data: 通知请求体 JSON
+// 返回解密后的数据
+func (c *WechatPayClient) DecryptPaymentNotify(data []byte) (*DecryptedData, error) {
+	// 解析通知数据
+	var notify PaymentNotifyData
+	if err := json.Unmarshal(data, &notify); err != nil {
+		return nil, errors.New("failed to parse notification: " + err.Error())
+	}
+
+	// 检查事件类型
+	if notify.EventType != "TRANSACTION.SUCCESS" {
+		return nil, errors.New("event type is not TRANSACTION.SUCCESS: " + notify.EventType)
+	}
+
+	// 检查资源数据
+	if notify.Resource == nil {
+		return nil, errors.New("resource is nil")
+	}
+
+	// 解密
+	plaintext, err := c.DecryptNotifyResource(
+		notify.Resource.Ciphertext,
+		notify.Resource.Nonce,
+		notify.Resource.AssociatedData,
+	)
+	if err != nil {
+		return nil, errors.New("failed to decrypt resource: " + err.Error())
+	}
+
+	// 解析解密后的数据
+	var decrypted DecryptedData
+	if err := json.Unmarshal(plaintext, &decrypted); err != nil {
+		return nil, errors.New("failed to parse decrypted data: " + err.Error())
+	}
+
+	return &decrypted, nil
 }

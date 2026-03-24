@@ -2068,24 +2068,7 @@ const docTemplate = `{
             }
         },
         "v1.WechatPayNotifyRequest": {
-            "type": "object",
-            "required": [
-                "order_no"
-            ],
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "order_no": {
-                    "type": "string"
-                },
-                "pay_channel": {
-                    "type": "string"
-                },
-                "pay_trade_no": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "v1.WechatRegisterRequest": {
             "type": "object",

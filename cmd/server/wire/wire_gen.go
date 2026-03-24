@@ -18,6 +18,7 @@ import (
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/server/http"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/sid"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/wechatpay"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
 )
@@ -55,7 +56,11 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	contactVoucherHistoryService := service.NewContactVoucherHistoryService(serviceService, contactVoucherHistoryRepository, userRepository)
 	contactVoucherHistoryHandler := handler.NewContactVoucherHistoryHandler(handlerHandler, contactVoucherHistoryService, orderService, contactHistoryService, payService)
 	wechatService := service.NewWechatService(logger, viperViper, jwtJWT, userRepository)
-	wechatHandler := handler.NewWechatHandler(handlerHandler, orderService, wechatService)
+	wechatPayClient, err := NewWechatPayClientProvider(viperViper)
+	if err != nil {
+		return nil, nil, err
+	}
+	wechatHandler := handler.NewWechatHandler(handlerHandler, orderService, wechatService, wechatPayClient)
 	uploadService := service.NewUploadService(viperViper)
 	uploadHandler := handler.NewUploadHandler(handlerHandler, uploadService)
 	positionCategoryRepository := repository.NewPositionCategoryRepository(repositoryRepository)
@@ -91,6 +96,8 @@ var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service
 
 var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler)
 
+var wechatPaySet = wire.NewSet(NewWechatPayClientProvider)
+
 var jobSet = wire.NewSet(job.NewJob, job.NewUserJob)
 
 var serverSet = wire.NewSet(server.NewHTTPServer, server.NewJobServer)
@@ -98,6 +105,11 @@ var serverSet = wire.NewSet(server.NewHTTPServer, server.NewJobServer)
 // NewPayServiceProvider 提供 PayService
 func NewPayServiceProvider(config *viper.Viper, logger *log.Logger) (service.PayService, error) {
 	return service.NewPayService(config, logger.Logger)
+}
+
+// NewWechatPayClientProvider 提供 WechatPayClient
+func NewWechatPayClientProvider(config *viper.Viper) (*wechatpay.WechatPayClient, error) {
+	return wechatpay.NewWechatPayClient(config)
 }
 
 // build App

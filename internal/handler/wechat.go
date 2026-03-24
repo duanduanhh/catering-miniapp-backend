@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,19 +9,22 @@ import (
 
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
+	"github.com/go-nunu/nunu-layout-advanced/pkg/wechatpay"
 )
 
 type WechatHandler struct {
 	*Handler
-	orderService  service.OrderService
-	wechatService service.WechatService
+	orderService    service.OrderService
+	wechatService   service.WechatService
+	wechatPayClient *wechatpay.WechatPayClient
 }
 
-func NewWechatHandler(handler *Handler, orderService service.OrderService, wechatService service.WechatService) *WechatHandler {
+func NewWechatHandler(handler *Handler, orderService service.OrderService, wechatService service.WechatService, wechatPayClient *wechatpay.WechatPayClient) *WechatHandler {
 	return &WechatHandler{
-		Handler:       handler,
-		orderService:  orderService,
-		wechatService: wechatService,
+		Handler:         handler,
+		orderService:    orderService,
+		wechatService:   wechatService,
+		wechatPayClient: wechatPayClient,
 	}
 }
 
@@ -92,24 +96,50 @@ func (h *WechatHandler) Login(ctx *gin.Context) {
 // @Success 200 {object} v1.Response
 // @Router /wechat/pay/notify [post]
 func (h *WechatHandler) PayNotify(ctx *gin.Context) {
-	var req v1.WechatPayNotifyRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	// 读取原始请求体
+	body, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("read request body error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "invalid request body")
+		return
+	}
+
+	// 解密通知数据
+	decryptedData, err := h.wechatPayClient.DecryptPaymentNotify(body)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("DecryptPaymentNotify error", zap.Error(err), zap.ByteString("body", body))
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	order, err := h.orderService.PayOrderByNotify(ctx, req.OrderNo, req.Amount, req.PayChannel, req.PayTradeNo)
+
+	// 验证交易状态
+	if decryptedData.TradeState != "SUCCESS" {
+		h.logger.WithContext(ctx).Info("trade state not success", zap.String("trade_state", decryptedData.TradeState), zap.String("out_trade_no", decryptedData.OutTradeNo))
+		// 返回成功以免微信重复回调
+		v1.HandleSuccess(ctx, nil)
+		return
+	}
+
+	// 金额单位转换：分 -> 元（数据库存储为 float64）
+	var amount float64
+	if decryptedData.Amount != nil {
+		amount = float64(decryptedData.Amount.Total) / 100.0
+	}
+
+	// 调用 service 处理订单支付
+	_, err = h.orderService.PayOrderByNotify(ctx, decryptedData.OutTradeNo, amount, "wechat", decryptedData.TransactionId)
 	if err != nil {
-		h.logger.WithContext(ctx).Error("orderService.PayOrderByNotify error", zap.Error(err))
+		h.logger.WithContext(ctx).Error("orderService.PayOrderByNotify error", zap.Error(err), zap.String("order_no", decryptedData.OutTradeNo))
 		if err == service.ErrAmountMismatch {
 			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrAmountMismatch, err.Error())
 			return
 		}
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		// 即使处理失败也返回成功，避免微信重复回调
+		v1.HandleSuccess(ctx, nil)
 		return
 	}
-	if order == nil {
-		v1.HandleError(ctx, http.StatusNotFound, v1.ErrNotFound, "order not found")
-		return
-	}
+
+	h.logger.WithContext(ctx).Info("pay notify success", zap.String("order_no", decryptedData.OutTradeNo), zap.Int64("amount", decryptedData.Amount.Total))
+
 	v1.HandleSuccess(ctx, nil)
 }

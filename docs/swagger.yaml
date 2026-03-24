@@ -683,17 +683,6 @@ definitions:
         type: integer
     type: object
   v1.WechatPayNotifyRequest:
-    properties:
-      amount:
-        type: number
-      order_no:
-        type: string
-      pay_channel:
-        type: string
-      pay_trade_no:
-        type: string
-    required:
-    - order_no
     type: object
   v1.WechatRegisterRequest:
     properties:
