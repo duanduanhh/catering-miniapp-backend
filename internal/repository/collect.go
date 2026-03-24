@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
+	"gorm.io/gorm"
 )
 
 type CollectRepository interface {
@@ -38,6 +40,9 @@ func (r *collectRepository) Get(ctx context.Context, userID, contentID int64, bi
 	if err := r.DB(ctx).
 		Where("user_id = ? AND content_id = ? AND type = ?", userID, contentID, bizType).
 		First(&collect).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil // 记录不存在是正常情况，不返回错误
+		}
 		return nil, err
 	}
 	return &collect, nil
