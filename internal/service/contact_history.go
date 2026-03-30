@@ -52,6 +52,15 @@ type ContactHistoryItem struct {
 	PurposeUserName  string
 	PurposeUserPhone string
 	CreateAt         time.Time
+	// 新增字段
+	Avatar        string
+	SalaryMin     int
+	SalaryMax     int
+	FirstAreaDes  string
+	SecondAreaDes string
+	ThirdAreaDes  string
+	JobStatus     int
+	CompanyName   string
 }
 
 func (s *contactHistoryService) Create(ctx context.Context, input ContactHistoryCreateInput) (*model.ContactHistory, error) {
@@ -101,6 +110,13 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 		jobMap[job.ID] = job
 	}
 
+	// 获取用户信息
+	users, _ := s.userRepository.ListByIDs(ctx, userIDs)
+	userMap := make(map[int64]*model.User, len(users))
+	for _, user := range users {
+		userMap[user.ID] = user
+	}
+
 	items := make([]ContactHistoryItem, 0, len(histories))
 	for _, history := range histories {
 		item := ContactHistoryItem{
@@ -113,6 +129,15 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 		if job, ok := jobMap[history.PurposeID]; ok {
 			item.Positions = job.Positions
 			item.Address = job.Address
+			// 新增字段
+			item.Avatar = job.Avatar
+			item.SalaryMin = job.SalaryMin
+			item.SalaryMax = job.SalaryMax
+			item.FirstAreaDes = job.FirstAreaDes
+			item.SecondAreaDes = job.SecondAreaDes
+			item.ThirdAreaDes = job.ThirdAreaDes
+			item.JobStatus = int(job.Status)
+			item.CompanyName = job.CompanyName
 		}
 		items = append(items, item)
 	}
