@@ -29,3 +29,8 @@ type ContactHistoryListResponseData struct {
 	List  []ContactHistoryItem `json:"list"`
 	Total int64                `json:"total"`
 }
+
+// ContactHistoryDeleteRequest 删除联系记录的请求
+type ContactHistoryDeleteRequest struct {
+	PurposeID int64 `json:"purpose_id" binding:"required"` // 职位ID
+}

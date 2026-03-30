@@ -12,6 +12,8 @@ type ContactHistoryService interface {
 	Create(ctx context.Context, input ContactHistoryCreateInput) (*model.ContactHistory, error)
 	ListOut(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]ContactHistoryItem, int64, error)
 	ListIn(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]ContactHistoryItem, int64, error)
+	DeleteOut(ctx context.Context, userID, purposeID int64) error
+	DeleteIn(ctx context.Context, userID, purposeID int64) error
 }
 
 func NewContactHistoryService(
@@ -94,6 +96,16 @@ func (s *contactHistoryService) ListIn(ctx context.Context, userID int64, bizTyp
 		return nil, 0, err
 	}
 	return s.buildHistoryItems(ctx, histories), total, nil
+}
+
+// DeleteOut 删除"我联系的"记录
+func (s *contactHistoryService) DeleteOut(ctx context.Context, userID, purposeID int64) error {
+	return s.contactHistoryRepository.DeleteOut(ctx, userID, purposeID)
+}
+
+// DeleteIn 删除"联系我的"记录
+func (s *contactHistoryService) DeleteIn(ctx context.Context, userID, purposeID int64) error {
+	return s.contactHistoryRepository.DeleteIn(ctx, userID, purposeID)
 }
 
 func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories []*model.ContactHistory) []ContactHistoryItem {

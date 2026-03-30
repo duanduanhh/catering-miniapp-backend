@@ -129,6 +129,42 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系模块"
+                ],
+                "summary": "删除联系我的",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ContactHistoryDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
             }
         },
         "/contact_history/out": {
@@ -164,6 +200,42 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.ContactHistoryListResponseData"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系模块"
+                ],
+                "summary": "删除我联系的",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ContactHistoryDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -1077,16 +1149,44 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.ContactHistoryDeleteRequest": {
+            "type": "object",
+            "required": [
+                "purpose_id"
+            ],
+            "properties": {
+                "purpose_id": {
+                    "description": "职位ID",
+                    "type": "integer"
+                }
+            }
+        },
         "v1.ContactHistoryItem": {
             "type": "object",
             "properties": {
                 "address": {
                     "type": "string"
                 },
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "company_name": {
+                    "description": "企业名称",
+                    "type": "string"
+                },
                 "create_at": {
                     "type": "string"
                 },
+                "first_area_des": {
+                    "description": "一级地区",
+                    "type": "string"
+                },
                 "id": {
+                    "type": "integer"
+                },
+                "job_status": {
+                    "description": "岗位状态",
                     "type": "integer"
                 },
                 "positions": {
@@ -1099,6 +1199,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "purpose_user_phone": {
+                    "type": "string"
+                },
+                "salary_max": {
+                    "description": "薪资上限",
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "description": "薪资下限",
+                    "type": "integer"
+                },
+                "second_area_des": {
+                    "description": "二级地区",
+                    "type": "string"
+                },
+                "third_area_des": {
+                    "description": "三级地区",
                     "type": "string"
                 }
             }

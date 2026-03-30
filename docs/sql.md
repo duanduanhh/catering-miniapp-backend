@@ -154,6 +154,8 @@ CREATE TABLE `contact_history` (
   `purpose_user_id` bigint DEFAULT NULL COMMENT '被联系用户ID',
   `purpose_user_name` varchar(64) DEFAULT NULL COMMENT '被联系用户昵称',
   `purpose_user_phone` varchar(64) DEFAULT NULL COMMENT '被联系对象手机号（快照）',
+  `user_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '发起方是否删除：0-否 1-是',
+  `purpose_user_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '被联系方是否删除：0-否 1-是',
   `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '联系创建时间',
   `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '联系更新时间',
   PRIMARY KEY (`id`),
