@@ -12,7 +12,7 @@ type JobRepository interface {
 	Update(ctx context.Context, job *model.Job) error
 	GetByID(ctx context.Context, id int64) (*model.Job, error)
 	List(ctx context.Context, query JobListQuery) ([]*model.Job, int64, error)
-	ListByUser(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]*model.Job, int64, error)
+	ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error)
 	ListByIDs(ctx context.Context, ids []int64) ([]*model.Job, error)
 	CountByUser(ctx context.Context, userID int64, status model.JobStatus) (int64, error)
 }
@@ -132,12 +132,16 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 	return jobs, total, nil
 }
 
-func (r *jobRepository) ListByUser(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]*model.Job, int64, error) {
+func (r *jobRepository) ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error) {
 	var (
 		jobs  []*model.Job
 		total int64
 	)
 	db := r.DB(ctx).Model(&model.Job{}).Where("user_id = ? AND status != ?", userID, model.JobStatusDeleted)
+	// 当 status 有值时，按数组查询
+	if len(status) > 0 {
+		db = db.Where("status IN ?", status)
+	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}

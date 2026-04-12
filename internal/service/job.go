@@ -17,7 +17,7 @@ type JobService interface {
 	Delete(ctx context.Context, userID, jobID int64) error
 	GetByID(ctx context.Context, jobID int64) (*model.Job, error)
 	List(ctx context.Context, query repository.JobListQuery) ([]*model.Job, int64, error)
-	ListByUser(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]*model.Job, int64, error)
+	ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error)
 }
 
 func NewJobService(
@@ -264,6 +264,6 @@ func (s *jobService) List(ctx context.Context, query repository.JobListQuery) ([
 	return s.jobRepository.List(ctx, query)
 }
 
-func (s *jobService) ListByUser(ctx context.Context, userID int64, bizType int, pageNum, pageSize int) ([]*model.Job, int64, error) {
-	return s.jobRepository.ListByUser(ctx, userID, bizType, pageNum, pageSize)
+func (s *jobService) ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error) {
+	return s.jobRepository.ListByUser(ctx, userID, bizType, status, pageNum, pageSize)
 }

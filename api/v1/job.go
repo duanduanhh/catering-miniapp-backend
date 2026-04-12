@@ -165,9 +165,10 @@ type JobListResponse struct {
 }
 
 type JobMyRequest struct {
-	BizType  int `json:"biz_type"`
-	PageNum  int `json:"page_num"`
-	PageSize int `json:"page_size"`
+	BizType  int   `json:"biz_type"`
+	PageNum  int   `json:"page_num"`
+	PageSize int   `json:"page_size"`
+	Status   []int `json:"status"` // 状态筛选：空数组或不传=查所有非删除，传数组按数组查
 }
 
 type JobMyItem struct {

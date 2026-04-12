@@ -1829,6 +1829,13 @@ const docTemplate = `{
                 },
                 "page_size": {
                     "type": "integer"
+                },
+                "status": {
+                    "description": "状态筛选：空数组或不传=查所有非删除，传数组按数组查",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },

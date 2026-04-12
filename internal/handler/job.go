@@ -535,7 +535,7 @@ func (h *JobHandler) My(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	jobs, total, err := h.jobService.ListByUser(ctx, userID, req.BizType, req.PageNum, req.PageSize)
+	jobs, total, err := h.jobService.ListByUser(ctx, userID, req.BizType, req.Status, req.PageNum, req.PageSize)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("jobService.ListByUser error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
