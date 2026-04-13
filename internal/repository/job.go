@@ -106,7 +106,7 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 			Order("refresh_time DESC")
 	case 2:
 		if query.Longitude != 0 || query.Latitude != 0 {
-			db = db.Order(fmt.Sprintf("((longitude-%f)*(longitude-%f)+(latitude-%f)*(latitude-%f)) ASC",
+			db = db.Order(fmt.Sprintf("((job.longitude-%f)*(job.longitude-%f)+(job.latitude-%f)*(job.latitude-%f)) ASC",
 				query.Longitude, query.Longitude, query.Latitude, query.Latitude))
 		}
 	case 3:
