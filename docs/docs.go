@@ -1006,6 +1006,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/orders": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "返回当前用户已支付的订单列表。product_type: 1=置顶 2=联系券 3=刷新",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "个人中心"
+                ],
+                "summary": "消费记录",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.UserOrderListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.UserOrderListResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/user/update/geo": {
             "post": {
                 "security": [
@@ -2337,6 +2376,64 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.UserOrderListItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "product_type": {
+                    "description": "商品类型: 1=置顶 2=联系券 3=刷新",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "example": 1
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.UserOrderListRequest": {
+            "type": "object",
+            "properties": {
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.UserOrderListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.UserOrderListItem"
+                    }
+                },
+                "total": {
                     "type": "integer"
                 }
             }

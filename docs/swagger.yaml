@@ -773,6 +773,45 @@ definitions:
       user_id:
         type: integer
     type: object
+  v1.UserOrderListItem:
+    properties:
+      amount:
+        type: number
+      create_at:
+        type: string
+      order_id:
+        type: integer
+      order_no:
+        type: string
+      paid_at:
+        type: string
+      product_type:
+        description: '商品类型: 1=置顶 2=联系券 3=刷新'
+        enum:
+        - 1
+        - 2
+        - 3
+        example: 1
+        type: integer
+      title:
+        type: string
+    type: object
+  v1.UserOrderListRequest:
+    properties:
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+    type: object
+  v1.UserOrderListResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.UserOrderListItem'
+        type: array
+      total:
+        type: integer
+    type: object
   v1.WechatLoginRequest:
     properties:
       login_code:
@@ -1418,6 +1457,30 @@ paths:
       summary: 查询个人信息
       tags:
       - 用户模块
+  /user/orders:
+    post:
+      consumes:
+      - application/json
+      description: '返回当前用户已支付的订单列表。product_type: 1=置顶 2=联系券 3=刷新'
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UserOrderListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UserOrderListResponseData'
+      security:
+      - Bearer: []
+      summary: 消费记录
+      tags:
+      - 个人中心
   /user/update/geo:
     post:
       consumes:

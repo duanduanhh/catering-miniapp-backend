@@ -46,6 +46,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	if err != nil {
 		return nil, nil, err
 	}
+	orderHandler := handler.NewOrderHandler(handlerHandler, orderService)
 	collectRepository := repository.NewCollectRepository(repositoryRepository)
 	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService, payService, collectRepository)
 	collectService := service.NewCollectService(serviceService, collectRepository, jobRepository)
@@ -75,6 +76,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 		JWT:                          jwtJWT,
 		UserHandler:                  userHandler,
 		JobHandler:                   jobHandler,
+		OrderHandler:                 orderHandler,
 		CollectHandler:               collectHandler,
 		ContactHistoryHandler:        contactHistoryHandler,
 		ContactVoucherHistoryHandler: contactVoucherHistoryHandler,
@@ -98,7 +100,7 @@ var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repo
 
 var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewUploadService, NewPayServiceProvider, service.NewPositionCategoryService, service.NewFeedbackService)
 
-var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler, handler.NewFeedbackHandler)
+var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewOrderHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler, handler.NewFeedbackHandler)
 
 var wechatPaySet = wire.NewSet(NewWechatPayClientProvider)
 

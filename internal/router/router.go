@@ -14,6 +14,7 @@ type RouterDeps struct {
 	JWT                          *jwt.JWT
 	UserHandler                  *handler.UserHandler
 	JobHandler                   *handler.JobHandler
+	OrderHandler                 *handler.OrderHandler
 	CollectHandler               *handler.CollectHandler
 	ContactHistoryHandler        *handler.ContactHistoryHandler
 	ContactVoucherHistoryHandler *handler.ContactVoucherHistoryHandler

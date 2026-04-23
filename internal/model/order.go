@@ -32,3 +32,11 @@ type Order struct {
 func (m *Order) TableName() string {
 	return "orders"
 }
+
+// OrderWithItem 订单 + 第一条 item 的平铺结构，用于消费记录列表
+type OrderWithItem struct {
+	Order
+	ProductType       int     `gorm:"column:product_type"`
+	TitleSnapshot     string  `gorm:"column:title_snapshot"`
+	UnitPriceSnapshot float64 `gorm:"column:unit_price_snapshot"`
+}

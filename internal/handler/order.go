@@ -1,8 +1,12 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
+	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 )
 
@@ -21,4 +25,49 @@ func NewOrderHandler(
 	}
 }
 
-func (h *OrderHandler) GetOrder(ctx *gin.Context) {}
+// ListOrders godoc
+// @Summary 消费记录
+// @Description 返回当前用户已支付的订单列表。product_type: 1=置顶 2=联系券 3=刷新
+// @Tags 个人中心
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.UserOrderListRequest true "params"
+// @Success 200 {object} v1.UserOrderListResponseData
+// @Router /user/orders [post]
+func (h *OrderHandler) ListOrders(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.UserOrderListRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	list, total, err := h.orderService.ListByUser(ctx, userID, req.PageNum, req.PageSize)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("orderService.ListByUser error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	resp := v1.UserOrderListResponseData{
+		List:  make([]v1.UserOrderListItem, 0, len(list)),
+		Total: total,
+	}
+	for _, o := range list {
+		cents, _ := o.AmountTotal.ToCents()
+		amount := float64(cents) / 100
+		resp.List = append(resp.List, v1.UserOrderListItem{
+			OrderID:     o.ID,
+			OrderNo:     o.OrderNo,
+			ProductType: o.ProductType,
+			Title:       o.TitleSnapshot,
+			Amount:      amount,
+			PaidAt:      formatOptionalTime(o.PaidAt),
+			CreateAt:    formatTime(o.CreateAt),
+		})
+	}
+	v1.HandleSuccess(ctx, resp)
+}

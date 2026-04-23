@@ -11,6 +11,7 @@ type OrderRepository interface {
 	Update(ctx context.Context, order *model.Order) error
 	GetByID(ctx context.Context, id int64) (*model.Order, error)
 	GetByOrderNo(ctx context.Context, orderNo string) (*model.Order, error)
+	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
 }
 
 func NewOrderRepository(
@@ -47,4 +48,30 @@ func (r *orderRepository) GetByOrderNo(ctx context.Context, orderNo string) (*mo
 		return nil, err
 	}
 	return &order, nil
+}
+
+func (r *orderRepository) ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error) {
+	var (
+		list  []*model.OrderWithItem
+		total int64
+	)
+	db := r.DB(ctx).Table("orders").
+		Select("orders.*, order_item.product_type, order_item.title_snapshot, order_item.unit_price_snapshot").
+		Joins("LEFT JOIN order_item ON order_item.order_id = orders.id").
+		Where("orders.user_id = ? AND orders.status = ?", userID, model.OrderStatusPaid)
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if pageNum <= 0 {
+		pageNum = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	offset := (pageNum - 1) * pageSize
+	if err := db.Order("orders.create_at DESC").Offset(offset).Limit(pageSize).Find(&list).Error; err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
 }

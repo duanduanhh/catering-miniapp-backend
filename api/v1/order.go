@@ -60,3 +60,24 @@ type ContactVoucherRecordsItem struct {
 	ChangeNum int                      `json:"change_num"`
 	CreateAt  string                   `json:"create_at"`
 }
+
+type UserOrderListRequest struct {
+	PageNum  int `json:"page_num"`
+	PageSize int `json:"page_size"`
+}
+
+type UserOrderListItem struct {
+	OrderID     int64   `json:"order_id"`
+	OrderNo     string  `json:"order_no"`
+	// 商品类型: 1=置顶 2=联系券 3=刷新
+	ProductType int     `json:"product_type" enums:"1,2,3" example:"1"`
+	Title       string  `json:"title"`
+	Amount      float64 `json:"amount"`
+	PaidAt      string  `json:"paid_at"`
+	CreateAt    string  `json:"create_at"`
+}
+
+type UserOrderListResponseData struct {
+	List  []UserOrderListItem `json:"list"`
+	Total int64               `json:"total"`
+}
