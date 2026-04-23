@@ -32,3 +32,21 @@ type UpdateUserGeoRequest struct {
 	Longitude    *float64 `json:"longitude"`
 	Latitude     *float64 `json:"latitude"`
 }
+
+type UserInviteListRequest struct {
+	PageNum  int `json:"page_num"`
+	PageSize int `json:"page_size"`
+}
+
+type UserInviteItem struct {
+	UserID   int64  `json:"user_id"`
+	Avatar   string `json:"avatar"`
+	Name     string `json:"name"`
+	CreateAt string `json:"create_at"`
+}
+
+type UserInviteListResponseData struct {
+	InviteTotal int64            `json:"invite_total"`
+	List        []UserInviteItem `json:"list"`
+	Total       int64            `json:"total"`
+}

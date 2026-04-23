@@ -773,6 +773,35 @@ definitions:
       user_id:
         type: integer
     type: object
+  v1.UserInviteItem:
+    properties:
+      avatar:
+        type: string
+      create_at:
+        type: string
+      name:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  v1.UserInviteListRequest:
+    properties:
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+    type: object
+  v1.UserInviteListResponseData:
+    properties:
+      invite_total:
+        type: integer
+      list:
+        items:
+          $ref: '#/definitions/v1.UserInviteItem'
+        type: array
+      total:
+        type: integer
+    type: object
   v1.UserOrderListItem:
     properties:
       amount:
@@ -1457,6 +1486,29 @@ paths:
       summary: 查询个人信息
       tags:
       - 用户模块
+  /user/invites:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UserInviteListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UserInviteListResponseData'
+      security:
+      - Bearer: []
+      summary: 邀请记录
+      tags:
+      - 个人中心
   /user/orders:
     post:
       consumes:

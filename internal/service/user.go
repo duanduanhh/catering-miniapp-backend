@@ -12,6 +12,7 @@ type UserService interface {
 	GetInfo(ctx context.Context, userID int64) (*model.User, error)
 	UpdateInfo(ctx context.Context, userID int64, input UpdateUserInfoInput) error
 	UpdateGeo(ctx context.Context, userID int64, input UpdateUserGeoInput) error
+	ListInvites(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.User, int64, int64, error)
 }
 
 func NewUserService(
@@ -127,4 +128,17 @@ func (s *userService) UpdateGeo(ctx context.Context, userID int64, input UpdateU
 	}
 	user.UpdateAt = time.Now()
 	return s.userRepo.Update(ctx, user)
+}
+
+// ListInvites 返回被邀请人列表、分页总数、邀请总人数（取 user.invite_num）
+func (s *userService) ListInvites(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.User, int64, int64, error) {
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	list, total, err := s.userRepo.ListByInviterID(ctx, userID, pageNum, pageSize)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	return list, total, int64(user.InviteNum), nil
 }

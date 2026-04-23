@@ -17,6 +17,7 @@ type UserRepository interface {
 	GetByPhone(ctx context.Context, phone string) (*model.User, error)
 	GetByOpenID(ctx context.Context, openID string) (*model.User, error)
 	ListByIDs(ctx context.Context, ids []int64) ([]*model.User, error)
+	ListByInviterID(ctx context.Context, inviterID int64, pageNum, pageSize int) ([]*model.User, int64, error)
 }
 
 func NewUserRepository(
@@ -87,4 +88,26 @@ func (r *userRepository) ListByIDs(ctx context.Context, ids []int64) ([]*model.U
 		return nil, err
 	}
 	return users, nil
+}
+
+func (r *userRepository) ListByInviterID(ctx context.Context, inviterID int64, pageNum, pageSize int) ([]*model.User, int64, error) {
+	var (
+		list  []*model.User
+		total int64
+	)
+	db := r.DB(ctx).Model(&model.User{}).Where("invite_id = ?", inviterID)
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if pageNum <= 0 {
+		pageNum = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	offset := (pageNum - 1) * pageSize
+	if err := db.Order("create_at DESC").Offset(offset).Limit(pageSize).Find(&list).Error; err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
 }

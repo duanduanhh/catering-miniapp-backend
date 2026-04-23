@@ -91,7 +91,47 @@ func (h *UserHandler) UpdateGeo(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
-// UpdateInfo godoc
+// ListInvites godoc
+// @Summary 邀请记录
+// @Tags 个人中心
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.UserInviteListRequest true "params"
+// @Success 200 {object} v1.UserInviteListResponseData
+// @Router /user/invites [post]
+func (h *UserHandler) ListInvites(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.UserInviteListRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	list, total, inviteTotal, err := h.userService.ListInvites(ctx, userID, req.PageNum, req.PageSize)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("userService.ListInvites error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	resp := v1.UserInviteListResponseData{
+		InviteTotal: inviteTotal,
+		List:        make([]v1.UserInviteItem, 0, len(list)),
+		Total:       total,
+	}
+	for _, u := range list {
+		resp.List = append(resp.List, v1.UserInviteItem{
+			UserID:   u.ID,
+			Avatar:   u.Avatar,
+			Name:     u.Name,
+			CreateAt: formatTime(u.CreateAt),
+		})
+	}
+	v1.HandleSuccess(ctx, resp)
+}
 // @Summary 更新个人信息
 // @Tags 用户模块
 // @Accept json
