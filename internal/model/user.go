@@ -31,9 +31,12 @@ type User struct {
 	TotalRecharge     float64   `gorm:"column:total_recharge"`
 	DeviceModel       string    `gorm:"column:device_model"`
 	IP                string    `gorm:"column:ip"`
-	ContactVoucherNum int       `gorm:"column:contact_voucher_num"`
-	CreateAt          time.Time `gorm:"column:create_at"`
-	UpdateAt          time.Time `gorm:"column:update_at"`
+	ContactVoucherNum    int       `gorm:"column:contact_voucher_num"`
+	FirstTopStatus       int       `gorm:"column:first_top_status"`
+	NewCustomerStatus    int       `gorm:"column:new_customer_status"`
+	ProfileCompleteStatus int      `gorm:"column:profile_complete_status"`
+	CreateAt             time.Time `gorm:"column:create_at"`
+	UpdateAt             time.Time `gorm:"column:update_at"`
 }
 
 func (u *User) TableName() string {

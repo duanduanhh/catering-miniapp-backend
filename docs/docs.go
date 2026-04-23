@@ -2146,11 +2146,23 @@ const docTemplate = `{
                 "avatar": {
                     "type": "string"
                 },
+                "contact_voucher_num": {
+                    "type": "integer"
+                },
+                "first_top_status": {
+                    "type": "integer"
+                },
                 "name": {
                     "type": "string"
                 },
+                "new_customer_status": {
+                    "type": "integer"
+                },
                 "phone": {
                     "type": "string"
+                },
+                "profile_complete_status": {
+                    "type": "integer"
                 },
                 "sex": {
                     "type": "integer"

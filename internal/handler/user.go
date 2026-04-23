@@ -43,11 +43,15 @@ func (h *UserHandler) GetInfo(ctx *gin.Context) {
 		return
 	}
 	v1.HandleSuccess(ctx, v1.UserInfoResponseData{
-		UserID: user.ID,
-		Avatar: user.Avatar,
-		Name:   user.Name,
-		Sex:    user.Sex,
-		Phone:  user.Phone,
+		UserID:                user.ID,
+		Avatar:                user.Avatar,
+		Name:                  user.Name,
+		Sex:                   user.Sex,
+		Phone:                 user.Phone,
+		ContactVoucherNum:     user.ContactVoucherNum,
+		FirstTopStatus:        user.FirstTopStatus,
+		NewCustomerStatus:     user.NewCustomerStatus,
+		ProfileCompleteStatus: user.ProfileCompleteStatus,
 	})
 }
 

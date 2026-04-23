@@ -219,8 +219,14 @@ func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order
 				if err := s.applyTop(ctx, item); err != nil {
 					return err
 				}
+				if err := s.applyFirstTopStatus(ctx, order.UserID); err != nil {
+					return err
+				}
 			case model.ProductTypeContactVoucher:
 				if err := s.applyContactVoucher(ctx, order.UserID, item); err != nil {
+					return err
+				}
+				if err := s.applyNewCustomerStatus(ctx, order.UserID); err != nil {
 					return err
 				}
 			case model.ProductTypeRefresh:
@@ -295,6 +301,32 @@ func (s *orderService) applyRefresh(ctx context.Context, item *model.OrderItem) 
 	now := time.Now()
 	job.RefreshTime = &now
 	return s.jobRepository.Update(ctx, job)
+}
+
+func (s *orderService) applyFirstTopStatus(ctx context.Context, userID int64) error {
+	user, err := s.userRepository.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user.FirstTopStatus == 0 {
+		user.FirstTopStatus = 1
+		user.UpdateAt = time.Now()
+		return s.userRepository.Update(ctx, user)
+	}
+	return nil
+}
+
+func (s *orderService) applyNewCustomerStatus(ctx context.Context, userID int64) error {
+	user, err := s.userRepository.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user.NewCustomerStatus == 0 {
+		user.NewCustomerStatus = 1
+		user.UpdateAt = time.Now()
+		return s.userRepository.Update(ctx, user)
+	}
+	return nil
 }
 
 func (s *orderService) generateOrderNo(prefix string) string {

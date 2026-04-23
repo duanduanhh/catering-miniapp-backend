@@ -17,15 +17,18 @@ type UserService interface {
 func NewUserService(
 	service *Service,
 	userRepo repository.UserRepository,
+	contactVoucherHistoryRepo repository.ContactVoucherHistoryRepository,
 ) UserService {
 	return &userService{
-		userRepo: userRepo,
-		Service:  service,
+		userRepo:                  userRepo,
+		contactVoucherHistoryRepo: contactVoucherHistoryRepo,
+		Service:                   service,
 	}
 }
 
 type userService struct {
-	userRepo repository.UserRepository
+	userRepo                  repository.UserRepository
+	contactVoucherHistoryRepo repository.ContactVoucherHistoryRepository
 	*Service
 }
 
@@ -67,6 +70,35 @@ func (s *userService) UpdateInfo(ctx context.Context, userID int64, input Update
 		user.Phone = *input.Phone
 	}
 	user.UpdateAt = time.Now()
+
+	// 首次完善个人信息：赠送2张联系券，状态不可回退
+	if user.ProfileCompleteStatus == 0 {
+		return s.tm.Transaction(ctx, func(ctx context.Context) error {
+			user.ProfileCompleteStatus = 1
+			if err := s.userRepo.Update(ctx, user); err != nil {
+				return err
+			}
+			lastNum := user.ContactVoucherNum
+			nextNum := lastNum + 2
+			giftUser := *user
+			giftUser.ContactVoucherNum = nextNum
+			giftUser.UpdateAt = time.Now()
+			if err := s.userRepo.Update(ctx, &giftUser); err != nil {
+				return err
+			}
+			history := &model.ContactVoucherHistory{
+				UserID:    userID,
+				BizType:   model.ContactVoucherHistoryBuy,
+				ChangeNum: 2,
+				LastNum:   lastNum,
+				NextNum:   nextNum,
+				Remark:    "首次完善个人信息赠送",
+				CreateAt:  time.Now(),
+			}
+			return s.contactVoucherHistoryRepo.Create(ctx, history)
+		})
+	}
+
 	return s.userRepo.Update(ctx, user)
 }
 

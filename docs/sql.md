@@ -32,7 +32,10 @@ CREATE TABLE `user` (
   `total_recharge` double DEFAULT '0' COMMENT '累计充值金额',
   `device_model` longtext COMMENT '设备型号',
   `ip` longtext COMMENT '最近登录IP',
-  `contact_voucher_num` int DEFAULT '0' COMMENT '联系券余额', 
+  `contact_voucher_num` int DEFAULT '0' COMMENT '联系券余额',
+  `first_top_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '首单状态：0=未触发，1=已触发（首次置顶支付成功后设为1，不可回退）',
+  `new_customer_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '新客状态：0=未触发，1=已触发（购买联系券支付成功后设为1，不可回退）',
+  `profile_complete_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '信息完善状态：0=未完善，1=已完善（首次编辑个人信息成功后设为1，赠送2张联系券，不可回退）',
   `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (`id`)

@@ -1,11 +1,15 @@
 package v1
 
 type UserInfoResponseData struct {
-	UserID int64  `json:"user_id"`
-	Avatar string `json:"avatar"`
-	Name   string `json:"name"`
-	Sex    int    `json:"sex"`
-	Phone  string `json:"phone"`
+	UserID                int64  `json:"user_id"`
+	Avatar                string `json:"avatar"`
+	Name                  string `json:"name"`
+	Sex                   int    `json:"sex"`
+	Phone                 string `json:"phone"`
+	ContactVoucherNum     int    `json:"contact_voucher_num"`
+	FirstTopStatus        int    `json:"first_top_status"`
+	NewCustomerStatus     int    `json:"new_customer_status"`
+	ProfileCompleteStatus int    `json:"profile_complete_status"`
 }
 
 type UserInfoResponse struct {
