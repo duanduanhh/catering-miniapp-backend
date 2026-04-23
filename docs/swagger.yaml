@@ -151,6 +151,71 @@ definitions:
       list_total:
         type: integer
     type: object
+  v1.FeedbackListItem:
+    properties:
+      content:
+        type: string
+      create_at:
+        type: string
+      id:
+        type: integer
+      photo_urls:
+        items:
+          type: string
+        type: array
+      type:
+        description: '反馈类型: 1=产品建议 2=功能问题 3=内容修正 4=其他'
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        example: 1
+        type: integer
+      type_name:
+        example: 产品建议
+        type: string
+    type: object
+  v1.FeedbackListRequest:
+    properties:
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+    type: object
+  v1.FeedbackListResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.FeedbackListItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  v1.FeedbackSubmitRequest:
+    properties:
+      content:
+        maxLength: 500
+        type: string
+      photo_urls:
+        items:
+          type: string
+        type: array
+      type:
+        description: '反馈类型: 1=产品建议 2=功能问题 3=内容修正 4=其他'
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        example: 1
+        maximum: 4
+        minimum: 1
+        type: integer
+    required:
+    - content
+    - type
+    type: object
   v1.GetPositionCategoryResponseData:
     properties:
       list:
@@ -957,6 +1022,53 @@ paths:
       summary: 我的券包
       tags:
       - 联系券模块
+  /feedback/my:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.FeedbackListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.FeedbackListResponseData'
+      security:
+      - Bearer: []
+      summary: 我的意见反馈列表
+      tags:
+      - 意见反馈
+  /feedback/submit:
+    post:
+      consumes:
+      - application/json
+      description: type 值域：1=产品建议 2=功能问题 3=内容修正 4=其他
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.FeedbackSubmitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 提交意见反馈
+      tags:
+      - 意见反馈
   /img/upload:
     post:
       consumes:

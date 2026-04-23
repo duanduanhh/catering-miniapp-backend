@@ -301,4 +301,17 @@ INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_ord
 (6, '其他', 1, 1);
 ```
 
-## 
+## 意见反馈表（新建）
+
+```mysql
+CREATE TABLE `feedback` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '提交用户ID',
+  `type` tinyint NOT NULL COMMENT '反馈类型：1=产品建议 2=功能问题 3=内容修正 4=其他',
+  `content` text NOT NULL COMMENT '详细说明（最多500字）',
+  `photo_urls` longtext DEFAULT NULL COMMENT '图片URL，逗号分隔，最多4张',
+  `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='意见反馈';
+```

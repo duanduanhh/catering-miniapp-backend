@@ -20,4 +20,5 @@ type RouterDeps struct {
 	WechatHandler                *handler.WechatHandler
 	UploadHandler                *handler.UploadHandler
 	PositionCategoryHandler      *handler.PositionCategoryHandler
+	FeedbackHandler              *handler.FeedbackHandler
 }
