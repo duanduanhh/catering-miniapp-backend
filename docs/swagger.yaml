@@ -656,6 +656,27 @@ definitions:
     required:
     - id
     type: object
+  v1.OrderStatusRequest:
+    properties:
+      order_no:
+        type: string
+    required:
+    - order_no
+    type: object
+  v1.OrderStatusResponseData:
+    properties:
+      order_no:
+        type: string
+      status:
+        description: '订单状态: 1=待支付 2=已支付 3=已取消 4=已退款'
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        example: 2
+        type: integer
+    type: object
   v1.PayOrderResponseData:
     properties:
       amount:
@@ -1456,6 +1477,30 @@ paths:
       summary: 修改招聘信息
       tags:
       - 招聘模块
+  /order/status:
+    post:
+      consumes:
+      - application/json
+      description: '前端唤起微信支付后，通过此接口确认订单在后端的真实支付状态。status: 1=待支付 2=已支付 3=已取消 4=已退款'
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.OrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.OrderStatusResponseData'
+      security:
+      - Bearer: []
+      summary: 查询订单支付状态
+      tags:
+      - 订单
   /positions/all:
     get:
       consumes:

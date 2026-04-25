@@ -61,6 +61,16 @@ type ContactVoucherRecordsItem struct {
 	CreateAt  string                   `json:"create_at"`
 }
 
+type OrderStatusRequest struct {
+	OrderNo string `json:"order_no" binding:"required"`
+}
+
+type OrderStatusResponseData struct {
+	OrderNo string `json:"order_no"`
+	// 订单状态: 1=待支付 2=已支付 3=已取消 4=已退款
+	Status int `json:"status" enums:"1,2,3,4" example:"2"`
+}
+
 type UserOrderListRequest struct {
 	PageNum  int `json:"page_num"`
 	PageSize int `json:"page_size"`

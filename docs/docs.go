@@ -957,6 +957,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/order/status": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "前端唤起微信支付后，通过此接口确认订单在后端的真实支付状态。status: 1=待支付 2=已支付 3=已取消 4=已退款",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "订单"
+                ],
+                "summary": "查询订单支付状态",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.OrderStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.OrderStatusResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/positions/all": {
             "get": {
                 "consumes": [
@@ -2235,6 +2274,36 @@ const docTemplate = `{
                 },
                 "third_area_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.OrderStatusRequest": {
+            "type": "object",
+            "required": [
+                "order_no"
+            ],
+            "properties": {
+                "order_no": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.OrderStatusResponseData": {
+            "type": "object",
+            "properties": {
+                "order_no": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "订单状态: 1=待支付 2=已支付 3=已取消 4=已退款",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3,
+                        4
+                    ],
+                    "example": 2
                 }
             }
         },

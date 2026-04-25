@@ -16,6 +16,7 @@ type OrderService interface {
 	PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
 	PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
 	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
+	GetByOrderNo(ctx context.Context, userID int64, orderNo string) (*model.Order, error)
 }
 
 func NewOrderService(
@@ -332,6 +333,17 @@ func (s *orderService) applyNewCustomerStatus(ctx context.Context, userID int64)
 
 func (s *orderService) ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error) {
 	return s.orderRepository.ListByUser(ctx, userID, pageNum, pageSize)
+}
+
+func (s *orderService) GetByOrderNo(ctx context.Context, userID int64, orderNo string) (*model.Order, error) {
+	order, err := s.orderRepository.GetByOrderNo(ctx, orderNo)
+	if err != nil {
+		return nil, err
+	}
+	if order.UserID != userID {
+		return nil, ErrForbidden
+	}
+	return order, nil
 }
 
 func (s *orderService) generateOrderNo(prefix string) string {

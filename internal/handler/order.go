@@ -25,7 +25,39 @@ func NewOrderHandler(
 	}
 }
 
-// ListOrders godoc
+// QueryOrderStatus godoc
+// @Summary 查询订单支付状态
+// @Description 前端唤起微信支付后，通过此接口确认订单在后端的真实支付状态。status: 1=待支付 2=已支付 3=已取消 4=已退款
+// @Tags 订单
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.OrderStatusRequest true "params"
+// @Success 200 {object} v1.OrderStatusResponseData
+// @Router /order/status [post]
+func (h *OrderHandler) QueryOrderStatus(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.OrderStatusRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	order, err := h.orderService.GetByOrderNo(ctx, userID, req.OrderNo)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("orderService.GetByOrderNo error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, v1.OrderStatusResponseData{
+		OrderNo: order.OrderNo,
+		Status:  int(order.Status),
+	})
+}
+
 // @Summary 消费记录
 // @Description 返回当前用户已支付的订单列表。product_type: 1=置顶 2=联系券 3=刷新
 // @Tags 个人中心
