@@ -41,6 +41,7 @@ func (h *ContactVoucherHistoryHandler) GetContactVoucherHistory(ctx *gin.Context
 
 // Buy godoc
 // @Summary 联系券充值
+// @Description 创建联系券购买订单并返回微信支付参数，支付成功后后台回调自动增加券数量。price 单位：元；contact_voucher_num 为本次购买张数。
 // @Tags 联系券模块
 // @Accept json
 // @Produce json
@@ -96,7 +97,8 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 }
 
 // Cost godoc
-// @Summary 联系券消费
+// @Summary 联系券消费（拨打电话）
+// @Description 消耗1张联系券，并可选记录联系历史。purpose_id/purpose_type/purpose_user_id/purpose_user_name/purpose_user_phone 均为可选，传入时自动写入联系记录。券余额不足时返回错误码 ErrInsufficientVoucher。
 // @Tags 联系券模块
 // @Accept json
 // @Produce json
@@ -139,7 +141,8 @@ func (h *ContactVoucherHistoryHandler) Cost(ctx *gin.Context) {
 }
 
 // Records godoc
-// @Summary 我的券包
+// @Summary 我的券包（联系券流水）
+// @Description 返回当前用户的联系券余额和流水记录。响应中 type: 1=消费 2=充值；change_num 为变更张数（消费为负数，充值为正数）。
 // @Tags 联系券模块
 // @Accept json
 // @Produce json

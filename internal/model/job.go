@@ -45,6 +45,7 @@ type Job struct {
 	Avatar            string     `gorm:"column:avatar;<-:false"` // 发布人头像，只读字段
 	CloseReason       string     `gorm:"column:close_reason"`    // 关闭原因
 	CloseTime         *time.Time `gorm:"column:close_time"`      // 关闭时间
+	BizType           int        `gorm:"column:biz_type;default:1"` // 业务类型：1=招聘 2=求职
 }
 
 func (m *Job) TableName() string {

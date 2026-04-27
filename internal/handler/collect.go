@@ -28,7 +28,8 @@ func NewCollectHandler(
 func (h *CollectHandler) GetCollect(ctx *gin.Context) {}
 
 // Collect godoc
-// @Summary 收藏招聘信息
+// @Summary 收藏岗位
+// @Description 收藏指定招聘岗位（仅支持招聘类型）。重复收藏同一岗位不会报错（幂等）。
 // @Tags 收藏模块
 // @Accept json
 // @Produce json
@@ -57,13 +58,14 @@ func (h *CollectHandler) Collect(ctx *gin.Context) {
 
 // Cancel godoc
 // @Summary 取消收藏
+// @Description 取消收藏指定岗位。未收藏时取消不会报错（幂等）。
 // @Tags 收藏模块
 // @Accept json
 // @Produce json
 // @Security Bearer
 // @Param request body v1.JobCancelCollectRequest true "params"
 // @Success 200 {object} v1.Response
-// @Router /jobs/cancnel_collect [post]
+// @Router /jobs/cancel_collect [post]
 func (h *CollectHandler) Cancel(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
@@ -84,7 +86,8 @@ func (h *CollectHandler) Cancel(ctx *gin.Context) {
 }
 
 // My godoc
-// @Summary 我收藏的
+// @Summary 我收藏的岗位
+// @Description 返回当前用户的收藏列表。biz_type: 0=全部 1=招聘（当前仅支持招聘），不传默认全部。
 // @Tags 收藏模块
 // @Accept json
 // @Produce json

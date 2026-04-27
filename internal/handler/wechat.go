@@ -30,6 +30,7 @@ func NewWechatHandler(handler *Handler, orderService service.OrderService, wecha
 
 // Register godoc
 // @Summary 微信注册
+// @Description 通过微信小程序注册新用户，需同时传手机号授权 code 和登录 code。inviter_id 为可选邀请人用户ID。注册成功后不返回 token，需再调用 /login 获取。若 openid 已注册返回 400。
 // @Tags 用户模块
 // @Accept json
 // @Produce json
@@ -59,6 +60,7 @@ func (h *WechatHandler) Register(ctx *gin.Context) {
 
 // Login godoc
 // @Summary 微信登录
+// @Description 通过微信小程序 login code 换取 JWT token。用户不存在时返回 404，需先调用 /register。token 放在后续请求的 `token` header 中（小写，非 Authorization）。
 // @Tags 用户模块
 // @Accept json
 // @Produce json
@@ -88,7 +90,8 @@ func (h *WechatHandler) Login(ctx *gin.Context) {
 }
 
 // PayNotify godoc
-// @Summary 微信支付回调
+// @Summary 微信支付回调（仅供微信服务器调用）
+// @Description 微信支付结果异步通知接口，由微信服务器主动调用，前端无需关注。收到回调后解密验签，金额一致则更新订单状态并执行对应业务逻辑（置顶/券充值/刷新）。
 // @Tags 支付模块
 // @Accept json
 // @Produce json

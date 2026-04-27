@@ -41,8 +41,9 @@ func NewJobHandler(
 }
 
 // Create godoc
-// @Summary 发布招聘信息
-// @Tags 招聘模块
+// @Summary 发布岗位信息
+// @Description 发布招聘或求职信息。biz_type: 1=招聘（默认）2=求职，不传默认1。招聘时 company_name/address/longitude/latitude 必填；求职时留空即可。photo_urls 最多4张。每个用户招聘上限10条、求职上限5条（active状态）。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -64,7 +65,19 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
+	// biz_type 不传时默认为招聘
+	if req.BizType == 0 {
+		req.BizType = v1.BizTypeRecruit
+	}
+	// 招聘时工作地点相关字段必填
+	if req.BizType == v1.BizTypeRecruit {
+		if req.CompanyName == "" || req.Address == "" || req.Longitude == 0 || req.Latitude == 0 {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "company_name, address, longitude, latitude are required for recruit")
+			return
+		}
+	}
 	input := service.JobCreateInput{
+		BizType:            req.BizType,
 		Positions:          req.Positions,
 		CompanyName:        req.CompanyName,
 		Longitude:          req.Longitude,
@@ -104,8 +117,9 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 }
 
 // Update godoc
-// @Summary 修改招聘信息
-// @Tags 招聘模块
+// @Summary 修改岗位信息
+// @Description 更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -185,8 +199,9 @@ func validatePhotoURLs(urls []string) error {
 }
 
 // Refresh godoc
-// @Summary 刷新招聘信息
-// @Tags 招聘模块
+// @Summary 免费刷新岗位
+// @Description 将岗位的 refresh_time 更新为当前时间，信息流按刷新时间倒序，刷新后排名靠前。仅限岗位所有者操作。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -217,8 +232,9 @@ func (h *JobHandler) Refresh(ctx *gin.Context) {
 }
 
 // RefreshPay godoc
-// @Summary 付费刷新招聘信息
-// @Tags 招聘模块
+// @Summary 付费刷新岗位
+// @Description 创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。price 单位：元。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -277,8 +293,9 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 }
 
 // Close godoc
-// @Summary 关闭招聘信息
-// @Tags 招聘模块
+// @Summary 关闭岗位
+// @Description 将岗位状态设为已关闭（status=2），记录关闭原因和关闭时间。关闭后可通过 /jobs/reopen 重新开启。仅限岗位所有者操作。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -309,8 +326,9 @@ func (h *JobHandler) Close(ctx *gin.Context) {
 }
 
 // Reopen godoc
-// @Summary 重新打开职位
-// @Tags 招聘模块
+// @Summary 重新开启岗位
+// @Description 将已关闭的岗位状态重置为 active（status=1），清空关闭原因和关闭时间。仅限岗位所有者操作。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -341,8 +359,9 @@ func (h *JobHandler) Reopen(ctx *gin.Context) {
 }
 
 // Delete godoc
-// @Summary 删除职位
-// @Tags 招聘模块
+// @Summary 删除岗位
+// @Description 将岗位状态设为已删除（status=4），软删除，不可恢复。仅限岗位所有者操作。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -374,10 +393,11 @@ func (h *JobHandler) Delete(ctx *gin.Context) {
 
 // GetCloseReasons godoc
 // @Summary 获取关闭原因列表
+// @Description 根据岗位类型返回对应的关闭原因枚举。type: 1=招聘 2=求职 3=招租，不传默认1。
 // @Tags 通用接口
 // @Accept json
 // @Produce json
-// @Param type query int true "类型：1=招聘，2=求职，3=招租"
+// @Param type query int true "岗位类型：1=招聘 2=求职 3=招租"
 // @Success 200 {object} v1.JobCloseReasonResponse
 // @Router /close_reasons [get]
 func (h *JobHandler) GetCloseReasons(ctx *gin.Context) {
@@ -428,8 +448,9 @@ func (h *JobHandler) GetCloseReasons(ctx *gin.Context) {
 }
 
 // List godoc
-// @Summary 招聘信息列表
-// @Tags 招聘模块
+// @Summary 岗位列表（带筛选+分页）
+// @Description 公开接口，无需登录。filter.biz_type: 0=全部 1=招聘 2=求职，不传默认全部。query_type: 1=置顶优先+刷新时间倒序 2=距离最近（需传 longitude/latitude） 3=最新发布，不传默认3。salary_min/salary_max 为0时不过滤薪资。basic_protection/salary_benefits/attendance_leave 数组，AND 过滤，多个值同时满足才返回。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Param request body v1.JobListRequest true "params"
@@ -443,6 +464,7 @@ func (h *JobHandler) List(ctx *gin.Context) {
 	}
 	salaryMax := max(req.Filter.SalaryMax, 0)
 	query := repository.JobListQuery{
+		BizType:         req.Filter.BizType,
 		QueryType:       req.QueryType,
 		Positions:       req.Filter.Positions,
 		FirstAreaID:     req.Filter.FirstAreaID,
@@ -474,8 +496,9 @@ func (h *JobHandler) List(ctx *gin.Context) {
 }
 
 // Info godoc
-// @Summary 招聘信息详情
-// @Tags 招聘模块
+// @Summary 岗位详情
+// @Description 返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）。status=4（已删除）的岗位返回404。响应中 status: 1=招聘中 2=已关闭 3=已禁用 4=已删除。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -516,8 +539,9 @@ func (h *JobHandler) Info(ctx *gin.Context) {
 }
 
 // My godoc
-// @Summary 我发布的
-// @Tags 招聘模块
+// @Summary 我发布的岗位
+// @Description 返回当前用户发布的岗位（不含已删除）。biz_type: 0=全部 1=招聘 2=求职，不传默认全部。status 数组：不传或空数组=全部非删除，传具体值按数组过滤。status 枚举：1=招聘中 2=已关闭 3=已禁用。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -565,8 +589,9 @@ func (h *JobHandler) My(ctx *gin.Context) {
 }
 
 // Top godoc
-// @Summary 置顶招聘信息
-// @Tags 招聘模块
+// @Summary 岗位置顶（付费）
+// @Description 创建置顶订单并返回微信支付参数，支付成功后后台回调自动写入置顶时间窗口。top_hour 单位：小时，必须>0；price 单位：元，必须>0。仅限岗位所有者操作。
+// @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
@@ -628,6 +653,67 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 	})
 }
 
+// HomeTop godoc
+// @Summary 首页置顶区
+// @Description 公开接口，无需登录。返回当前有效置顶时间窗口内的岗位，按到期时间倒序。type: 0或不传=全部 1=招聘 2=求职，不传默认0。limit: 最大返回条数，不传默认5。
+// @Tags 首页
+// @Accept json
+// @Produce json
+// @Param request body v1.HomeTopRequest true "params"
+// @Success 200 {object} v1.HomeTopResponseData
+// @Router /home/top [post]
+func (h *JobHandler) HomeTop(ctx *gin.Context) {
+	var req v1.HomeTopRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	jobs, err := h.jobService.HomeTop(ctx, req.Type, req.Limit)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("jobService.HomeTop error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	resp := v1.HomeTopResponseData{
+		List: make([]v1.JobListItem, 0, len(jobs)),
+	}
+	for _, job := range jobs {
+		resp.List = append(resp.List, buildJobListItem(job))
+	}
+	v1.HandleSuccess(ctx, resp)
+}
+
+// HomeFeed godoc
+// @Summary 首页信息流
+// @Description 公开接口，无需登录。返回非置顶的活跃岗位，按 COALESCE(refresh_time, create_at) 倒序排列，刷新过的优先。type: 0或不传=全部 1=招聘 2=求职，不传默认0。
+// @Tags 首页
+// @Accept json
+// @Produce json
+// @Param request body v1.HomeFeedRequest true "params"
+// @Success 200 {object} v1.HomeFeedResponseData
+// @Router /home/feed [post]
+func (h *JobHandler) HomeFeed(ctx *gin.Context) {
+	var req v1.HomeFeedRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	jobs, total, err := h.jobService.HomeFeed(ctx, req.Type, req.PageNum, req.PageSize)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("jobService.HomeFeed error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	resp := v1.HomeFeedResponseData{
+		List:  make([]v1.JobListItem, 0, len(jobs)),
+		Total: total,
+	}
+	for _, job := range jobs {
+		resp.List = append(resp.List, buildJobListItem(job))
+	}
+	v1.HandleSuccess(ctx, resp)
+}
+
 func buildJobListItem(job *model.Job) v1.JobListItem {
 	photos := splitCSV(job.PhotoURLs)
 	basicProtection := splitCSV(job.BasicProtection)
@@ -636,6 +722,7 @@ func buildJobListItem(job *model.Job) v1.JobListItem {
 	item := v1.JobListItem{
 		ID:                job.ID,
 		UserID:            job.UserID,
+		BizType:           job.BizType,
 		Positions:         job.Positions,
 		CompanyName:       job.CompanyName,
 		Longitude:         job.Longitude,

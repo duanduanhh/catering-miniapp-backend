@@ -27,7 +27,7 @@ func NewOrderHandler(
 
 // QueryOrderStatus godoc
 // @Summary 查询订单支付状态
-// @Description 前端唤起微信支付后，通过此接口确认订单在后端的真实支付状态。status: 1=待支付 2=已支付 3=已取消 4=已退款
+// @Description 前端唤起微信支付后，通过此接口确认订单在后端的真实支付状态。status: 1=待支付 2=已支付 3=已取消 4=已退款。建议支付完成后轮询直到 status=2 再刷新业务页面。
 // @Tags 订单
 // @Accept json
 // @Produce json
@@ -58,8 +58,9 @@ func (h *OrderHandler) QueryOrderStatus(ctx *gin.Context) {
 	})
 }
 
+// ListOrders godoc
 // @Summary 消费记录
-// @Description 返回当前用户已支付的订单列表。product_type: 1=置顶 2=联系券 3=刷新
+// @Description 返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新。amount 单位：元。
 // @Tags 个人中心
 // @Accept json
 // @Produce json

@@ -25,7 +25,7 @@ func NewFeedbackHandler(handler *Handler, feedbackService service.FeedbackServic
 
 // Submit godoc
 // @Summary 提交意见反馈
-// @Description type 值域：1=产品建议 2=功能问题 3=内容修正 4=其他
+// @Description 提交用户反馈。type 值域：1=产品建议 2=功能问题 3=内容修正 4=其他。photo_urls 最多4张，可选。
 // @Tags 意见反馈
 // @Accept json
 // @Produce json
@@ -63,6 +63,7 @@ func (h *FeedbackHandler) Submit(ctx *gin.Context) {
 
 // List godoc
 // @Summary 我的意见反馈列表
+// @Description 返回当前用户提交的反馈列表，按创建时间倒序。响应中 type_name 为 type 对应的中文名称。
 // @Tags 意见反馈
 // @Accept json
 // @Produce json

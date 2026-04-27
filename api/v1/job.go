@@ -3,11 +3,12 @@ package v1
 import "github.com/go-nunu/nunu-layout-advanced/internal/model"
 
 type JobCreateRequest struct {
+	BizType           int      `json:"biz_type"`              // 1=招聘（默认）2=求职，不传默认 1
 	Positions         string   `json:"positions" binding:"required"`
-	CompanyName       string   `json:"company_name" binding:"required"`
-	Longitude         float64  `json:"longitude" binding:"required"`
-	Latitude          float64  `json:"latitude" binding:"required"`
-	Address           string   `json:"address" binding:"required"`
+	CompanyName       string   `json:"company_name"`  // 招聘必填，求职留空
+	Longitude         float64  `json:"longitude"`     // 招聘必填，求职留空
+	Latitude          float64  `json:"latitude"`      // 招聘必填，求职留空
+	Address           string   `json:"address"`       // 招聘必填，求职留空
 	Contact           string   `json:"contact" binding:"required"`
 	ContactPersonName string   `json:"contact_person_name" binding:"required"`
 	Description       string   `json:"description" binding:"required"`
@@ -96,6 +97,7 @@ type JobInfoRequest struct {
 }
 
 type JobFilter struct {
+	BizType         int      `json:"biz_type"`      // 0=不限，1=招聘，2=求职
 	Positions       string   `json:"positions"`
 	FirstAreaID     int      `json:"first_area_id"`
 	SecondAreaID    int      `json:"second_area_id"`
@@ -119,6 +121,7 @@ type JobListRequest struct {
 type JobListItem struct {
 	ID                int64           `json:"id"`
 	UserID            int64           `json:"user_id"`
+	BizType           int             `json:"biz_type"`
 	Positions         string          `json:"positions"`
 	CompanyName       string          `json:"company_name"`
 	Longitude         float64         `json:"longitude"`
@@ -193,10 +196,34 @@ type JobMyResponseData struct {
 
 // 内容类型常量
 const (
+	BizTypeAll     = 0 // 全部
 	BizTypeRecruit = 1 // 招聘
 	BizTypeResume  = 2 // 求职
 	BizTypeRent    = 3 // 招租
 )
+
+type HomeTopRequest struct {
+	// 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
+	Type  int `json:"type"`
+	// 置顶区展示上限，不传默认5条
+	Limit int `json:"limit"`
+}
+
+type HomeTopResponseData struct {
+	List []JobListItem `json:"list"`
+}
+
+type HomeFeedRequest struct {
+	// 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
+	Type     int `json:"type"`
+	PageNum  int `json:"page_num"`
+	PageSize int `json:"page_size"`
+}
+
+type HomeFeedResponseData struct {
+	List  []JobListItem `json:"list"`
+	Total int64         `json:"total"`
+}
 
 type JobCloseReasonItem struct {
 	Type    int      `json:"type"`    // 关闭类型：1=招聘，2=求职，3=招租

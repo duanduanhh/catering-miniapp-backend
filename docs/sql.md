@@ -126,7 +126,8 @@ CREATE TABLE `job` (
   `top_start_time` datetime(3) DEFAULT NULL COMMENT '置顶开始时间',
   `top_end_time` datetime(3) DEFAULT NULL COMMENT '置顶结束时间',
   `is_top` tinyint NOT NULL DEFAULT '0' COMMENT '是否置顶（冗余字段，便于列表排序/筛选）',
-  
+  `biz_type` tinyint NOT NULL DEFAULT '1' COMMENT '业务类型：1=招聘 2=求职',
+
   PRIMARY KEY (`id`),
   KEY `idx_job_user_id` (`user_id`),
   KEY `idx_status_refresh` (`status`,`refresh_time`),

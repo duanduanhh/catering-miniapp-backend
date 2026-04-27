@@ -24,6 +24,7 @@ func NewUserHandler(handler *Handler, userService service.UserService) *UserHand
 
 // GetInfo godoc
 // @Summary 查询个人信息
+// @Description 返回当前登录用户的基本信息。sex: 0=未设置 1=男 2=女。first_top_status: 0=未享受首次置顶优惠 1=已享受。new_customer_status: 0=未享受新用户优惠 1=已享受。profile_complete_status: 0=未完善 1=已完善（填写手机号）。
 // @Tags 用户模块
 // @Accept json
 // @Produce json
@@ -57,6 +58,7 @@ func (h *UserHandler) GetInfo(ctx *gin.Context) {
 
 // UpdateGeo godoc
 // @Summary 更新位置信息
+// @Description 更新用户的地理位置。所有字段均为可选指针，传哪个改哪个。通常在小程序授权地理位置后调用。
 // @Tags 用户模块
 // @Accept json
 // @Produce json
@@ -93,6 +95,7 @@ func (h *UserHandler) UpdateGeo(ctx *gin.Context) {
 
 // ListInvites godoc
 // @Summary 邀请记录
+// @Description 返回当前用户邀请注册的用户列表，按注册时间倒序。invite_total 为累计邀请总人数；total 为当前分页总数。
 // @Tags 个人中心
 // @Accept json
 // @Produce json
@@ -132,7 +135,9 @@ func (h *UserHandler) ListInvites(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, resp)
 }
+// UpdateInfo godoc
 // @Summary 更新个人信息
+// @Description 更新用户基本信息。所有字段均为可选指针，传哪个改哪个。sex: 1=男 2=女。phone 更新后 profile_complete_status 自动置1。
 // @Tags 用户模块
 // @Accept json
 // @Produce json

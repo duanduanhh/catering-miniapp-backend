@@ -14,7 +14,9 @@ type JobRepository interface {
 	List(ctx context.Context, query JobListQuery) ([]*model.Job, int64, error)
 	ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error)
 	ListByIDs(ctx context.Context, ids []int64) ([]*model.Job, error)
-	CountByUser(ctx context.Context, userID int64, status model.JobStatus) (int64, error)
+	CountByUser(ctx context.Context, userID int64, bizType int, status model.JobStatus) (int64, error)
+	ListTop(ctx context.Context, bizType, limit int) ([]*model.Job, error)
+	ListFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error)
 }
 
 func NewJobRepository(
@@ -30,6 +32,7 @@ type jobRepository struct {
 }
 
 type JobListQuery struct {
+	BizType         int // 0=不限，1=招聘，2=求职
 	QueryType       int
 	Positions       string
 	FirstAreaID     int
@@ -74,6 +77,9 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 		Joins("LEFT JOIN user ON job.user_id = user.id").
 		Where("job.status = ?", model.JobStatusActive)
 
+	if query.BizType > 0 {
+		db = db.Where("job.biz_type = ?", query.BizType)
+	}
 	if query.FirstAreaID > 0 {
 		db = db.Where("job.first_area_id = ?", query.FirstAreaID)
 	}
@@ -138,6 +144,9 @@ func (r *jobRepository) ListByUser(ctx context.Context, userID int64, bizType in
 		total int64
 	)
 	db := r.DB(ctx).Model(&model.Job{}).Where("user_id = ? AND status != ?", userID, model.JobStatusDeleted)
+	if bizType > 0 {
+		db = db.Where("biz_type = ?", bizType)
+	}
 	// 当 status 有值时，按数组查询
 	if len(status) > 0 {
 		db = db.Where("status IN ?", status)
@@ -169,12 +178,58 @@ func (r *jobRepository) ListByIDs(ctx context.Context, ids []int64) ([]*model.Jo
 	return jobs, nil
 }
 
-func (r *jobRepository) CountByUser(ctx context.Context, userID int64, status model.JobStatus) (int64, error) {
+func (r *jobRepository) CountByUser(ctx context.Context, userID int64, bizType int, status model.JobStatus) (int64, error) {
 	var total int64
-	if err := r.DB(ctx).Model(&model.Job{}).
-		Where("user_id = ? AND status = ?", userID, status).
-		Count(&total).Error; err != nil {
+	db := r.DB(ctx).Model(&model.Job{}).Where("user_id = ? AND status = ?", userID, status)
+	if bizType > 0 {
+		db = db.Where("biz_type = ?", bizType)
+	}
+	if err := db.Count(&total).Error; err != nil {
 		return 0, err
 	}
 	return total, nil
+}
+
+func (r *jobRepository) ListTop(ctx context.Context, bizType, limit int) ([]*model.Job, error) {
+	var jobs []*model.Job
+	if limit <= 0 {
+		limit = 5
+	}
+	db := r.DB(ctx).Table("job").
+		Select("job.*, user.avatar").
+		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Where("job.status = ? AND job.top_start_time IS NOT NULL AND job.top_end_time IS NOT NULL AND job.top_start_time <= NOW() AND job.top_end_time >= NOW()", model.JobStatusActive)
+	if bizType > 0 {
+		db = db.Where("job.biz_type = ?", bizType)
+	}
+	err := db.Order("job.top_end_time DESC").Limit(limit).Find(&jobs).Error
+	return jobs, err
+}
+
+func (r *jobRepository) ListFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error) {
+	var (
+		jobs  []*model.Job
+		total int64
+	)
+	db := r.DB(ctx).Table("job").
+		Select("job.*, user.avatar").
+		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Where("job.status = ? AND NOT (job.top_start_time IS NOT NULL AND job.top_end_time IS NOT NULL AND job.top_start_time <= NOW() AND job.top_end_time >= NOW())", model.JobStatusActive)
+	if bizType > 0 {
+		db = db.Where("job.biz_type = ?", bizType)
+	}
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if pageNum <= 0 {
+		pageNum = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+	offset := (pageNum - 1) * pageSize
+	err := db.Order("COALESCE(job.refresh_time, job.create_at) DESC").
+		Offset(offset).Limit(pageSize).Find(&jobs).Error
+	return jobs, total, err
 }

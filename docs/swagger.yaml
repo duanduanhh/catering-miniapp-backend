@@ -225,6 +225,41 @@ definitions:
       total:
         type: integer
     type: object
+  v1.HomeFeedRequest:
+    properties:
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+      type:
+        description: 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
+        type: integer
+    type: object
+  v1.HomeFeedResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.JobListItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  v1.HomeTopRequest:
+    properties:
+      limit:
+        description: 置顶区展示上限，不传默认5条
+        type: integer
+      type:
+        description: 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
+        type: integer
+    type: object
+  v1.HomeTopResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.JobListItem'
+        type: array
+    type: object
   v1.JobCancelCollectRequest:
     properties:
       job_id:
@@ -273,6 +308,7 @@ definitions:
   v1.JobCreateRequest:
     properties:
       address:
+        description: 招聘必填，求职留空
         type: string
       attendance_leave:
         items:
@@ -282,7 +318,11 @@ definitions:
         items:
           type: string
         type: array
+      biz_type:
+        description: 1=招聘（默认）2=求职，不传默认 1
+        type: integer
       company_name:
+        description: 招聘必填，求职留空
         type: string
       contact:
         type: string
@@ -299,8 +339,10 @@ definitions:
       four_area_id:
         type: integer
       latitude:
+        description: 招聘必填，求职留空
         type: number
       longitude:
+        description: 招聘必填，求职留空
         type: number
       photo_urls:
         items:
@@ -325,14 +367,10 @@ definitions:
       third_area_id:
         type: integer
     required:
-    - address
-    - company_name
     - contact
     - contact_person_name
     - description
     - first_area_des
-    - latitude
-    - longitude
     - positions
     - salary_max
     - salary_min
@@ -371,6 +409,9 @@ definitions:
         items:
           type: string
         type: array
+      biz_type:
+        description: 0=不限，1=招聘，2=求职
+        type: integer
       first_area_id:
         type: integer
       latitude:
@@ -411,6 +452,8 @@ definitions:
         items:
           type: string
         type: array
+      biz_type:
+        type: integer
       close_reason:
         description: 关闭原因
         type: string
@@ -913,8 +956,9 @@ paths:
     get:
       consumes:
       - application/json
+      description: '根据岗位类型返回对应的关闭原因枚举。type: 1=招聘 2=求职 3=招租，不传默认1。'
       parameters:
-      - description: 类型：1=招聘，2=求职，3=招租
+      - description: 岗位类型：1=招聘 2=求职 3=招租
         in: query
         name: type
         required: true
@@ -933,6 +977,7 @@ paths:
     post:
       consumes:
       - application/json
+      description: '返回当前用户的收藏列表。biz_type: 0=全部 1=招聘（当前仅支持招聘），不传默认全部。'
       parameters:
       - description: params
         in: body
@@ -949,13 +994,14 @@ paths:
             $ref: '#/definitions/v1.CollectMyResponseData'
       security:
       - Bearer: []
-      summary: 我收藏的
+      summary: 我收藏的岗位
       tags:
       - 收藏模块
   /contact_history/in:
     delete:
       consumes:
       - application/json
+      description: 软删除收到的联系记录（对对方不可见）。purpose_id 为联系记录 ID（非岗位 ID）。
       parameters:
       - description: params
         in: body
@@ -972,12 +1018,13 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 删除联系我的
+      summary: 删除联系我的记录
       tags:
       - 联系模块
     post:
       consumes:
       - application/json
+      description: '返回其他用户联系过当前用户岗位的记录。biz_type: 0=全部 1=招聘 2=求职，不传默认全部。'
       parameters:
       - description: params
         in: body
@@ -994,13 +1041,14 @@ paths:
             $ref: '#/definitions/v1.ContactHistoryListResponseData'
       security:
       - Bearer: []
-      summary: 联系我的
+      summary: 联系我的（收到的联系记录）
       tags:
       - 联系模块
   /contact_history/out:
     delete:
       consumes:
       - application/json
+      description: 软删除发出的联系记录（对对方不可见）。purpose_id 为联系记录 ID（非岗位 ID）。
       parameters:
       - description: params
         in: body
@@ -1017,12 +1065,14 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 删除我联系的
+      summary: 删除我联系的记录
       tags:
       - 联系模块
     post:
       consumes:
       - application/json
+      description: '返回当前用户主动联系过的岗位记录。biz_type: 0=全部 1=招聘 2=求职，不传默认全部。响应中 purpose_user_phone
+        为对方脱敏手机号。'
       parameters:
       - description: params
         in: body
@@ -1039,13 +1089,15 @@ paths:
             $ref: '#/definitions/v1.ContactHistoryListResponseData'
       security:
       - Bearer: []
-      summary: 我联系的
+      summary: 我联系的（发出的联系记录）
       tags:
       - 联系模块
   /contact_voucher/buy:
     post:
       consumes:
       - application/json
+      description: 创建联系券购买订单并返回微信支付参数，支付成功后后台回调自动增加券数量。price 单位：元；contact_voucher_num
+        为本次购买张数。
       parameters:
       - description: params
         in: body
@@ -1069,6 +1121,8 @@ paths:
     post:
       consumes:
       - application/json
+      description: 消耗1张联系券，并可选记录联系历史。purpose_id/purpose_type/purpose_user_id/purpose_user_name/purpose_user_phone
+        均为可选，传入时自动写入联系记录。券余额不足时返回错误码 ErrInsufficientVoucher。
       parameters:
       - description: params
         in: body
@@ -1085,13 +1139,14 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 联系券消费
+      summary: 联系券消费（拨打电话）
       tags:
       - 联系券模块
   /contact_voucher/records:
     post:
       consumes:
       - application/json
+      description: '返回当前用户的联系券余额和流水记录。响应中 type: 1=消费 2=充值；change_num 为变更张数（消费为负数，充值为正数）。'
       parameters:
       - description: params
         in: body
@@ -1108,13 +1163,14 @@ paths:
             $ref: '#/definitions/v1.ContactVoucherRecordsResponseData'
       security:
       - Bearer: []
-      summary: 我的券包
+      summary: 我的券包（联系券流水）
       tags:
       - 联系券模块
   /feedback/my:
     post:
       consumes:
       - application/json
+      description: 返回当前用户提交的反馈列表，按创建时间倒序。响应中 type_name 为 type 对应的中文名称。
       parameters:
       - description: params
         in: body
@@ -1138,7 +1194,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: type 值域：1=产品建议 2=功能问题 3=内容修正 4=其他
+      description: 提交用户反馈。type 值域：1=产品建议 2=功能问题 3=内容修正 4=其他。photo_urls 最多4张，可选。
       parameters:
       - description: params
         in: body
@@ -1158,6 +1214,52 @@ paths:
       summary: 提交意见反馈
       tags:
       - 意见反馈
+  /home/feed:
+    post:
+      consumes:
+      - application/json
+      description: '公开接口，无需登录。返回非置顶的活跃岗位，按 COALESCE(refresh_time, create_at) 倒序排列，刷新过的优先。type:
+        0或不传=全部 1=招聘 2=求职，不传默认0。'
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.HomeFeedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.HomeFeedResponseData'
+      summary: 首页信息流
+      tags:
+      - 首页
+  /home/top:
+    post:
+      consumes:
+      - application/json
+      description: '公开接口，无需登录。返回当前有效置顶时间窗口内的岗位，按到期时间倒序。type: 0或不传=全部 1=招聘 2=求职，不传默认0。limit:
+        最大返回条数，不传默认5。'
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.HomeTopRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.HomeTopResponseData'
+      summary: 首页置顶区
+      tags:
+      - 首页
   /img/upload:
     post:
       consumes:
@@ -1180,10 +1282,11 @@ paths:
       summary: 图片上传
       tags:
       - 通用接口
-  /jobs/cancnel_collect:
+  /jobs/cancel_collect:
     post:
       consumes:
       - application/json
+      description: 取消收藏指定岗位。未收藏时取消不会报错（幂等）。
       parameters:
       - description: params
         in: body
@@ -1207,6 +1310,7 @@ paths:
     post:
       consumes:
       - application/json
+      description: 将岗位状态设为已关闭（status=2），记录关闭原因和关闭时间。关闭后可通过 /jobs/reopen 重新开启。仅限岗位所有者操作。
       parameters:
       - description: params
         in: body
@@ -1223,13 +1327,14 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 关闭招聘信息
+      summary: 关闭岗位
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/collect:
     post:
       consumes:
       - application/json
+      description: 收藏指定招聘岗位（仅支持招聘类型）。重复收藏同一岗位不会报错（幂等）。
       parameters:
       - description: params
         in: body
@@ -1246,13 +1351,15 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 收藏招聘信息
+      summary: 收藏岗位
       tags:
       - 收藏模块
   /jobs/create:
     post:
       consumes:
       - application/json
+      description: '发布招聘或求职信息。biz_type: 1=招聘（默认）2=求职，不传默认1。招聘时 company_name/address/longitude/latitude
+        必填；求职时留空即可。photo_urls 最多4张。每个用户招聘上限10条、求职上限5条（active状态）。'
       parameters:
       - description: params
         in: body
@@ -1269,13 +1376,14 @@ paths:
             $ref: '#/definitions/v1.JobCreateResponse'
       security:
       - Bearer: []
-      summary: 发布招聘信息
+      summary: 发布岗位信息
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/delete:
     post:
       consumes:
       - application/json
+      description: 将岗位状态设为已删除（status=4），软删除，不可恢复。仅限岗位所有者操作。
       parameters:
       - description: params
         in: body
@@ -1292,13 +1400,15 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 删除职位
+      summary: 删除岗位
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/info:
     post:
       consumes:
       - application/json
+      description: '返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）。status=4（已删除）的岗位返回404。响应中
+        status: 1=招聘中 2=已关闭 3=已禁用 4=已删除。'
       parameters:
       - description: params
         in: body
@@ -1315,13 +1425,16 @@ paths:
             $ref: '#/definitions/v1.JobListItem'
       security:
       - Bearer: []
-      summary: 招聘信息详情
+      summary: 岗位详情
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/list:
     post:
       consumes:
       - application/json
+      description: '公开接口，无需登录。filter.biz_type: 0=全部 1=招聘 2=求职，不传默认全部。query_type: 1=置顶优先+刷新时间倒序
+        2=距离最近（需传 longitude/latitude） 3=最新发布，不传默认3。salary_min/salary_max 为0时不过滤薪资。basic_protection/salary_benefits/attendance_leave
+        数组，AND 过滤，多个值同时满足才返回。'
       parameters:
       - description: params
         in: body
@@ -1336,13 +1449,15 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.JobListResponse'
-      summary: 招聘信息列表
+      summary: 岗位列表（带筛选+分页）
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/my:
     post:
       consumes:
       - application/json
+      description: '返回当前用户发布的岗位（不含已删除）。biz_type: 0=全部 1=招聘 2=求职，不传默认全部。status 数组：不传或空数组=全部非删除，传具体值按数组过滤。status
+        枚举：1=招聘中 2=已关闭 3=已禁用。'
       parameters:
       - description: params
         in: body
@@ -1359,13 +1474,14 @@ paths:
             $ref: '#/definitions/v1.JobMyResponseData'
       security:
       - Bearer: []
-      summary: 我发布的
+      summary: 我发布的岗位
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/refresh:
     post:
       consumes:
       - application/json
+      description: 将岗位的 refresh_time 更新为当前时间，信息流按刷新时间倒序，刷新后排名靠前。仅限岗位所有者操作。
       parameters:
       - description: params
         in: body
@@ -1382,13 +1498,14 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 刷新招聘信息
+      summary: 免费刷新岗位
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/refresh/pay:
     post:
       consumes:
       - application/json
+      description: 创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。price 单位：元。
       parameters:
       - description: params
         in: body
@@ -1405,13 +1522,14 @@ paths:
             $ref: '#/definitions/v1.PayOrderResponseData'
       security:
       - Bearer: []
-      summary: 付费刷新招聘信息
+      summary: 付费刷新岗位
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/reopen:
     post:
       consumes:
       - application/json
+      description: 将已关闭的岗位状态重置为 active（status=1），清空关闭原因和关闭时间。仅限岗位所有者操作。
       parameters:
       - description: params
         in: body
@@ -1428,13 +1546,14 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 重新打开职位
+      summary: 重新开启岗位
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/top:
     post:
       consumes:
       - application/json
+      description: 创建置顶订单并返回微信支付参数，支付成功后后台回调自动写入置顶时间窗口。top_hour 单位：小时，必须>0；price 单位：元，必须>0。仅限岗位所有者操作。
       parameters:
       - description: params
         in: body
@@ -1451,13 +1570,15 @@ paths:
             $ref: '#/definitions/v1.PayOrderResponseData'
       security:
       - Bearer: []
-      summary: 置顶招聘信息
+      summary: 岗位置顶（付费）
       tags:
-      - 招聘模块
+      - 岗位模块
   /jobs/update:
     post:
       consumes:
       - application/json
+      description: 更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave
+        传空数组表示清空。
       parameters:
       - description: params
         in: body
@@ -1474,14 +1595,15 @@ paths:
             $ref: '#/definitions/v1.Response'
       security:
       - Bearer: []
-      summary: 修改招聘信息
+      summary: 修改岗位信息
       tags:
-      - 招聘模块
+      - 岗位模块
   /order/status:
     post:
       consumes:
       - application/json
-      description: '前端唤起微信支付后，通过此接口确认订单在后端的真实支付状态。status: 1=待支付 2=已支付 3=已取消 4=已退款'
+      description: '前端唤起微信支付后，通过此接口确认订单在后端的真实支付状态。status: 1=待支付 2=已支付 3=已取消 4=已退款。建议支付完成后轮询直到
+        status=2 再刷新业务页面。'
       parameters:
       - description: params
         in: body
@@ -1519,6 +1641,9 @@ paths:
     get:
       consumes:
       - application/json
+      description: '返回当前登录用户的基本信息。sex: 0=未设置 1=男 2=女。first_top_status: 0=未享受首次置顶优惠
+        1=已享受。new_customer_status: 0=未享受新用户优惠 1=已享受。profile_complete_status: 0=未完善
+        1=已完善（填写手机号）。'
       produces:
       - application/json
       responses:
@@ -1535,6 +1660,7 @@ paths:
     post:
       consumes:
       - application/json
+      description: 返回当前用户邀请注册的用户列表，按注册时间倒序。invite_total 为累计邀请总人数；total 为当前分页总数。
       parameters:
       - description: params
         in: body
@@ -1558,7 +1684,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: '返回当前用户已支付的订单列表。product_type: 1=置顶 2=联系券 3=刷新'
+      description: '返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新。amount
+        单位：元。'
       parameters:
       - description: params
         in: body
@@ -1582,6 +1709,7 @@ paths:
     post:
       consumes:
       - application/json
+      description: 更新用户的地理位置。所有字段均为可选指针，传哪个改哪个。通常在小程序授权地理位置后调用。
       parameters:
       - description: params
         in: body
@@ -1605,6 +1733,8 @@ paths:
     post:
       consumes:
       - application/json
+      description: '更新用户基本信息。所有字段均为可选指针，传哪个改哪个。sex: 1=男 2=女。phone 更新后 profile_complete_status
+        自动置1。'
       parameters:
       - description: params
         in: body
@@ -1628,6 +1758,7 @@ paths:
     post:
       consumes:
       - application/json
+      description: 微信支付结果异步通知接口，由微信服务器主动调用，前端无需关注。收到回调后解密验签，金额一致则更新订单状态并执行对应业务逻辑（置顶/券充值/刷新）。
       parameters:
       - description: params
         in: body
@@ -1642,13 +1773,15 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/v1.Response'
-      summary: 微信支付回调
+      summary: 微信支付回调（仅供微信服务器调用）
       tags:
       - 支付模块
   /wechat/user/login:
     post:
       consumes:
       - application/json
+      description: 通过微信小程序 login code 换取 JWT token。用户不存在时返回 404，需先调用 /register。token
+        放在后续请求的 `token` header 中（小写，非 Authorization）。
       parameters:
       - description: params
         in: body
@@ -1670,6 +1803,8 @@ paths:
     post:
       consumes:
       - application/json
+      description: 通过微信小程序注册新用户，需同时传手机号授权 code 和登录 code。inviter_id 为可选邀请人用户ID。注册成功后不返回
+        token，需再调用 /login 获取。若 openid 已注册返回 400。
       parameters:
       - description: params
         in: body

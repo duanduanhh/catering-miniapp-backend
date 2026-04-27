@@ -18,6 +18,8 @@ type JobService interface {
 	GetByID(ctx context.Context, jobID int64) (*model.Job, error)
 	List(ctx context.Context, query repository.JobListQuery) ([]*model.Job, int64, error)
 	ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error)
+	HomeTop(ctx context.Context, bizType, limit int) ([]*model.Job, error)
+	HomeFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error)
 }
 
 func NewJobService(
@@ -35,7 +37,18 @@ type jobService struct {
 	jobRepository repository.JobRepository
 }
 
+const (
+	bizTypeRecruit = 1
+	bizTypeResume  = 2
+)
+
+const (
+	jobLimitRecruit = 10
+	jobLimitResume  = 5
+)
+
 type JobCreateInput struct {
+	BizType            int
 	Positions          string
 	CompanyName        string
 	Longitude          float64
@@ -86,16 +99,21 @@ type JobUpdateInput struct {
 }
 
 func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateInput) (*model.Job, error) {
-	total, err := s.jobRepository.CountByUser(ctx, userID, model.JobStatusActive)
+	total, err := s.jobRepository.CountByUser(ctx, userID, input.BizType, model.JobStatusActive)
 	if err != nil {
 		return nil, err
 	}
-	if total >= 10 {
+	limit := jobLimitRecruit
+	if input.BizType == bizTypeResume {
+		limit = jobLimitResume
+	}
+	if total >= int64(limit) {
 		return nil, ErrJobLimitExceeded
 	}
 	now := time.Now()
 	job := &model.Job{
 		UserID:            userID,
+		BizType:           input.BizType,
 		Positions:         input.Positions,
 		CompanyName:       input.CompanyName,
 		Longitude:         input.Longitude,
@@ -266,4 +284,12 @@ func (s *jobService) List(ctx context.Context, query repository.JobListQuery) ([
 
 func (s *jobService) ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error) {
 	return s.jobRepository.ListByUser(ctx, userID, bizType, status, pageNum, pageSize)
+}
+
+func (s *jobService) HomeTop(ctx context.Context, bizType, limit int) ([]*model.Job, error) {
+	return s.jobRepository.ListTop(ctx, bizType, limit)
+}
+
+func (s *jobService) HomeFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error) {
+	return s.jobRepository.ListFeed(ctx, bizType, pageNum, pageSize)
 }

@@ -10,6 +10,8 @@ func InitJobRouter(deps RouterDeps, r *gin.RouterGroup) {
 	noAuthRouter := r.Group("/")
 	{
 		noAuthRouter.POST("/jobs/list", deps.JobHandler.List)
+		noAuthRouter.POST("/home/top", deps.JobHandler.HomeTop)
+		noAuthRouter.POST("/home/feed", deps.JobHandler.HomeFeed)
 	}
 
 	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))

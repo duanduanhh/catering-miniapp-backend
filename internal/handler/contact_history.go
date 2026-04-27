@@ -28,7 +28,8 @@ func NewContactHistoryHandler(
 func (h *ContactHistoryHandler) GetContactHistory(ctx *gin.Context) {}
 
 // ListOut godoc
-// @Summary 我联系的
+// @Summary 我联系的（发出的联系记录）
+// @Description 返回当前用户主动联系过的岗位记录。biz_type: 0=全部 1=招聘 2=求职，不传默认全部。响应中 purpose_user_phone 为对方脱敏手机号。
 // @Tags 联系模块
 // @Accept json
 // @Produce json
@@ -72,7 +73,8 @@ func (h *ContactHistoryHandler) ListOut(ctx *gin.Context) {
 }
 
 // ListIn godoc
-// @Summary 联系我的
+// @Summary 联系我的（收到的联系记录）
+// @Description 返回其他用户联系过当前用户岗位的记录。biz_type: 0=全部 1=招聘 2=求职，不传默认全部。
 // @Tags 联系模块
 // @Accept json
 // @Produce json
@@ -114,7 +116,8 @@ func (h *ContactHistoryHandler) ListIn(ctx *gin.Context) {
 }
 
 // DeleteOut godoc
-// @Summary 删除我联系的
+// @Summary 删除我联系的记录
+// @Description 软删除发出的联系记录（对对方不可见）。purpose_id 为联系记录 ID（非岗位 ID）。
 // @Tags 联系模块
 // @Accept json
 // @Produce json
@@ -142,7 +145,8 @@ func (h *ContactHistoryHandler) DeleteOut(ctx *gin.Context) {
 }
 
 // DeleteIn godoc
-// @Summary 删除联系我的
+// @Summary 删除联系我的记录
+// @Description 软删除收到的联系记录（对对方不可见）。purpose_id 为联系记录 ID（非岗位 ID）。
 // @Tags 联系模块
 // @Accept json
 // @Produce json
