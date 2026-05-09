@@ -2,10 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
 	"time"
-
-	"gorm.io/gorm"
 
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
@@ -38,18 +35,19 @@ type collectService struct {
 func (s *collectService) Collect(ctx context.Context, userID, contentID int64, bizType int) error {
 	existing, err := s.collectRepository.Get(ctx, userID, contentID, bizType)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			collect := &model.Collect{
-				UserID:    userID,
-				ContentID: contentID,
-				Type:      model.CollectType(bizType),
-				Status:    model.CollectStatusActive,
-				CreateAt:  time.Now(),
-				UpdateAt:  time.Now(),
-			}
-			return s.collectRepository.Create(ctx, collect)
-		}
 		return err
+	}
+	if existing == nil {
+		// 记录不存在，创建新收藏
+		collect := &model.Collect{
+			UserID:    userID,
+			ContentID: contentID,
+			Type:      model.CollectType(bizType),
+			Status:    model.CollectStatusActive,
+			CreateAt:  time.Now(),
+			UpdateAt:  time.Now(),
+		}
+		return s.collectRepository.Create(ctx, collect)
 	}
 	if existing.Status != model.CollectStatusActive {
 		existing.Status = model.CollectStatusActive
@@ -62,10 +60,10 @@ func (s *collectService) Collect(ctx context.Context, userID, contentID int64, b
 func (s *collectService) Cancel(ctx context.Context, userID, contentID int64, bizType int) error {
 	existing, err := s.collectRepository.Get(ctx, userID, contentID, bizType)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
 		return err
+	}
+	if existing == nil {
+		return nil
 	}
 	if existing.Status != model.CollectStatusDeleted {
 		existing.Status = model.CollectStatusDeleted

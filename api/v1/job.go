@@ -38,13 +38,15 @@ type JobCreateResponse struct {
 }
 
 type JobUpdateRequest struct {
-	ID              int64    `json:"id" binding:"required"`
-	Positions       *string  `json:"positions"`
-	Longitude       *float64 `json:"longitude"`
-	Latitude        *float64 `json:"latitude"`
-	Address         *string  `json:"address"`
-	Contact         *string  `json:"contact"`
-	Description     *string  `json:"description"`
+	ID                int64    `json:"id" binding:"required"`
+	Positions         *string  `json:"positions"`
+	CompanyName       *string  `json:"company_name"`
+	ContactPersonName *string  `json:"contact_person_name"`
+	Longitude         *float64 `json:"longitude"`
+	Latitude          *float64 `json:"latitude"`
+	Address           *string  `json:"address"`
+	Contact           *string  `json:"contact"`
+	Description       *string  `json:"description"`
 	PhotoURLs       []string `json:"photo_urls"`
 	FirstAreaID     *int     `json:"first_area_id"`
 	SecondAreaID    *int     `json:"second_area_id"`
@@ -176,6 +178,7 @@ type JobMyRequest struct {
 
 type JobMyItem struct {
 	JobID           int64  `json:"job_id"`
+	BizType         int    `json:"biz_type"`
 	Positions       string `json:"positions"`
 	SalaryMin       int    `json:"salary_min"`
 	SalaryMax       int    `json:"salary_max"`

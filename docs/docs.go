@@ -2230,6 +2230,9 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "biz_type": {
+                    "type": "integer"
+                },
                 "create_at": {
                     "type": "string"
                 },
@@ -2377,7 +2380,13 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "company_name": {
+                    "type": "string"
+                },
                 "contact": {
+                    "type": "string"
+                },
+                "contact_person_name": {
                     "type": "string"
                 },
                 "description": {

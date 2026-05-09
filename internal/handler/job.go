@@ -144,9 +144,11 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		}
 	}
 	input := service.JobUpdateInput{
-		ID:            req.ID,
-		Positions:     req.Positions,
-		Longitude:     req.Longitude,
+		ID:                req.ID,
+		Positions:         req.Positions,
+		CompanyName:       req.CompanyName,
+		ContactPersonName: req.ContactPersonName,
+		Longitude:         req.Longitude,
 		Latitude:      req.Latitude,
 		Address:       req.Address,
 		Contact:       req.Contact,
@@ -572,6 +574,7 @@ func (h *JobHandler) My(ctx *gin.Context) {
 	for _, job := range jobs {
 		resp.List = append(resp.List, v1.JobMyItem{
 			JobID:           job.ID,
+			BizType:         job.BizType,
 			Positions:       job.Positions,
 			SalaryMin:       job.SalaryMin,
 			SalaryMax:       job.SalaryMax,

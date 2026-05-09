@@ -561,6 +561,8 @@ definitions:
     properties:
       address:
         type: string
+      biz_type:
+        type: integer
       create_at:
         type: string
       first_area_des:
@@ -656,7 +658,11 @@ definitions:
         items:
           type: string
         type: array
+      company_name:
+        type: string
       contact:
+        type: string
+      contact_person_name:
         type: string
       description:
         type: string

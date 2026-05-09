@@ -66,7 +66,7 @@ func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, 
 	}
 	item := &model.OrderItem{
 		ProductType:       model.ProductTypeTop,
-		TitleSnapshot:     fmt.Sprintf("置顶套餐-%d小时", topHour),
+		TitleSnapshot:     fmt.Sprintf("置顶%d小时", topHour),
 		TopHour:           topHour,
 		UnitPriceSnapshot: price,
 		TargetType:        model.OrderTargetJob,
@@ -101,7 +101,7 @@ func (s *orderService) CreateContactVoucherOrder(ctx context.Context, userID int
 	}
 	item := &model.OrderItem{
 		ProductType:       model.ProductTypeContactVoucher,
-		TitleSnapshot:     fmt.Sprintf("联系券-%d张", voucherNum),
+		TitleSnapshot:     fmt.Sprintf("购买联系券"),
 		UnitPriceSnapshot: price,
 		ContactVoucherNum: voucherNum,
 		CreateAt:          time.Now(),
@@ -140,7 +140,7 @@ func (s *orderService) CreateRefreshOrder(ctx context.Context, userID, jobID int
 	}
 	item := &model.OrderItem{
 		ProductType:       model.ProductTypeRefresh,
-		TitleSnapshot:     "刷新招聘",
+		TitleSnapshot:     "刷新",
 		UnitPriceSnapshot: price,
 		TargetType:        model.OrderTargetJob,
 		TargetID:          jobID,

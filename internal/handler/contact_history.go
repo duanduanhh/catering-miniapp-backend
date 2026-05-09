@@ -67,6 +67,14 @@ func (h *ContactHistoryHandler) ListOut(ctx *gin.Context) {
 			PurposeUserName:  item.PurposeUserName,
 			PurposeUserPhone: item.PurposeUserPhone,
 			CreateAt:         formatTime(item.CreateAt),
+			Avatar:           item.Avatar,
+			SalaryMin:        item.SalaryMin,
+			SalaryMax:        item.SalaryMax,
+			FirstAreaDes:     item.FirstAreaDes,
+			SecondAreaDes:    item.SecondAreaDes,
+			ThirdAreaDes:     item.ThirdAreaDes,
+			JobStatus:        item.JobStatus,
+			CompanyName:      item.CompanyName,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
@@ -105,11 +113,21 @@ func (h *ContactHistoryHandler) ListIn(ctx *gin.Context) {
 	}
 	for _, item := range items {
 		resp.List = append(resp.List, v1.ContactHistoryItem{
-			ID:              item.ID,
-			Positions:       item.Positions,
-			Address:         item.Address,
-			PurposeUserName: item.PurposeUserName,
-			CreateAt:        formatTime(item.CreateAt),
+			ID:               item.ID,
+			Positions:        item.Positions,
+			Address:          item.Address,
+			PurposeUserID:    item.PurposeUserID,
+			PurposeUserName:  item.PurposeUserName,
+			PurposeUserPhone: item.PurposeUserPhone,
+			CreateAt:         formatTime(item.CreateAt),
+			Avatar:           item.Avatar,
+			SalaryMin:        item.SalaryMin,
+			SalaryMax:        item.SalaryMax,
+			FirstAreaDes:     item.FirstAreaDes,
+			SecondAreaDes:    item.SecondAreaDes,
+			ThirdAreaDes:     item.ThirdAreaDes,
+			JobStatus:        item.JobStatus,
+			CompanyName:      item.CompanyName,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)

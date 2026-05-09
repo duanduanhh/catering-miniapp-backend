@@ -74,9 +74,10 @@ type JobCreateInput struct {
 }
 
 type JobUpdateInput struct {
-	ID              int64
-	Positions       *string
-	CompanyName     *string
+	ID                int64
+	Positions         *string
+	CompanyName       *string
+	ContactPersonName *string
 	Longitude       *float64
 	Latitude        *float64
 	Address         *string
@@ -139,6 +140,7 @@ func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateIn
 		AttendanceLeave:   input.AttendanceLeave,
 		CreateAt:          now,
 		UpdateAt:          now,
+		RefreshTime:       &now,
 	}
 	if err := s.jobRepository.Create(ctx, job); err != nil {
 		return nil, err
@@ -159,6 +161,9 @@ func (s *jobService) Update(ctx context.Context, userID int64, input JobUpdateIn
 	}
 	if input.CompanyName != nil {
 		job.CompanyName = *input.CompanyName
+	}
+	if input.ContactPersonName != nil {
+		job.ContactPersonName = *input.ContactPersonName
 	}
 	if input.Longitude != nil {
 		job.Longitude = *input.Longitude
@@ -245,6 +250,8 @@ func (s *jobService) Close(ctx context.Context, userID, jobID int64, closeReason
 	job.Status = model.JobStatusUserClosed
 	job.CloseReason = closeReason
 	job.CloseTime = &now
+	job.TopStartTime = nil
+	job.TopEndTime = nil
 	return s.jobRepository.Update(ctx, job)
 }
 

@@ -134,15 +134,13 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 		item := ContactHistoryItem{
 			ID:               history.ID,
 			CreateAt:         history.CreateAt,
-			PurposeUserID:    history.PurposeID,
+			PurposeUserID:    history.PurposeUserID,
 			PurposeUserName:  history.PurposeUserName,
 			PurposeUserPhone: history.PurposeUserPhone,
 		}
 		if job, ok := jobMap[history.PurposeID]; ok {
 			item.Positions = job.Positions
 			item.Address = job.Address
-			// 新增字段
-			item.Avatar = job.Avatar
 			item.SalaryMin = job.SalaryMin
 			item.SalaryMax = job.SalaryMax
 			item.FirstAreaDes = job.FirstAreaDes
@@ -150,6 +148,9 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 			item.ThirdAreaDes = job.ThirdAreaDes
 			item.JobStatus = int(job.Status)
 			item.CompanyName = job.CompanyName
+		}
+		if user, ok := userMap[history.PurposeUserID]; ok {
+			item.Avatar = user.Avatar
 		}
 		items = append(items, item)
 	}

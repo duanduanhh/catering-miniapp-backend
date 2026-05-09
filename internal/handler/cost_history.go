@@ -180,15 +180,13 @@ func (h *ContactVoucherHistoryHandler) Records(ctx *gin.Context) {
 	}
 	for _, history := range histories {
 		itemType := v1.ContactVoucherRecordCost
-		title := "拨打电话"
 		if history.BizType == model.ContactVoucherHistoryBuy {
 			itemType = v1.ContactVoucherRecordBuy
-			title = "购买"
 		}
 		resp.List = append(resp.List, v1.ContactVoucherRecordsItem{
 			ID:        history.ID,
 			Type:      itemType,
-			Title:     title,
+			Title:     history.Remark,
 			ChangeNum: history.ChangeNum,
 			CreateAt:  formatTime(history.CreateAt),
 		})
