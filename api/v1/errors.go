@@ -13,4 +13,10 @@ var (
 	ErrEmailAlreadyUse     = newError(1001, "The email is already in use.")
 	ErrInsufficientVoucher = newError(1002, "Insufficient contact voucher.")
 	ErrAmountMismatch      = newError(1003, "Amount mismatch.")
+
+	// enterprise errors
+	ErrEnterpriseNotFound  = newError(2001, "Enterprise not found.")
+	ErrEnterpriseDuplicate = newError(2002, "Enterprise already exists.")
+	ErrEnterpriseOCRFailed = newError(2003, "OCR recognition failed.")
+	ErrInvalidCreditCode   = newError(2004, "Invalid social credit code.")
 )

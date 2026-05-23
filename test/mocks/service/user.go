@@ -8,7 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
+	model "github.com/go-nunu/nunu-layout-advanced/internal/model"
+	service "github.com/go-nunu/nunu-layout-advanced/internal/service"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,60 +36,62 @@ func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
-// GetProfile mocks base method.
-func (m *MockUserService) GetProfile(ctx context.Context, userId string) (*v1.GetProfileResponseData, error) {
+// GetInfo mocks base method.
+func (m *MockUserService) GetInfo(ctx context.Context, userID int64) (*model.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProfile", ctx, userId)
-	ret0, _ := ret[0].(*v1.GetProfileResponseData)
+	ret := m.ctrl.Call(m, "GetInfo", ctx, userID)
+	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetProfile indicates an expected call of GetProfile.
-func (mr *MockUserServiceMockRecorder) GetProfile(ctx, userId interface{}) *gomock.Call {
+// GetInfo indicates an expected call of GetInfo.
+func (mr *MockUserServiceMockRecorder) GetInfo(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProfile", reflect.TypeOf((*MockUserService)(nil).GetProfile), ctx, userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInfo", reflect.TypeOf((*MockUserService)(nil).GetInfo), ctx, userID)
 }
 
-// Login mocks base method.
-func (m *MockUserService) Login(ctx context.Context, req *v1.LoginRequest) (string, error) {
+// ListInvites mocks base method.
+func (m *MockUserService) ListInvites(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.User, int64, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Login", ctx, req)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "ListInvites", ctx, userID, pageNum, pageSize)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(int64)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
-// Login indicates an expected call of Login.
-func (mr *MockUserServiceMockRecorder) Login(ctx, req interface{}) *gomock.Call {
+// ListInvites indicates an expected call of ListInvites.
+func (mr *MockUserServiceMockRecorder) ListInvites(ctx, userID, pageNum, pageSize interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUserService)(nil).Login), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListInvites", reflect.TypeOf((*MockUserService)(nil).ListInvites), ctx, userID, pageNum, pageSize)
 }
 
-// Register mocks base method.
-func (m *MockUserService) Register(ctx context.Context, req *v1.RegisterRequest) error {
+// UpdateGeo mocks base method.
+func (m *MockUserService) UpdateGeo(ctx context.Context, userID int64, input service.UpdateUserGeoInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, req)
+	ret := m.ctrl.Call(m, "UpdateGeo", ctx, userID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Register indicates an expected call of Register.
-func (mr *MockUserServiceMockRecorder) Register(ctx, req interface{}) *gomock.Call {
+// UpdateGeo indicates an expected call of UpdateGeo.
+func (mr *MockUserServiceMockRecorder) UpdateGeo(ctx, userID, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserService)(nil).Register), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGeo", reflect.TypeOf((*MockUserService)(nil).UpdateGeo), ctx, userID, input)
 }
 
-// UpdateProfile mocks base method.
-func (m *MockUserService) UpdateProfile(ctx context.Context, userId string, req *v1.UpdateProfileRequest) error {
+// UpdateInfo mocks base method.
+func (m *MockUserService) UpdateInfo(ctx context.Context, userID int64, input service.UpdateUserInfoInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateProfile", ctx, userId, req)
+	ret := m.ctrl.Call(m, "UpdateInfo", ctx, userID, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateProfile indicates an expected call of UpdateProfile.
-func (mr *MockUserServiceMockRecorder) UpdateProfile(ctx, userId, req interface{}) *gomock.Call {
+// UpdateInfo indicates an expected call of UpdateInfo.
+func (mr *MockUserServiceMockRecorder) UpdateInfo(ctx, userID, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProfile", reflect.TypeOf((*MockUserService)(nil).UpdateProfile), ctx, userId, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInfo", reflect.TypeOf((*MockUserService)(nil).UpdateInfo), ctx, userID, input)
 }

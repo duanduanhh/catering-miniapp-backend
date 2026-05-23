@@ -302,6 +302,39 @@ INSERT INTO `position_subcategory` (`category_id`, `subcategory_name`, `sort_ord
 (6, '其他', 1, 1);
 ```
 
+## 企业认证表（新建）
+
+```mysql
+CREATE TABLE `enterprise` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` bigint NOT NULL COMMENT '所属用户ID，对应 user.id',
+  `name` varchar(128) NOT NULL COMMENT '企业名称',
+  `social_credit_code` varchar(18) NOT NULL COMMENT '统一社会信用代码（18位）',
+  `legal_representative` varchar(64) NOT NULL COMMENT '法定代表人',
+  `address` varchar(512) NOT NULL COMMENT '注册地址',
+  `established_date` varchar(32) DEFAULT NULL COMMENT '成立日期',
+  `business_period` varchar(64) DEFAULT NULL COMMENT '营业期限',
+  `registered_capital` varchar(64) DEFAULT NULL COMMENT '注册资本',
+  `business_scope` text DEFAULT NULL COMMENT '经营范围',
+  `license_url` varchar(512) NOT NULL COMMENT '营业执照图片URL',
+  `is_default` tinyint NOT NULL DEFAULT '0' COMMENT '是否默认企业：0=否 1=是',
+  `status` tinyint NOT NULL DEFAULT '2' COMMENT '状态：1=待审核 2=已认证 3=审核驳回 4=已删除',
+  `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_user_status` (`user_id`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='企业认证信息表';
+```
+
+## 招聘信息表变更（job 表新增字段）
+
+```mysql
+ALTER TABLE `job`
+  ADD COLUMN `enterprise_id` bigint NOT NULL DEFAULT '0' COMMENT '关联企业ID，0=未关联，对应 enterprise.id' AFTER `biz_type`,
+  ADD COLUMN `recruit_num` int NOT NULL DEFAULT '0' COMMENT '招募人数' AFTER `enterprise_id`;
+```
+
 ## 意见反馈表（新建）
 
 ```mysql

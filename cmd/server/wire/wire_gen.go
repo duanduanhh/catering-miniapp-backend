@@ -46,9 +46,9 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	if err != nil {
 		return nil, nil, err
 	}
-	orderHandler := handler.NewOrderHandler(handlerHandler, orderService)
 	collectRepository := repository.NewCollectRepository(repositoryRepository)
 	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService, payService, collectRepository)
+	orderHandler := handler.NewOrderHandler(handlerHandler, orderService)
 	collectService := service.NewCollectService(serviceService, collectRepository, jobRepository)
 	collectHandler := handler.NewCollectHandler(handlerHandler, collectService)
 	contactHistoryRepository := repository.NewContactHistoryRepository(repositoryRepository)
@@ -70,6 +70,9 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	feedbackRepository := repository.NewFeedbackRepository(repositoryRepository)
 	feedbackService := service.NewFeedbackService(serviceService, feedbackRepository)
 	feedbackHandler := handler.NewFeedbackHandler(handlerHandler, feedbackService)
+	enterpriseRepository := repository.NewEnterpriseRepository(repositoryRepository)
+	enterpriseService := service.NewEnterpriseService(viperViper, logger, transaction, enterpriseRepository)
+	enterpriseHandler := handler.NewEnterpriseHandler(handlerHandler, enterpriseService)
 	routerDeps := router.RouterDeps{
 		Logger:                       logger,
 		Config:                       viperViper,
@@ -84,6 +87,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 		UploadHandler:                uploadHandler,
 		PositionCategoryHandler:      positionCategoryHandler,
 		FeedbackHandler:              feedbackHandler,
+		EnterpriseHandler:            enterpriseHandler,
 	}
 	httpServer := server.NewHTTPServer(routerDeps)
 	jobJob := job.NewJob(transaction, logger, sidSid)
@@ -96,13 +100,15 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 // wire.go:
 
-var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewContactVoucherHistoryRepository, repository.NewPositionCategoryRepository, repository.NewFeedbackRepository)
+var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewContactVoucherHistoryRepository, repository.NewPositionCategoryRepository, repository.NewFeedbackRepository, repository.NewEnterpriseRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewUploadService, NewPayServiceProvider, service.NewPositionCategoryService, service.NewFeedbackService)
+var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewUploadService, NewPayServiceProvider, service.NewPositionCategoryService, service.NewFeedbackService, service.NewEnterpriseService)
 
-var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewOrderHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler, handler.NewFeedbackHandler)
+var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewOrderHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler, handler.NewFeedbackHandler, handler.NewEnterpriseHandler)
 
-var wechatPaySet = wire.NewSet(NewWechatPayClientProvider)
+var wechatPaySet = wire.NewSet(
+	NewWechatPayClientProvider,
+)
 
 var jobSet = wire.NewSet(job.NewJob, job.NewUserJob)
 

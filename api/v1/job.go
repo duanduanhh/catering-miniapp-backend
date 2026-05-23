@@ -3,12 +3,12 @@ package v1
 import "github.com/go-nunu/nunu-layout-advanced/internal/model"
 
 type JobCreateRequest struct {
-	BizType           int      `json:"biz_type"`              // 1=招聘（默认）2=求职，不传默认 1
+	BizType           int      `json:"biz_type"`
 	Positions         string   `json:"positions" binding:"required"`
-	CompanyName       string   `json:"company_name"`  // 招聘必填，求职留空
-	Longitude         float64  `json:"longitude"`     // 招聘必填，求职留空
-	Latitude          float64  `json:"latitude"`      // 招聘必填，求职留空
-	Address           string   `json:"address"`       // 招聘必填，求职留空
+	CompanyName       string   `json:"company_name"`
+	Longitude         float64  `json:"longitude"`
+	Latitude          float64  `json:"latitude"`
+	Address           string   `json:"address"`
 	Contact           string   `json:"contact" binding:"required"`
 	ContactPersonName string   `json:"contact_person_name" binding:"required"`
 	Description       string   `json:"description" binding:"required"`
@@ -26,6 +26,8 @@ type JobCreateRequest struct {
 	BasicProtection   []string `json:"basic_protection"`
 	SalaryBenefits    []string `json:"salary_benefits"`
 	AttendanceLeave   []string `json:"attendance_leave"`
+	EnterpriseID      int64    `json:"enterprise_id"`
+	RecruitNum        int      `json:"recruit_num"`
 }
 
 type JobCreateResponseData struct {
@@ -61,6 +63,8 @@ type JobUpdateRequest struct {
 	BasicProtection []string `json:"basic_protection"`
 	SalaryBenefits  []string `json:"salary_benefits"`
 	AttendanceLeave []string `json:"attendance_leave"`
+	EnterpriseID    *int64   `json:"enterprise_id"`
+	RecruitNum      *int     `json:"recruit_num"`
 }
 
 type JobTopRequest struct {
@@ -154,9 +158,12 @@ type JobListItem struct {
 	TopStartTime      string          `json:"top_start_time"`
 	TopEndTime        string          `json:"top_end_time"`
 	LastRefreshTime   string          `json:"last_refresh_time,omitempty"`
-	IsCollected       int             `json:"is_collected"` // 是否收藏：0=未收藏，1=已收藏
-	CloseReason       string          `json:"close_reason"` // 关闭原因
-	CloseTime         string          `json:"close_time"`   // 关闭时间
+	IsCollected       int             `json:"is_collected"`
+	CloseReason       string          `json:"close_reason"`
+	CloseTime         string          `json:"close_time"`
+	EnterpriseID      int64           `json:"enterprise_id"`
+	EnterpriseName    string          `json:"enterprise_name"`
+	RecruitNum        int             `json:"recruit_num"`
 }
 
 type JobListResponseData struct {

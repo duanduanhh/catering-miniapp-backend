@@ -71,6 +71,8 @@ type JobCreateInput struct {
 	BasicProtection    string
 	SalaryBenefits     string
 	AttendanceLeave    string
+	EnterpriseID       int64
+	RecruitNum         int
 }
 
 type JobUpdateInput struct {
@@ -97,6 +99,8 @@ type JobUpdateInput struct {
 	BasicProtection *string
 	SalaryBenefits  *string
 	AttendanceLeave *string
+	EnterpriseID    *int64
+	RecruitNum      *int
 }
 
 func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateInput) (*model.Job, error) {
@@ -138,6 +142,8 @@ func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateIn
 		BasicProtection:   input.BasicProtection,
 		SalaryBenefits:    input.SalaryBenefits,
 		AttendanceLeave:   input.AttendanceLeave,
+		EnterpriseID:      input.EnterpriseID,
+		RecruitNum:        input.RecruitNum,
 		CreateAt:          now,
 		UpdateAt:          now,
 		RefreshTime:       &now,
@@ -221,6 +227,12 @@ func (s *jobService) Update(ctx context.Context, userID int64, input JobUpdateIn
 	}
 	if input.AttendanceLeave != nil {
 		job.AttendanceLeave = *input.AttendanceLeave
+	}
+	if input.EnterpriseID != nil {
+		job.EnterpriseID = *input.EnterpriseID
+	}
+	if input.RecruitNum != nil {
+		job.RecruitNum = *input.RecruitNum
 	}
 	return s.jobRepository.Update(ctx, job)
 }

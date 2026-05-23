@@ -364,6 +364,288 @@ const docTemplate = `{
                 }
             }
         },
+        "/enterprise/create": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "提交营业执照信息创建企业，social_credit_code 为18位统一社会信用代码，同一用户不可重复添加相同代码。is_default=1 时自动清除其他企业的默认状态。当前版本直接认证通过（status=2）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "创建企业（提交认证）",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseCreateResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/detail": {
+            "get": {
+                "description": "返回企业工商信息，无需登录。status≠2（已认证）的企业返回404。不返回营业执照图片URL。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "企业详情（公开）",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "企业ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseDetailResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/my": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "返回当前用户的所有企业（不含已删除），默认企业排在第一位。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "我的企业列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseMyResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/ocr": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "传入已上传到 OSS 的营业执照图片 URL，调用阿里云 OCR 识别企业工商信息并返回结构化字段，供前端回填表单（用户可二次修改）。识别失败时返回空字段，不阻断流程。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "营业执照 OCR 识别",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseOCRRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseOCRResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/select_list": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "返回当前用户已认证的企业列表，用于发布招聘时弹窗选择，默认企业排在第一位。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "发布招聘时选择企业（精简列表）",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseSelectListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/set_default": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "将指定企业设为当前用户的默认企业，同时清除其他企业的默认状态。目标企业必须已认证（status=2）。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "设为默认企业",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseSetDefaultRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/update": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新企业字段，所有字段均为可选，传哪个改哪个。social_credit_code 不允许修改。is_default=1 时自动清除其他企业的默认状态。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "修改企业信息",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.EnterpriseUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/enterprise/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "软删除企业（status=4），若被删除的是默认企业则同时清空 is_default。仅限企业所有者操作。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "企业管理"
+                ],
+                "summary": "删除企业",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "企业ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/feedback/my": {
             "post": {
                 "security": [
@@ -1397,6 +1679,33 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.EnterpriseStatus": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-comments": {
+                "EnterpriseStatusDeleted": "已删除",
+                "EnterpriseStatusPending": "待审核",
+                "EnterpriseStatusRejected": "审核驳回",
+                "EnterpriseStatusVerified": "已认证"
+            },
+            "x-enum-descriptions": [
+                "待审核",
+                "已认证",
+                "审核驳回",
+                "已删除"
+            ],
+            "x-enum-varnames": [
+                "EnterpriseStatusPending",
+                "EnterpriseStatusVerified",
+                "EnterpriseStatusRejected",
+                "EnterpriseStatusDeleted"
+            ]
+        },
         "model.JobStatus": {
             "type": "integer",
             "enum": [
@@ -1618,6 +1927,311 @@ const docTemplate = `{
                 },
                 "list_total": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.EnterpriseCreateRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "legal_representative",
+                "license_url",
+                "name",
+                "social_credit_code"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "通化市东昌区柳泉路玉皇佳园28号楼2单元601号"
+                },
+                "business_period": {
+                    "type": "string",
+                    "example": "长期"
+                },
+                "business_scope": {
+                    "type": "string",
+                    "example": "信息技术咨询服务;网络技术服务"
+                },
+                "established_date": {
+                    "type": "string",
+                    "example": "2024-01-24"
+                },
+                "is_default": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 1
+                },
+                "legal_representative": {
+                    "type": "string",
+                    "example": "张占"
+                },
+                "license_url": {
+                    "type": "string",
+                    "example": "https://oss.example.com/license/abc.jpg"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "通化市东昌区助刻科技信息服务站"
+                },
+                "registered_capital": {
+                    "type": "string",
+                    "example": "100万人民币"
+                },
+                "social_credit_code": {
+                    "type": "string",
+                    "example": "92220502MADA7W5L9P"
+                }
+            }
+        },
+        "v1.EnterpriseCreateResponseData": {
+            "type": "object",
+            "properties": {
+                "enterprise_id": {
+                    "type": "integer",
+                    "example": 1234567890
+                }
+            }
+        },
+        "v1.EnterpriseDetailResponseData": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "通化市东昌区柳泉路玉皇佳园28号楼2单元601号"
+                },
+                "business_period": {
+                    "type": "string",
+                    "example": "长期"
+                },
+                "business_scope": {
+                    "type": "string",
+                    "example": "信息技术咨询服务;网络技术服务"
+                },
+                "established_date": {
+                    "type": "string",
+                    "example": "2024-01-24"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1234567890
+                },
+                "legal_representative": {
+                    "type": "string",
+                    "example": "张占"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "通化市东昌区助刻科技信息服务站"
+                },
+                "registered_capital": {
+                    "type": "string",
+                    "example": "100万人民币"
+                },
+                "social_credit_code": {
+                    "type": "string",
+                    "example": "92220502MADA7W5L9P"
+                }
+            }
+        },
+        "v1.EnterpriseMyItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1234567890
+                },
+                "is_default": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 1
+                },
+                "legal_representative": {
+                    "type": "string",
+                    "example": "张占"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "通化市东昌区助刻科技信息服务站"
+                },
+                "social_credit_code": {
+                    "type": "string",
+                    "example": "92220502MADA7W5L9P"
+                },
+                "status": {
+                    "enum": [
+                        1,
+                        2,
+                        3,
+                        4
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.EnterpriseStatus"
+                        }
+                    ],
+                    "example": 2
+                }
+            }
+        },
+        "v1.EnterpriseMyResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.EnterpriseMyItem"
+                    }
+                }
+            }
+        },
+        "v1.EnterpriseOCRRequest": {
+            "type": "object",
+            "required": [
+                "license_url"
+            ],
+            "properties": {
+                "license_url": {
+                    "type": "string",
+                    "example": "https://oss.example.com/license/abc.jpg"
+                }
+            }
+        },
+        "v1.EnterpriseOCRResponseData": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "通化市东昌区柳泉路玉皇佳园28号楼2单元601号"
+                },
+                "business_period": {
+                    "type": "string",
+                    "example": "长期"
+                },
+                "business_scope": {
+                    "type": "string",
+                    "example": "信息技术咨询服务;网络技术服务"
+                },
+                "established_date": {
+                    "type": "string",
+                    "example": "2024-01-24"
+                },
+                "legal_representative": {
+                    "type": "string",
+                    "example": "张占"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "通化市东昌区助刻科技信息服务站(个体工商户)"
+                },
+                "registered_capital": {
+                    "type": "string",
+                    "example": "100万人民币"
+                },
+                "social_credit_code": {
+                    "type": "string",
+                    "example": "92220502MADA7W5L9P"
+                }
+            }
+        },
+        "v1.EnterpriseSelectItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1234567890
+                },
+                "is_default": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "通化市东昌区助刻科技信息服务站"
+                }
+            }
+        },
+        "v1.EnterpriseSelectListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.EnterpriseSelectItem"
+                    }
+                }
+            }
+        },
+        "v1.EnterpriseSetDefaultRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1234567890
+                }
+            }
+        },
+        "v1.EnterpriseUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "通化市东昌区柳泉路玉皇佳园28号楼2单元601号"
+                },
+                "business_period": {
+                    "type": "string",
+                    "example": "长期"
+                },
+                "business_scope": {
+                    "type": "string",
+                    "example": "信息技术咨询服务;网络技术服务"
+                },
+                "established_date": {
+                    "type": "string",
+                    "example": "2024-01-24"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1234567890
+                },
+                "is_default": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 1
+                },
+                "legal_representative": {
+                    "type": "string",
+                    "example": "张占"
+                },
+                "license_url": {
+                    "type": "string",
+                    "example": "https://oss.example.com/license/abc.jpg"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "通化市东昌区助刻科技信息服务站"
+                },
+                "registered_capital": {
+                    "type": "string",
+                    "example": "100万人民币"
                 }
             }
         },
@@ -1863,7 +2477,6 @@ const docTemplate = `{
             ],
             "properties": {
                 "address": {
-                    "description": "招聘必填，求职留空",
                     "type": "string"
                 },
                 "attendance_leave": {
@@ -1879,11 +2492,9 @@ const docTemplate = `{
                     }
                 },
                 "biz_type": {
-                    "description": "1=招聘（默认）2=求职，不传默认 1",
                     "type": "integer"
                 },
                 "company_name": {
-                    "description": "招聘必填，求职留空",
                     "type": "string"
                 },
                 "contact": {
@@ -1894,6 +2505,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "enterprise_id": {
+                    "type": "integer"
                 },
                 "first_area_des": {
                     "type": "string"
@@ -1908,11 +2522,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "latitude": {
-                    "description": "招聘必填，求职留空",
                     "type": "number"
                 },
                 "longitude": {
-                    "description": "招聘必填，求职留空",
                     "type": "number"
                 },
                 "photo_urls": {
@@ -1923,6 +2535,9 @@ const docTemplate = `{
                 },
                 "positions": {
                     "type": "string"
+                },
+                "recruit_num": {
+                    "type": "integer"
                 },
                 "salary_benefits": {
                     "type": "array",
@@ -2070,11 +2685,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "close_reason": {
-                    "description": "关闭原因",
                     "type": "string"
                 },
                 "close_time": {
-                    "description": "关闭时间",
                     "type": "string"
                 },
                 "company_name": {
@@ -2090,6 +2703,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "enterprise_id": {
+                    "type": "integer"
+                },
+                "enterprise_name": {
                     "type": "string"
                 },
                 "first_area_des": {
@@ -2108,7 +2727,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "is_collected": {
-                    "description": "是否收藏：0=未收藏，1=已收藏",
                     "type": "integer"
                 },
                 "is_top": {
@@ -2131,6 +2749,9 @@ const docTemplate = `{
                 },
                 "positions": {
                     "type": "string"
+                },
+                "recruit_num": {
+                    "type": "integer"
                 },
                 "salary_benefits": {
                     "type": "array",
@@ -2392,6 +3013,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "enterprise_id": {
+                    "type": "integer"
+                },
                 "first_area_des": {
                     "type": "string"
                 },
@@ -2421,6 +3045,9 @@ const docTemplate = `{
                 },
                 "positions": {
                     "type": "string"
+                },
+                "recruit_num": {
+                    "type": "integer"
                 },
                 "salary_benefits": {
                     "type": "array",

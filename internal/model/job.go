@@ -42,10 +42,13 @@ type Job struct {
 	RefreshTime       *time.Time `gorm:"column:refresh_time"`
 	TopStartTime      *time.Time `gorm:"column:top_start_time"`
 	TopEndTime        *time.Time `gorm:"column:top_end_time"`
-	Avatar            string     `gorm:"column:avatar;<-:false"` // 发布人头像，只读字段
-	CloseReason       string     `gorm:"column:close_reason"`    // 关闭原因
-	CloseTime         *time.Time `gorm:"column:close_time"`      // 关闭时间
-	BizType           int        `gorm:"column:biz_type;default:1"` // 业务类型：1=招聘 2=求职
+	Avatar            string     `gorm:"column:avatar;<-:false"`
+	EnterpriseName    string     `gorm:"column:enterprise_name;<-:false"`
+	CloseReason       string     `gorm:"column:close_reason"`
+	CloseTime         *time.Time `gorm:"column:close_time"`
+	BizType           int        `gorm:"column:biz_type;default:1"`
+	EnterpriseID      int64      `gorm:"column:enterprise_id;default:0"`
+	RecruitNum        int        `gorm:"column:recruit_num;default:0"`
 }
 
 func (m *Job) TableName() string {

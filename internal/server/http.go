@@ -58,6 +58,7 @@ func NewHTTPServer(
 	router.InitPositionCategoryRouter(deps, root)
 	router.InitCommonRouter(deps, root)
 	router.InitFeedbackRouter(deps, root)
+	router.InitEnterpriseRouter(deps, root)
 
 	s.Static("/uploads", "./storage/uploads")
 

@@ -26,6 +26,8 @@ func NewMigrateServer(db *gorm.DB, log *log.Logger) *MigrateServer {
 func (m *MigrateServer) Start(ctx context.Context) error {
 	if err := m.db.AutoMigrate(
 		&model.User{},
+		&model.Enterprise{},
+		&model.Job{},
 	); err != nil {
 		m.log.Error("user migrate error", zap.Error(err))
 		return err

@@ -22,4 +22,5 @@ type RouterDeps struct {
 	UploadHandler                *handler.UploadHandler
 	PositionCategoryHandler      *handler.PositionCategoryHandler
 	FeedbackHandler              *handler.FeedbackHandler
+	EnterpriseHandler            *handler.EnterpriseHandler
 }

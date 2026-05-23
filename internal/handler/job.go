@@ -100,6 +100,8 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 		BasicProtection:    strings.Join(req.BasicProtection, ","),
 		SalaryBenefits:     strings.Join(req.SalaryBenefits, ","),
 		AttendanceLeave:    strings.Join(req.AttendanceLeave, ","),
+		EnterpriseID:       req.EnterpriseID,
+		RecruitNum:         req.RecruitNum,
 	}
 	job, err := h.jobService.Create(ctx, userID, input)
 	if err != nil {
@@ -164,6 +166,8 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		FourAreaDes:   req.FourAreaDes,
 		SalaryMin:     req.SalaryMin,
 		SalaryMax:     req.SalaryMax,
+		EnterpriseID:  req.EnterpriseID,
+		RecruitNum:    req.RecruitNum,
 	}
 	if req.PhotoURLs != nil {
 		joined := strings.Join(req.PhotoURLs, ",")
@@ -758,6 +762,9 @@ func buildJobListItem(job *model.Job) v1.JobListItem {
 		LastRefreshTime:   formatOptionalTime(job.RefreshTime),
 		CloseReason:       job.CloseReason,
 		CloseTime:         formatOptionalTime(job.CloseTime),
+		EnterpriseID:      job.EnterpriseID,
+		EnterpriseName:    job.EnterpriseName,
+		RecruitNum:        job.RecruitNum,
 	}
 	return item
 }

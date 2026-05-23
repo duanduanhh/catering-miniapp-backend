@@ -59,8 +59,9 @@ func (r *jobRepository) Update(ctx context.Context, job *model.Job) error {
 func (r *jobRepository) GetByID(ctx context.Context, id int64) (*model.Job, error) {
 	var job model.Job
 	if err := r.DB(ctx).Table("job").
-		Select("job.*, user.avatar").
+		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
 		Where("job.id = ?", id).First(&job).Error; err != nil {
 		return nil, err
 	}
@@ -73,8 +74,9 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 		total int64
 	)
 	db := r.DB(ctx).Table("job").
-		Select("job.*, user.avatar").
+		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
 		Where("job.status = ?", model.JobStatusActive)
 
 	if query.BizType > 0 {
@@ -196,8 +198,9 @@ func (r *jobRepository) ListTop(ctx context.Context, bizType, limit int) ([]*mod
 		limit = 5
 	}
 	db := r.DB(ctx).Table("job").
-		Select("job.*, user.avatar").
+		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
 		Where("job.status = ? AND job.top_start_time IS NOT NULL AND job.top_end_time IS NOT NULL AND job.top_start_time <= NOW() AND job.top_end_time >= NOW()", model.JobStatusActive)
 	if bizType > 0 {
 		db = db.Where("job.biz_type = ?", bizType)
@@ -212,8 +215,9 @@ func (r *jobRepository) ListFeed(ctx context.Context, bizType, pageNum, pageSize
 		total int64
 	)
 	db := r.DB(ctx).Table("job").
-		Select("job.*, user.avatar").
+		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
 		Where("job.status = ? AND NOT (job.top_start_time IS NOT NULL AND job.top_end_time IS NOT NULL AND job.top_start_time <= NOW() AND job.top_end_time >= NOW())", model.JobStatusActive)
 	if bizType > 0 {
 		db = db.Where("job.biz_type = ?", bizType)
