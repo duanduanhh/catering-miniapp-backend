@@ -186,19 +186,25 @@ type JobMyRequest struct {
 }
 
 type JobMyItem struct {
-	JobID           int64  `json:"job_id"`
-	BizType         int    `json:"biz_type"`
-	Positions       string `json:"positions"`
-	SalaryMin       int    `json:"salary_min"`
-	SalaryMax       int    `json:"salary_max"`
-	FirstAreaDes    string `json:"first_area_des"`
-	SecondAreaDes   string `json:"second_area_des"`
-	ThirdAreaDes    string `json:"third_area_des"`
-	Address         string `json:"address"`
-	CreateAt        string `json:"create_at"`
-	IsTop           int    `json:"is_top"`
-	Status          int    `json:"status"`
-	LastRefreshTime string `json:"last_refresh_time"`
+	JobID             int64    `json:"job_id"`
+	BizType           int      `json:"biz_type"`
+	Positions         string   `json:"positions"`
+	SalaryMin         int      `json:"salary_min"`
+	SalaryMax         int      `json:"salary_max"`
+	FirstAreaDes      string   `json:"first_area_des"`
+	SecondAreaDes     string   `json:"second_area_des"`
+	ThirdAreaDes      string   `json:"third_area_des"`
+	Address           string   `json:"address"`
+	CreateAt          string   `json:"create_at"`
+	IsTop             int      `json:"is_top"`
+	Status            int      `json:"status"`
+	LastRefreshTime   string   `json:"last_refresh_time"`
+	ContactPersonName string   `json:"contact_person_name"`
+	Contact           string   `json:"contact"`
+	Avatar            string   `json:"avatar"`
+	BasicProtection   []string `json:"basic_protection"`
+	SalaryBenefits    []string `json:"salary_benefits"`
+	AttendanceLeave   []string `json:"attendance_leave"`
 }
 
 type JobMyResponseData struct {

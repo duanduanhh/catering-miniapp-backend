@@ -61,7 +61,7 @@ func (r *jobRepository) GetByID(ctx context.Context, id int64) (*model.Job, erro
 	if err := r.DB(ctx).Table("job").
 		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
-		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = ?", model.EnterpriseStatusVerified).
 		Where("job.id = ?", id).First(&job).Error; err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 	db := r.DB(ctx).Table("job").
 		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
-		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = ?", model.EnterpriseStatusVerified).
 		Where("job.status = ?", model.JobStatusActive)
 
 	if query.BizType > 0 {
@@ -174,7 +174,11 @@ func (r *jobRepository) ListByIDs(ctx context.Context, ids []int64) ([]*model.Jo
 		return []*model.Job{}, nil
 	}
 	var jobs []*model.Job
-	if err := r.DB(ctx).Where("id IN ?", ids).Find(&jobs).Error; err != nil {
+	if err := r.DB(ctx).
+		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
+		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = ?", model.EnterpriseStatusVerified).
+		Where("job.id IN ?", ids).Find(&jobs).Error; err != nil {
 		return nil, err
 	}
 	return jobs, nil
@@ -200,7 +204,7 @@ func (r *jobRepository) ListTop(ctx context.Context, bizType, limit int) ([]*mod
 	db := r.DB(ctx).Table("job").
 		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
-		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = ?", model.EnterpriseStatusVerified).
 		Where("job.status = ? AND job.top_start_time IS NOT NULL AND job.top_end_time IS NOT NULL AND job.top_start_time <= NOW() AND job.top_end_time >= NOW()", model.JobStatusActive)
 	if bizType > 0 {
 		db = db.Where("job.biz_type = ?", bizType)
@@ -217,7 +221,7 @@ func (r *jobRepository) ListFeed(ctx context.Context, bizType, pageNum, pageSize
 	db := r.DB(ctx).Table("job").
 		Select("job.*, user.avatar, COALESCE(enterprise.name, '') AS enterprise_name").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
-		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = 2").
+		Joins("LEFT JOIN enterprise ON job.enterprise_id = enterprise.id AND enterprise.status = ?", model.EnterpriseStatusVerified).
 		Where("job.status = ? AND NOT (job.top_start_time IS NOT NULL AND job.top_end_time IS NOT NULL AND job.top_start_time <= NOW() AND job.top_end_time >= NOW())", model.JobStatusActive)
 	if bizType > 0 {
 		db = db.Where("job.biz_type = ?", bizType)

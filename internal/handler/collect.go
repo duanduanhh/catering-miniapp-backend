@@ -118,19 +118,25 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 	}
 	for _, job := range jobs {
 		resp.List = append(resp.List, v1.JobMyItem{
-			JobID:           job.ID,
-			BizType:         job.BizType,
-			Positions:       job.Positions,
-			SalaryMin:       job.SalaryMin,
-			SalaryMax:       job.SalaryMax,
-			FirstAreaDes:    job.FirstAreaDes,
-			SecondAreaDes:   job.SecondAreaDes,
-			ThirdAreaDes:    job.ThirdAreaDes,
-			Address:         job.Address,
-			CreateAt:        formatTime(job.CreateAt),
-			IsTop:           isJobTop(job),
-			Status:          int(job.Status),
-			LastRefreshTime: formatOptionalTime(job.RefreshTime),
+			JobID:             job.ID,
+			BizType:           job.BizType,
+			Positions:         job.Positions,
+			SalaryMin:         job.SalaryMin,
+			SalaryMax:         job.SalaryMax,
+			FirstAreaDes:      job.FirstAreaDes,
+			SecondAreaDes:     job.SecondAreaDes,
+			ThirdAreaDes:      job.ThirdAreaDes,
+			Address:           job.Address,
+			CreateAt:          formatTime(job.CreateAt),
+			IsTop:             isJobTop(job),
+			Status:            int(job.Status),
+			LastRefreshTime:   formatOptionalTime(job.RefreshTime),
+			ContactPersonName: job.ContactPersonName,
+			Contact:           job.Contact,
+			Avatar:            job.Avatar,
+			BasicProtection:   splitCSV(job.BasicProtection),
+			SalaryBenefits:    splitCSV(job.SalaryBenefits),
+			AttendanceLeave:   splitCSV(job.AttendanceLeave),
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
