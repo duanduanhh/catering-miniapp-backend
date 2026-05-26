@@ -40,6 +40,7 @@ type Job struct {
 	CreateAt          time.Time  `gorm:"column:create_at"`
 	UpdateAt          time.Time  `gorm:"column:update_at"`
 	RefreshTime       *time.Time `gorm:"column:refresh_time"`
+	PaidRefreshTime   *time.Time `gorm:"column:paid_refresh_time"`
 	TopStartTime      *time.Time `gorm:"column:top_start_time"`
 	TopEndTime        *time.Time `gorm:"column:top_end_time"`
 	Avatar            string     `gorm:"column:avatar;<-:false"`

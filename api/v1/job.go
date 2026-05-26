@@ -206,6 +206,8 @@ type JobMyItem struct {
 	BasicProtection   []string `json:"basic_protection"`
 	SalaryBenefits    []string `json:"salary_benefits"`
 	AttendanceLeave   []string `json:"attendance_leave"`
+	UserID            int64    `json:"user_id"`
+	Description       string   `json:"description"`
 }
 
 type JobMyResponseData struct {

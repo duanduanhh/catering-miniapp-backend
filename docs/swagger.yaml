@@ -729,6 +729,8 @@ definitions:
         type: integer
       is_collected:
         type: integer
+      is_contacted:
+        type: integer
       is_top:
         type: integer
       last_refresh_time:
@@ -809,8 +811,22 @@ definitions:
     properties:
       address:
         type: string
+      attendance_leave:
+        items:
+          type: string
+        type: array
+      avatar:
+        type: string
+      basic_protection:
+        items:
+          type: string
+        type: array
       biz_type:
         type: integer
+      contact:
+        type: string
+      contact_person_name:
+        type: string
       create_at:
         type: string
       first_area_des:
@@ -823,6 +839,10 @@ definitions:
         type: string
       positions:
         type: string
+      salary_benefits:
+        items:
+          type: string
+        type: array
       salary_max:
         type: integer
       salary_min:
@@ -1841,8 +1861,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: '返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）。status=4（已删除）的岗位返回404。响应中
-        status: 1=招聘中 2=已关闭 3=已禁用 4=已删除。'
+      description: 返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）和 is_contacted（0=未联系
+        1=已联系）。未登录时两者均为0。status=4（已删除）的岗位返回404。
       parameters:
       - description: params
         in: body

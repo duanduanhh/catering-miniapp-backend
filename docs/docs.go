@@ -1030,7 +1030,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）。status=4（已删除）的岗位返回404。响应中 status: 1=招聘中 2=已关闭 3=已禁用 4=已删除。",
+                "description": "返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）和 is_contacted（0=未联系 1=已联系）。未登录时两者均为0。status=4（已删除）的岗位返回404。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2737,6 +2737,9 @@ const docTemplate = `{
                 "is_collected": {
                     "type": "integer"
                 },
+                "is_contacted": {
+                    "type": "integer"
+                },
                 "is_top": {
                     "type": "integer"
                 },
@@ -2859,8 +2862,29 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "attendance_leave": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "basic_protection": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "biz_type": {
                     "type": "integer"
+                },
+                "contact": {
+                    "type": "string"
+                },
+                "contact_person_name": {
+                    "type": "string"
                 },
                 "create_at": {
                     "type": "string"
@@ -2879,6 +2903,12 @@ const docTemplate = `{
                 },
                 "positions": {
                     "type": "string"
+                },
+                "salary_benefits": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "salary_max": {
                     "type": "integer"

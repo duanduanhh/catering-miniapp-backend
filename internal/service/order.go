@@ -301,7 +301,7 @@ func (s *orderService) applyRefresh(ctx context.Context, item *model.OrderItem) 
 		return err
 	}
 	now := time.Now()
-	job.RefreshTime = &now
+	job.PaidRefreshTime = &now
 	return s.jobRepository.Update(ctx, job)
 }
 
