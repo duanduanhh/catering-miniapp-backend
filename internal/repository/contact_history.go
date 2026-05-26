@@ -12,6 +12,7 @@ type ContactHistoryRepository interface {
 	ListIn(ctx context.Context, purposeUserID int64, bizType int, pageNum, pageSize int) ([]*model.ContactHistory, int64, error)
 	DeleteOut(ctx context.Context, userID, purposeID int64) error
 	DeleteIn(ctx context.Context, purposeUserID, purposeID int64) error
+	ExistsByUserAndJob(ctx context.Context, userID, jobID int64, purposeType int) (bool, error)
 }
 
 func NewContactHistoryRepository(
@@ -78,6 +79,14 @@ func (r *contactHistoryRepository) ListIn(ctx context.Context, purposeUserID int
 		return nil, 0, err
 	}
 	return histories, total, nil
+}
+
+func (r *contactHistoryRepository) ExistsByUserAndJob(ctx context.Context, userID, jobID int64, purposeType int) (bool, error) {
+	var count int64
+	err := r.DB(ctx).Model(&model.ContactHistory{}).
+		Where("user_id = ? AND purpose_id = ? AND purpose_type = ? AND user_deleted = 0", userID, jobID, purposeType).
+		Count(&count).Error
+	return count > 0, err
 }
 
 // DeleteOut 删除"我联系的"记录（软删除）

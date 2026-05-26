@@ -47,11 +47,11 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 		return nil, nil, err
 	}
 	collectRepository := repository.NewCollectRepository(repositoryRepository)
-	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService, payService, collectRepository)
+	contactHistoryRepository := repository.NewContactHistoryRepository(repositoryRepository)
+	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService, payService, collectRepository, contactHistoryRepository)
 	orderHandler := handler.NewOrderHandler(handlerHandler, orderService)
 	collectService := service.NewCollectService(serviceService, collectRepository, jobRepository)
 	collectHandler := handler.NewCollectHandler(handlerHandler, collectService)
-	contactHistoryRepository := repository.NewContactHistoryRepository(repositoryRepository)
 	contactHistoryService := service.NewContactHistoryService(serviceService, contactHistoryRepository, jobRepository, userRepository)
 	contactHistoryHandler := handler.NewContactHistoryHandler(handlerHandler, contactHistoryService)
 	contactVoucherHistoryService := service.NewContactVoucherHistoryService(serviceService, contactVoucherHistoryRepository, userRepository)

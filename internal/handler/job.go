@@ -18,10 +18,11 @@ import (
 
 type JobHandler struct {
 	*Handler
-	jobService        service.JobService
-	orderService      service.OrderService
-	payService        service.PayService
-	collectRepository repository.CollectRepository
+	jobService               service.JobService
+	orderService             service.OrderService
+	payService               service.PayService
+	collectRepository        repository.CollectRepository
+	contactHistoryRepository repository.ContactHistoryRepository
 }
 
 func NewJobHandler(
@@ -30,13 +31,15 @@ func NewJobHandler(
 	orderService service.OrderService,
 	payService service.PayService,
 	collectRepository repository.CollectRepository,
+	contactHistoryRepository repository.ContactHistoryRepository,
 ) *JobHandler {
 	return &JobHandler{
-		Handler:           handler,
-		jobService:        jobService,
-		orderService:      orderService,
-		payService:        payService,
-		collectRepository: collectRepository,
+		Handler:                  handler,
+		jobService:               jobService,
+		orderService:             orderService,
+		payService:               payService,
+		collectRepository:        collectRepository,
+		contactHistoryRepository: contactHistoryRepository,
 	}
 }
 
@@ -151,23 +154,23 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		CompanyName:       req.CompanyName,
 		ContactPersonName: req.ContactPersonName,
 		Longitude:         req.Longitude,
-		Latitude:      req.Latitude,
-		Address:       req.Address,
-		Contact:       req.Contact,
-		Description:   req.Description,
-		PhotoURLs:     nil,
-		FirstAreaID:   req.FirstAreaID,
-		FirstAreaDes:  req.FirstAreaDes,
-		SecondAreaID:  req.SecondAreaID,
-		SecondAreaDes: req.SecondAreaDes,
-		ThirdAreaID:   req.ThirdAreaID,
-		ThirdAreaDes:  req.ThirdAreaDes,
-		FourAreaID:    req.FourAreaID,
-		FourAreaDes:   req.FourAreaDes,
-		SalaryMin:     req.SalaryMin,
-		SalaryMax:     req.SalaryMax,
-		EnterpriseID:  req.EnterpriseID,
-		RecruitNum:    req.RecruitNum,
+		Latitude:          req.Latitude,
+		Address:           req.Address,
+		Contact:           req.Contact,
+		Description:       req.Description,
+		PhotoURLs:         nil,
+		FirstAreaID:       req.FirstAreaID,
+		FirstAreaDes:      req.FirstAreaDes,
+		SecondAreaID:      req.SecondAreaID,
+		SecondAreaDes:     req.SecondAreaDes,
+		ThirdAreaID:       req.ThirdAreaID,
+		ThirdAreaDes:      req.ThirdAreaDes,
+		FourAreaID:        req.FourAreaID,
+		FourAreaDes:       req.FourAreaDes,
+		SalaryMin:         req.SalaryMin,
+		SalaryMax:         req.SalaryMax,
+		EnterpriseID:      req.EnterpriseID,
+		RecruitNum:        req.RecruitNum,
 	}
 	if req.PhotoURLs != nil {
 		joined := strings.Join(req.PhotoURLs, ",")
@@ -503,7 +506,7 @@ func (h *JobHandler) List(ctx *gin.Context) {
 
 // Info godoc
 // @Summary 岗位详情
-// @Description 返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）。status=4（已删除）的岗位返回404。响应中 status: 1=招聘中 2=已关闭 3=已禁用 4=已删除。
+// @Description 返回岗位完整信息。已登录用户会额外返回 is_collected（0=未收藏 1=已收藏）和 is_contacted（0=未联系 1=已联系）。未登录时两者均为0。status=4（已删除）的岗位返回404。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -533,11 +536,16 @@ func (h *JobHandler) Info(ctx *gin.Context) {
 
 	item := buildJobListItem(job)
 
-	// 查询当前用户是否收藏
 	if userID > 0 {
-		collect, err := h.collectRepository.Get(ctx, userID, job.ID, int(model.CollectTypeJob))
+		collect, err := h.collectRepository.Get(ctx, userID, job.ID, job.BizType)
+		h.logger.WithContext(ctx).Info("collectRepository.Get", zap.Int64("userID", userID), zap.Int64("jobID", job.ID), zap.Any("collect", collect), zap.Error(err))
 		if err == nil && collect != nil && collect.Status == model.CollectStatusActive {
 			item.IsCollected = 1
+		}
+		contacted, err := h.contactHistoryRepository.ExistsByUserAndJob(ctx, userID, job.ID, job.BizType)
+		h.logger.WithContext(ctx).Info("contactHistoryRepository.ExistsByUserAndJob", zap.Bool("contacted", contacted), zap.Error(err))
+		if err == nil && contacted {
+			item.IsContacted = 1
 		}
 	}
 

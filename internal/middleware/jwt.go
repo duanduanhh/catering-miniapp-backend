@@ -43,7 +43,7 @@ func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
 
 func NoStrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		tokenString := ctx.Request.Header.Get("Authorization")
+		tokenString := ctx.Request.Header.Get("token")
 		if tokenString == "" {
 			tokenString, _ = ctx.Cookie("accessToken")
 		}

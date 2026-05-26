@@ -161,6 +161,7 @@ type JobListItem struct {
 	TopEndTime        string          `json:"top_end_time"`
 	LastRefreshTime   string          `json:"last_refresh_time,omitempty"`
 	IsCollected       int             `json:"is_collected"`
+	IsContacted       int             `json:"is_contacted"`
 	CloseReason       string          `json:"close_reason"`
 	CloseTime         string          `json:"close_time"`
 	EnterpriseID      int64           `json:"enterprise_id"`
