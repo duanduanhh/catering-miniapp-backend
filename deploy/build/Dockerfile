@@ -16,7 +16,7 @@ RUN export GOPROXY=https://goproxy.cn,direct \
 RUN mv config /data/app/bin/
 
 
-FROM ${REGISTRY}/alpine:3.16
+FROM ${REGISTRY}/alpine:latest
 RUN set -eux && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 
 

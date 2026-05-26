@@ -66,7 +66,7 @@ func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, 
 	}
 	item := &model.OrderItem{
 		ProductType:       model.ProductTypeTop,
-		TitleSnapshot:     fmt.Sprintf("置顶%d小时", topHour),
+		TitleSnapshot:     fmt.Sprintf("置顶%d天", topHour/24),
 		TopHour:           topHour,
 		UnitPriceSnapshot: price,
 		TargetType:        model.OrderTargetJob,

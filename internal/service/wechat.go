@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -90,6 +91,7 @@ func (s *wechatService) Register(ctx context.Context, code, loginCode string, in
 	user = &model.User{
 		WechatOpenID: session.OpenID,
 		Phone:        phone,
+		Name:         "餐饮人" + randAlphanumeric(6),
 		InviteID:     inviterID,
 		CreateAt:     now,
 		UpdateAt:     now,
@@ -134,6 +136,15 @@ func (s *wechatService) Login(ctx context.Context, code string) (string, *model.
 		return "", nil, err
 	}
 	return token, user, nil
+}
+
+func randAlphanumeric(n int) string {
+	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
 }
 
 func (s *wechatService) code2session(ctx context.Context, code string) (wechatSessionResponse, error) {
