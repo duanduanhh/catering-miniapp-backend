@@ -137,6 +137,8 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 			BasicProtection:   splitCSV(job.BasicProtection),
 			SalaryBenefits:    splitCSV(job.SalaryBenefits),
 			AttendanceLeave:   splitCSV(job.AttendanceLeave),
+			UserID:            job.UserID,
+			Description:       job.Description,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)

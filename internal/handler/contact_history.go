@@ -61,6 +61,8 @@ func (h *ContactHistoryHandler) ListOut(ctx *gin.Context) {
 	for _, item := range items {
 		resp.List = append(resp.List, v1.ContactHistoryItem{
 			ID:               item.ID,
+			JobID:            item.JobID,
+			BizType:          item.BizType,
 			Positions:        item.Positions,
 			Address:          item.Address,
 			PurposeUserID:    item.PurposeUserID,
@@ -114,6 +116,8 @@ func (h *ContactHistoryHandler) ListIn(ctx *gin.Context) {
 	for _, item := range items {
 		resp.List = append(resp.List, v1.ContactHistoryItem{
 			ID:               item.ID,
+			JobID:            item.JobID,
+			BizType:          item.BizType,
 			Positions:        item.Positions,
 			Address:          item.Address,
 			PurposeUserID:    item.PurposeUserID,

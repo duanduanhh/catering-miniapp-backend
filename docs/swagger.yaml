@@ -66,6 +66,8 @@ definitions:
       avatar:
         description: 头像
         type: string
+      biz_type:
+        type: integer
       company_name:
         description: 企业名称
         type: string
@@ -75,6 +77,8 @@ definitions:
         description: 一级地区
         type: string
       id:
+        type: integer
+      job_id:
         type: integer
       job_status:
         description: 岗位状态
@@ -829,6 +833,8 @@ definitions:
         type: string
       create_at:
         type: string
+      description:
+        type: string
       first_area_des:
         type: string
       is_top:
@@ -853,6 +859,8 @@ definitions:
         type: integer
       third_area_des:
         type: string
+      user_id:
+        type: integer
     type: object
   v1.JobMyRequest:
     properties:

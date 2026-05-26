@@ -48,6 +48,8 @@ type ContactHistoryCreateInput struct {
 
 type ContactHistoryItem struct {
 	ID               int64
+	JobID            int64
+	BizType          int
 	Positions        string
 	Address          string
 	PurposeUserID    int64
@@ -133,12 +135,14 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 	for _, history := range histories {
 		item := ContactHistoryItem{
 			ID:               history.ID,
+			JobID:            history.PurposeID,
 			CreateAt:         history.CreateAt,
 			PurposeUserID:    history.PurposeUserID,
 			PurposeUserName:  history.PurposeUserName,
 			PurposeUserPhone: history.PurposeUserPhone,
 		}
 		if job, ok := jobMap[history.PurposeID]; ok {
+			item.BizType = job.BizType
 			item.Positions = job.Positions
 			item.Address = job.Address
 			item.SalaryMin = job.SalaryMin

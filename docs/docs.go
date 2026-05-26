@@ -1771,6 +1771,9 @@ const docTemplate = `{
                     "description": "头像",
                     "type": "string"
                 },
+                "biz_type": {
+                    "type": "integer"
+                },
                 "company_name": {
                     "description": "企业名称",
                     "type": "string"
@@ -1783,6 +1786,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "job_id": {
                     "type": "integer"
                 },
                 "job_status": {
@@ -2889,6 +2895,9 @@ const docTemplate = `{
                 "create_at": {
                     "type": "string"
                 },
+                "description": {
+                    "type": "string"
+                },
                 "first_area_des": {
                     "type": "string"
                 },
@@ -2924,6 +2933,9 @@ const docTemplate = `{
                 },
                 "third_area_des": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },

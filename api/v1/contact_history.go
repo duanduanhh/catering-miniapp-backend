@@ -8,6 +8,8 @@ type ContactHistoryListRequest struct {
 
 type ContactHistoryItem struct {
 	ID               int64  `json:"id"`
+	JobID            int64  `json:"job_id"`
+	BizType          int    `json:"biz_type"`
 	Positions        string `json:"positions"`
 	Address          string `json:"address"`
 	PurposeUserID    int64  `json:"purpose_user_id"`
