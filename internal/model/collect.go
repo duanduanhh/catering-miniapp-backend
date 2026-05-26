@@ -20,7 +20,7 @@ const (
 type Collect struct {
 	UserID    int64         `gorm:"primaryKey;column:user_id"`
 	ContentID int64         `gorm:"primaryKey;column:content_id"`
-	Type      CollectType   `gorm:"primaryKey;column:type"`
+	BizType   CollectType   `gorm:"primaryKey;column:biz_type"`
 	Status    CollectStatus `gorm:"column:status"`
 	CreateAt  time.Time     `gorm:"column:create_at"`
 	UpdateAt  time.Time     `gorm:"column:update_at"`

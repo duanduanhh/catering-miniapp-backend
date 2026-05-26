@@ -24,6 +24,9 @@ func NewMigrateServer(db *gorm.DB, log *log.Logger) *MigrateServer {
 }
 
 func (m *MigrateServer) Start(ctx context.Context) error {
+	// rename collect.type → collect.biz_type (idempotent: ignore error if already renamed)
+	m.db.Exec("ALTER TABLE collect RENAME COLUMN `type` TO `biz_type`")
+
 	if err := m.db.AutoMigrate(
 		&model.User{},
 		&model.Enterprise{},

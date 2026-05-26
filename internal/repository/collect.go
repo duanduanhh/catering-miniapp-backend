@@ -38,7 +38,7 @@ func (r *collectRepository) Update(ctx context.Context, collect *model.Collect) 
 func (r *collectRepository) Get(ctx context.Context, userID, contentID int64, bizType int) (*model.Collect, error) {
 	var collect model.Collect
 	if err := r.DB(ctx).
-		Where("user_id = ? AND content_id = ? AND type = ?", userID, contentID, bizType).
+		Where("user_id = ? AND content_id = ? AND biz_type = ?", userID, contentID, bizType).
 		First(&collect).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil // 记录不存在是正常情况，不返回错误
@@ -55,7 +55,7 @@ func (r *collectRepository) ListByUser(ctx context.Context, userID int64, bizTyp
 	)
 	db := r.DB(ctx).Model(&model.Collect{}).Where("user_id = ? AND status = ?", userID, model.CollectStatusActive)
 	if bizType > 0 {
-		db = db.Where("type = ?", bizType)
+		db = db.Where("biz_type = ?", bizType)
 	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err

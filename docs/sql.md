@@ -175,11 +175,11 @@ CREATE TABLE `contact_history` (
 CREATE TABLE `collect` (
   `user_id` int NOT NULL COMMENT '用户ID',
   `content_id` int NOT NULL COMMENT '业务对象ID（如招聘ID/简历ID/招租ID）',
-  `type` tinyint NOT NULL COMMENT '业务类型：1=招聘 2=求职 3=招租',
+  `biz_type` tinyint NOT NULL COMMENT '业务类型：1=招聘 2=求职 3=招租',
   `status` int DEFAULT '1' COMMENT '状态: 1=生效 2=删除',
   `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (`content_id`,`user_id`,`type`)
+  PRIMARY KEY (`content_id`,`user_id`,`biz_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 ```
 

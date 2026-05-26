@@ -49,22 +49,22 @@ type JobUpdateRequest struct {
 	Address           *string  `json:"address"`
 	Contact           *string  `json:"contact"`
 	Description       *string  `json:"description"`
-	PhotoURLs       []string `json:"photo_urls"`
-	FirstAreaID     *int     `json:"first_area_id"`
-	SecondAreaID    *int     `json:"second_area_id"`
-	ThirdAreaID     *int     `json:"third_area_id"`
-	FourAreaID      *int     `json:"four_area_id"`
-	FirstAreaDes    *string  `json:"first_area_des"`
-	SecondAreaDes   *string  `json:"second_area_des"`
-	ThirdAreaDes    *string  `json:"third_area_des"`
-	FourAreaDes     *string  `json:"four_area_des"`
-	SalaryMin       *int     `json:"salary_min"`
-	SalaryMax       *int     `json:"salary_max"`
-	BasicProtection []string `json:"basic_protection"`
-	SalaryBenefits  []string `json:"salary_benefits"`
-	AttendanceLeave []string `json:"attendance_leave"`
-	EnterpriseID    *int64   `json:"enterprise_id"`
-	RecruitNum      *int     `json:"recruit_num"`
+	PhotoURLs         []string `json:"photo_urls"`
+	FirstAreaID       *int     `json:"first_area_id"`
+	SecondAreaID      *int     `json:"second_area_id"`
+	ThirdAreaID       *int     `json:"third_area_id"`
+	FourAreaID        *int     `json:"four_area_id"`
+	FirstAreaDes      *string  `json:"first_area_des"`
+	SecondAreaDes     *string  `json:"second_area_des"`
+	ThirdAreaDes      *string  `json:"third_area_des"`
+	FourAreaDes       *string  `json:"four_area_des"`
+	SalaryMin         *int     `json:"salary_min"`
+	SalaryMax         *int     `json:"salary_max"`
+	BasicProtection   []string `json:"basic_protection"`
+	SalaryBenefits    []string `json:"salary_benefits"`
+	AttendanceLeave   []string `json:"attendance_leave"`
+	EnterpriseID      *int64   `json:"enterprise_id"`
+	RecruitNum        *int     `json:"recruit_num"`
 }
 
 type JobTopRequest struct {
@@ -91,11 +91,13 @@ type JobDeleteRequest struct {
 }
 
 type JobCollectRequest struct {
-	JobID int64 `json:"job_id" binding:"required"`
+	JobID   int64 `json:"job_id" binding:"required"`
+	BizType int   `json:"biz_type" binding:"required"`
 }
 
 type JobCancelCollectRequest struct {
-	JobID int64 `json:"job_id" binding:"required"`
+	JobID   int64 `json:"job_id" binding:"required"`
+	BizType int   `json:"biz_type" binding:"required"`
 }
 
 type JobInfoRequest struct {
@@ -103,7 +105,7 @@ type JobInfoRequest struct {
 }
 
 type JobFilter struct {
-	BizType         int      `json:"biz_type"`      // 0=不限，1=招聘，2=求职
+	BizType         int      `json:"biz_type"` // 0=不限，1=招聘，2=求职
 	Positions       string   `json:"positions"`
 	FirstAreaID     int      `json:"first_area_id"`
 	SecondAreaID    int      `json:"second_area_id"`
@@ -214,7 +216,7 @@ const (
 
 type HomeTopRequest struct {
 	// 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
-	Type  int `json:"type"`
+	Type int `json:"type"`
 	// 置顶区展示上限，不传默认5条
 	Limit int `json:"limit"`
 }

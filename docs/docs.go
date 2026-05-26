@@ -2397,9 +2397,13 @@ const docTemplate = `{
         "v1.JobCancelCollectRequest": {
             "type": "object",
             "required": [
+                "biz_type",
                 "job_id"
             ],
             "properties": {
+                "biz_type": {
+                    "type": "integer"
+                },
                 "job_id": {
                     "type": "integer"
                 }
@@ -2455,9 +2459,13 @@ const docTemplate = `{
         "v1.JobCollectRequest": {
             "type": "object",
             "required": [
+                "biz_type",
                 "job_id"
             ],
             "properties": {
+                "biz_type": {
+                    "type": "integer"
+                },
                 "job_id": {
                     "type": "integer"
                 }

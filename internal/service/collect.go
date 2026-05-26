@@ -42,7 +42,7 @@ func (s *collectService) Collect(ctx context.Context, userID, contentID int64, b
 		collect := &model.Collect{
 			UserID:    userID,
 			ContentID: contentID,
-			Type:      model.CollectType(bizType),
+			BizType:   model.CollectType(bizType),
 			Status:    model.CollectStatusActive,
 			CreateAt:  time.Now(),
 			UpdateAt:  time.Now(),

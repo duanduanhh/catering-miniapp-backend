@@ -502,9 +502,12 @@ definitions:
     type: object
   v1.JobCancelCollectRequest:
     properties:
+      biz_type:
+        type: integer
       job_id:
         type: integer
     required:
+    - biz_type
     - job_id
     type: object
   v1.JobCloseReasonResponse:
@@ -540,9 +543,12 @@ definitions:
     type: object
   v1.JobCollectRequest:
     properties:
+      biz_type:
+        type: integer
       job_id:
         type: integer
     required:
+    - biz_type
     - job_id
     type: object
   v1.JobCreateRequest:

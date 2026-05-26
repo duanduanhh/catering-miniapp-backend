@@ -48,7 +48,7 @@ func (h *CollectHandler) Collect(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	if err := h.collectService.Collect(ctx, userID, req.JobID, 1); err != nil {
+	if err := h.collectService.Collect(ctx, userID, req.JobID, req.BizType); err != nil {
 		h.logger.WithContext(ctx).Error("collectService.Collect error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
@@ -77,7 +77,7 @@ func (h *CollectHandler) Cancel(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	if err := h.collectService.Cancel(ctx, userID, req.JobID, 1); err != nil {
+	if err := h.collectService.Cancel(ctx, userID, req.JobID, req.BizType); err != nil {
 		h.logger.WithContext(ctx).Error("collectService.Cancel error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
@@ -119,6 +119,7 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 	for _, job := range jobs {
 		resp.List = append(resp.List, v1.JobMyItem{
 			JobID:           job.ID,
+			BizType:         job.BizType,
 			Positions:       job.Positions,
 			SalaryMin:       job.SalaryMin,
 			SalaryMax:       job.SalaryMax,
