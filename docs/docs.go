@@ -24,6 +24,139 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/jobs/delete": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "删除岗位",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminJobIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/jobs/disable": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "禁用岗位",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminJobIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/jobs/enable": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "恢复岗位",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminJobIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/jobs/list": {
+            "post": {
+                "description": "管理后台查询招聘/求职岗位列表，支持按类型、状态、关键词筛选。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "后台岗位列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminJobListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminJobListResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/close_reasons": {
             "get": {
                 "description": "根据岗位类型返回对应的关闭原因枚举。type: 1=招聘 2=求职 3=招租，不传默认1。",
@@ -1720,6 +1853,116 @@ const docTemplate = `{
                 "JobStatusAdminDisabled",
                 "JobStatusDeleted"
             ]
+        },
+        "v1.AdminJobIDRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminJobItem": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "biz_type": {
+                    "type": "integer"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "first_area_des": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "photo_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "positions": {
+                    "type": "string"
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                },
+                "second_area_des": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "third_area_des": {
+                    "type": "string"
+                },
+                "update_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminJobListRequest": {
+            "type": "object",
+            "properties": {
+                "biz_type": {
+                    "type": "integer"
+                },
+                "keyword": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "v1.AdminJobListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminJobItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
         },
         "v1.CollectMyRequest": {
             "type": "object",

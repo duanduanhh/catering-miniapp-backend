@@ -7,3 +7,5 @@ bin
 .DS_Store
 config/*
 .baidu-cc/
+admin-frontend/node_modules
+admin-frontend/dist

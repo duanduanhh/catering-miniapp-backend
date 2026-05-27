@@ -54,6 +54,7 @@ var serviceSet = wire.NewSet(
 	service.NewPositionCategoryService,
 	service.NewFeedbackService,
 	service.NewEnterpriseService,
+	service.NewAdminJobService,
 )
 
 var handlerSet = wire.NewSet(
@@ -69,6 +70,7 @@ var handlerSet = wire.NewSet(
 	handler.NewPositionCategoryHandler,
 	handler.NewFeedbackHandler,
 	handler.NewEnterpriseHandler,
+	handler.NewAdminJobHandler,
 )
 
 var wechatPaySet = wire.NewSet(

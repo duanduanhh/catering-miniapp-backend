@@ -59,8 +59,10 @@ func NewHTTPServer(
 	router.InitCommonRouter(deps, root)
 	router.InitFeedbackRouter(deps, root)
 	router.InitEnterpriseRouter(deps, root)
+	router.InitAdminRouter(deps, root)
 
 	s.Static("/uploads", "./storage/uploads")
+	s.Static("/admin-ui", "./admin-ui")
 
 	return s
 }

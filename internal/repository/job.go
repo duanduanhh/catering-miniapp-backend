@@ -17,6 +17,8 @@ type JobRepository interface {
 	CountByUser(ctx context.Context, userID int64, bizType int, status model.JobStatus) (int64, error)
 	ListTop(ctx context.Context, bizType, limit int) ([]*model.Job, error)
 	ListFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error)
+	AdminList(ctx context.Context, query AdminJobListQuery) ([]*model.Job, int64, error)
+	AdminUpdateStatus(ctx context.Context, jobID int64, status model.JobStatus) error
 }
 
 func NewJobRepository(
@@ -29,6 +31,14 @@ func NewJobRepository(
 
 type jobRepository struct {
 	*Repository
+}
+
+type AdminJobListQuery struct {
+	BizType  int
+	Status   []int
+	Keyword  string
+	PageNum  int
+	PageSize int
 }
 
 type JobListQuery struct {
@@ -240,4 +250,42 @@ func (r *jobRepository) ListFeed(ctx context.Context, bizType, pageNum, pageSize
 	err := db.Order("COALESCE(job.refresh_time, job.create_at) DESC").
 		Offset(offset).Limit(pageSize).Find(&jobs).Error
 	return jobs, total, err
+}
+
+func (r *jobRepository) AdminList(ctx context.Context, query AdminJobListQuery) ([]*model.Job, int64, error) {
+	var (
+		jobs  []*model.Job
+		total int64
+	)
+	db := r.DB(ctx).Table("job").
+		Select("job.*, user.name AS user_name, user.phone AS user_phone").
+		Joins("LEFT JOIN user ON job.user_id = user.id").
+		Where("job.status != ?", model.JobStatusDeleted)
+	if query.BizType > 0 {
+		db = db.Where("job.biz_type = ?", query.BizType)
+	}
+	if len(query.Status) > 0 {
+		db = db.Where("job.status IN ?", query.Status)
+	}
+	if query.Keyword != "" {
+		db = db.Where("job.positions LIKE ? OR job.company_name LIKE ?", "%"+query.Keyword+"%", "%"+query.Keyword+"%")
+	}
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if query.PageNum <= 0 {
+		query.PageNum = 1
+	}
+	if query.PageSize <= 0 {
+		query.PageSize = 20
+	}
+	offset := (query.PageNum - 1) * query.PageSize
+	if err := db.Order("job.create_at DESC").Offset(offset).Limit(query.PageSize).Find(&jobs).Error; err != nil {
+		return nil, 0, err
+	}
+	return jobs, total, nil
+}
+
+func (r *jobRepository) AdminUpdateStatus(ctx context.Context, jobID int64, status model.JobStatus) error {
+	return r.DB(ctx).Model(&model.Job{}).Where("id = ?", jobID).Update("status", status).Error
 }

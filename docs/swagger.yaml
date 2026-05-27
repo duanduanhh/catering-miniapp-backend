@@ -33,6 +33,78 @@ definitions:
     - JobStatusUserClosed
     - JobStatusAdminDisabled
     - JobStatusDeleted
+  v1.AdminJobIDRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
+  v1.AdminJobItem:
+    properties:
+      address:
+        type: string
+      biz_type:
+        type: integer
+      company_name:
+        type: string
+      create_at:
+        type: string
+      description:
+        type: string
+      first_area_des:
+        type: string
+      job_id:
+        type: integer
+      photo_urls:
+        items:
+          type: string
+        type: array
+      positions:
+        type: string
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      second_area_des:
+        type: string
+      status:
+        type: integer
+      third_area_des:
+        type: string
+      update_at:
+        type: string
+      user_id:
+        type: integer
+      user_name:
+        type: string
+      user_phone:
+        type: string
+    type: object
+  v1.AdminJobListRequest:
+    properties:
+      biz_type:
+        type: integer
+      keyword:
+        type: string
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+      status:
+        items:
+          type: integer
+        type: array
+    type: object
+  v1.AdminJobListResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.AdminJobItem'
+        type: array
+      total:
+        type: integer
+    type: object
   v1.CollectMyRequest:
     properties:
       biz_type:
@@ -1238,6 +1310,91 @@ info:
   title: Nunu Example API
   version: 1.0.0
 paths:
+  /admin/jobs/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminJobIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 删除岗位
+      tags:
+      - 管理后台
+  /admin/jobs/disable:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminJobIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 禁用岗位
+      tags:
+      - 管理后台
+  /admin/jobs/enable:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminJobIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 恢复岗位
+      tags:
+      - 管理后台
+  /admin/jobs/list:
+    post:
+      consumes:
+      - application/json
+      description: 管理后台查询招聘/求职岗位列表，支持按类型、状态、关键词筛选。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminJobListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminJobListResponseData'
+      summary: 后台岗位列表
+      tags:
+      - 管理后台
   /close_reasons:
     get:
       consumes:

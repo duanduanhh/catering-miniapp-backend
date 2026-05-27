@@ -43,8 +43,10 @@ type Job struct {
 	PaidRefreshTime   *time.Time `gorm:"column:paid_refresh_time"`
 	TopStartTime      *time.Time `gorm:"column:top_start_time"`
 	TopEndTime        *time.Time `gorm:"column:top_end_time"`
-	Avatar            string     `gorm:"column:avatar;<-:false"`
-	EnterpriseName    string     `gorm:"column:enterprise_name;<-:false"`
+	Avatar            string     `gorm:"column:avatar;<-:false"`        // JOIN user，只读
+	EnterpriseName    string     `gorm:"column:enterprise_name;<-:false"` // JOIN enterprise，只读
+	UserName          string     `gorm:"column:user_name;<-:false"`     // JOIN user，仅 AdminList 使用
+	UserPhone         string     `gorm:"column:user_phone;<-:false"`    // JOIN user，仅 AdminList 使用
 	CloseReason       string     `gorm:"column:close_reason"`
 	CloseTime         *time.Time `gorm:"column:close_time"`
 	BizType           int        `gorm:"column:biz_type;default:1"`
