@@ -543,9 +543,13 @@ definitions:
     type: object
   v1.HomeFeedRequest:
     properties:
+      first_area_id:
+        type: integer
       page_num:
         type: integer
       page_size:
+        type: integer
+      second_area_id:
         type: integer
       type:
         description: 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
@@ -562,8 +566,12 @@ definitions:
     type: object
   v1.HomeTopRequest:
     properties:
+      first_area_id:
+        type: integer
       limit:
         description: 置顶区展示上限，不传默认5条
+        type: integer
+      second_area_id:
         type: integer
       type:
         description: 内容类型：0或不传=全部，1=招聘，2=求职，3=招租

@@ -683,7 +683,7 @@ func (h *JobHandler) HomeTop(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	jobs, err := h.jobService.HomeTop(ctx, req.Type, req.Limit)
+	jobs, err := h.jobService.HomeTop(ctx, req.Type, req.FirstAreaID, req.SecondAreaID, req.Limit)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("jobService.HomeTop error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
@@ -713,7 +713,7 @@ func (h *JobHandler) HomeFeed(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	jobs, total, err := h.jobService.HomeFeed(ctx, req.Type, req.PageNum, req.PageSize)
+	jobs, total, err := h.jobService.HomeFeed(ctx, req.Type, req.FirstAreaID, req.SecondAreaID, req.PageNum, req.PageSize)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("jobService.HomeFeed error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())

@@ -227,7 +227,9 @@ type HomeTopRequest struct {
 	// 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
 	Type int `json:"type"`
 	// 置顶区展示上限，不传默认5条
-	Limit int `json:"limit"`
+	Limit        int `json:"limit"`
+	FirstAreaID  int `json:"first_area_id"`
+	SecondAreaID int `json:"second_area_id"`
 }
 
 type HomeTopResponseData struct {
@@ -236,9 +238,11 @@ type HomeTopResponseData struct {
 
 type HomeFeedRequest struct {
 	// 内容类型：0或不传=全部，1=招聘，2=求职，3=招租
-	Type     int `json:"type"`
-	PageNum  int `json:"page_num"`
-	PageSize int `json:"page_size"`
+	Type         int `json:"type"`
+	PageNum      int `json:"page_num"`
+	PageSize     int `json:"page_size"`
+	FirstAreaID  int `json:"first_area_id"`
+	SecondAreaID int `json:"second_area_id"`
 }
 
 type HomeFeedResponseData struct {

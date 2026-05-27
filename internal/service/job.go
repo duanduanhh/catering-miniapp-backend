@@ -18,8 +18,8 @@ type JobService interface {
 	GetByID(ctx context.Context, jobID int64) (*model.Job, error)
 	List(ctx context.Context, query repository.JobListQuery) ([]*model.Job, int64, error)
 	ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error)
-	HomeTop(ctx context.Context, bizType, limit int) ([]*model.Job, error)
-	HomeFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error)
+	HomeTop(ctx context.Context, bizType, firstAreaID, secondAreaID, limit int) ([]*model.Job, error)
+	HomeFeed(ctx context.Context, bizType, firstAreaID, secondAreaID, pageNum, pageSize int) ([]*model.Job, int64, error)
 }
 
 func NewJobService(
@@ -305,10 +305,10 @@ func (s *jobService) ListByUser(ctx context.Context, userID int64, bizType int, 
 	return s.jobRepository.ListByUser(ctx, userID, bizType, status, pageNum, pageSize)
 }
 
-func (s *jobService) HomeTop(ctx context.Context, bizType, limit int) ([]*model.Job, error) {
-	return s.jobRepository.ListTop(ctx, bizType, limit)
+func (s *jobService) HomeTop(ctx context.Context, bizType, firstAreaID, secondAreaID, limit int) ([]*model.Job, error) {
+	return s.jobRepository.ListTop(ctx, bizType, firstAreaID, secondAreaID, limit)
 }
 
-func (s *jobService) HomeFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error) {
-	return s.jobRepository.ListFeed(ctx, bizType, pageNum, pageSize)
+func (s *jobService) HomeFeed(ctx context.Context, bizType, firstAreaID, secondAreaID, pageNum, pageSize int) ([]*model.Job, int64, error) {
+	return s.jobRepository.ListFeed(ctx, bizType, firstAreaID, secondAreaID, pageNum, pageSize)
 }

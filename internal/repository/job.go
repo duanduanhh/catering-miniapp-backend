@@ -15,8 +15,8 @@ type JobRepository interface {
 	ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error)
 	ListByIDs(ctx context.Context, ids []int64) ([]*model.Job, error)
 	CountByUser(ctx context.Context, userID int64, bizType int, status model.JobStatus) (int64, error)
-	ListTop(ctx context.Context, bizType, limit int) ([]*model.Job, error)
-	ListFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error)
+	ListTop(ctx context.Context, bizType, firstAreaID, secondAreaID, limit int) ([]*model.Job, error)
+	ListFeed(ctx context.Context, bizType, firstAreaID, secondAreaID, pageNum, pageSize int) ([]*model.Job, int64, error)
 	AdminList(ctx context.Context, query AdminJobListQuery) ([]*model.Job, int64, error)
 	AdminUpdateStatus(ctx context.Context, jobID int64, status model.JobStatus) error
 }
@@ -206,7 +206,7 @@ func (r *jobRepository) CountByUser(ctx context.Context, userID int64, bizType i
 	return total, nil
 }
 
-func (r *jobRepository) ListTop(ctx context.Context, bizType, limit int) ([]*model.Job, error) {
+func (r *jobRepository) ListTop(ctx context.Context, bizType, firstAreaID, secondAreaID, limit int) ([]*model.Job, error) {
 	var jobs []*model.Job
 	if limit <= 0 {
 		limit = 5
@@ -219,11 +219,17 @@ func (r *jobRepository) ListTop(ctx context.Context, bizType, limit int) ([]*mod
 	if bizType > 0 {
 		db = db.Where("job.biz_type = ?", bizType)
 	}
+	if firstAreaID > 0 {
+		db = db.Where("job.first_area_id = ?", firstAreaID)
+	}
+	if secondAreaID > 0 {
+		db = db.Where("job.second_area_id = ?", secondAreaID)
+	}
 	err := db.Order("job.top_end_time DESC").Limit(limit).Find(&jobs).Error
 	return jobs, err
 }
 
-func (r *jobRepository) ListFeed(ctx context.Context, bizType, pageNum, pageSize int) ([]*model.Job, int64, error) {
+func (r *jobRepository) ListFeed(ctx context.Context, bizType, firstAreaID, secondAreaID, pageNum, pageSize int) ([]*model.Job, int64, error) {
 	var (
 		jobs  []*model.Job
 		total int64
@@ -235,6 +241,12 @@ func (r *jobRepository) ListFeed(ctx context.Context, bizType, pageNum, pageSize
 		Where("job.status = ? AND NOT (job.top_start_time IS NOT NULL AND job.top_end_time IS NOT NULL AND job.top_start_time <= NOW() AND job.top_end_time >= NOW())", model.JobStatusActive)
 	if bizType > 0 {
 		db = db.Where("job.biz_type = ?", bizType)
+	}
+	if firstAreaID > 0 {
+		db = db.Where("job.first_area_id = ?", firstAreaID)
+	}
+	if secondAreaID > 0 {
+		db = db.Where("job.second_area_id = ?", secondAreaID)
 	}
 
 	if err := db.Count(&total).Error; err != nil {

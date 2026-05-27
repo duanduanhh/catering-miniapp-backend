@@ -2593,10 +2593,16 @@ const docTemplate = `{
         "v1.HomeFeedRequest": {
             "type": "object",
             "properties": {
+                "first_area_id": {
+                    "type": "integer"
+                },
                 "page_num": {
                     "type": "integer"
                 },
                 "page_size": {
+                    "type": "integer"
+                },
+                "second_area_id": {
                     "type": "integer"
                 },
                 "type": {
@@ -2622,8 +2628,14 @@ const docTemplate = `{
         "v1.HomeTopRequest": {
             "type": "object",
             "properties": {
+                "first_area_id": {
+                    "type": "integer"
+                },
                 "limit": {
                     "description": "置顶区展示上限，不传默认5条",
+                    "type": "integer"
+                },
+                "second_area_id": {
                     "type": "integer"
                 },
                 "type": {
