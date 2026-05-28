@@ -37,6 +37,8 @@ var repositorySet = wire.NewSet(
 	repository.NewPositionCategoryRepository,
 	repository.NewFeedbackRepository,
 	repository.NewEnterpriseRepository,
+	repository.NewReportRepository,
+	repository.NewContactFeedbackRepository,
 )
 
 var serviceSet = wire.NewSet(
@@ -55,6 +57,8 @@ var serviceSet = wire.NewSet(
 	service.NewFeedbackService,
 	service.NewEnterpriseService,
 	service.NewAdminJobService,
+	service.NewReportService,
+	service.NewContactFeedbackService,
 )
 
 var handlerSet = wire.NewSet(
@@ -71,6 +75,8 @@ var handlerSet = wire.NewSet(
 	handler.NewFeedbackHandler,
 	handler.NewEnterpriseHandler,
 	handler.NewAdminJobHandler,
+	handler.NewReportHandler,
+	handler.NewContactFeedbackHandler,
 )
 
 var wechatPaySet = wire.NewSet(

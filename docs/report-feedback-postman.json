@@ -1,0 +1,145 @@
+{
+	"info": {
+		"_postman_id": "report-contact-feedback-api",
+		"name": "举报 & 信息反馈 API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "token",
+			"value": "your_jwt_token_here"
+		}
+	],
+	"item": [
+		{
+			"name": "举报",
+			"item": [
+				{
+					"name": "获取举报原因选项",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/report/reasons",
+							"host": ["{{base_url}}"],
+							"path": ["report", "reasons"]
+						}
+					}
+				},
+				{
+					"name": "提交举报",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "token",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": 123,\n    \"biz_type\": 1,\n    \"reason\": 1,\n    \"description\": \"测试举报描述\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/report/submit",
+							"host": ["{{base_url}}"],
+							"path": ["report", "submit"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "信息反馈",
+			"item": [
+				{
+					"name": "获取反馈原因 - 招聘(biz_type=1)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contact_feedback/reasons?biz_type=1",
+							"host": ["{{base_url}}"],
+							"path": ["contact_feedback", "reasons"],
+							"query": [
+								{
+									"key": "biz_type",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "获取反馈原因 - 求职(biz_type=2)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contact_feedback/reasons?biz_type=2",
+							"host": ["{{base_url}}"],
+							"path": ["contact_feedback", "reasons"],
+							"query": [
+								{
+									"key": "biz_type",
+									"value": "2"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "获取反馈原因 - 招租(biz_type=3)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/contact_feedback/reasons?biz_type=3",
+							"host": ["{{base_url}}"],
+							"path": ["contact_feedback", "reasons"],
+							"query": [
+								{
+									"key": "biz_type",
+									"value": "3"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "提交信息反馈",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "token",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"job_id\": 123,\n    \"biz_type\": 1,\n    \"reason\": 1,\n    \"description\": \"测试反馈描述\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/contact_feedback/submit",
+							"host": ["{{base_url}}"],
+							"path": ["contact_feedback", "submit"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

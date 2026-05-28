@@ -221,6 +221,74 @@
                 }
             }
         },
+        "/contact_feedback/reasons": {
+            "get": {
+                "description": "根据 biz_type 返回对应的反馈原因选项。biz_type: 1=招聘 2=求职 3=招租",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "信息反馈"
+                ],
+                "summary": "获取信息反馈原因选项列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "业务类型: 1=招聘 2=求职 3=招租",
+                        "name": "biz_type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ContactFeedbackConfig"
+                        }
+                    }
+                }
+            }
+        },
+        "/contact_feedback/submit": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "联系对方后提交信息反馈。biz_type: 1=招聘 2=求职 3=招租。reason: 1=电话无法接通 2=空号/错误号码 3=对方表示已不再需要 4=信息严重不符 5=其他",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "信息反馈"
+                ],
+                "summary": "提交信息反馈",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ContactFeedbackSubmitRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/contact_history/in": {
             "post": {
                 "security": [
@@ -1517,6 +1585,65 @@
                 }
             }
         },
+        "/report/reasons": {
+            "get": {
+                "description": "返回举报表单的原因选项列表，前端用于渲染单选项",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "举报"
+                ],
+                "summary": "获取举报原因选项列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ReportReasonsResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/report/submit": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "对岗位进行违规举报。reason 值域：1=诈骗/收费 2=薪资虚假 3=代招冒充直招 4=无法联系到招聘方 5=其他",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "举报"
+                ],
+                "summary": "提交举报",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ReportSubmitRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/user/info": {
             "get": {
                 "security": [
@@ -1982,6 +2109,50 @@
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.ContactFeedbackConfig": {
+            "type": "object",
+            "properties": {
+                "hint": {
+                    "type": "string"
+                },
+                "reasons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.ReasonOption"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.ContactFeedbackSubmitRequest": {
+            "type": "object",
+            "required": [
+                "biz_type",
+                "job_id",
+                "reason"
+            ],
+            "properties": {
+                "biz_type": {
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 1
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
                 }
             }
         },
@@ -3468,6 +3639,55 @@
                 },
                 "subcategory_name": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.ReasonOption": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.ReportReasonsResponseData": {
+            "type": "object",
+            "properties": {
+                "reasons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.ReasonOption"
+                    }
+                }
+            }
+        },
+        "v1.ReportSubmitRequest": {
+            "type": "object",
+            "required": [
+                "biz_type",
+                "job_id",
+                "reason"
+            ],
+            "properties": {
+                "biz_type": {
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 1
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
                 }
             }
         },

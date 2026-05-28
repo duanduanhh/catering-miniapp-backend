@@ -123,6 +123,37 @@ definitions:
       total:
         type: integer
     type: object
+  v1.ContactFeedbackConfig:
+    properties:
+      hint:
+        type: string
+      reasons:
+        items:
+          $ref: '#/definitions/v1.ReasonOption'
+        type: array
+      title:
+        type: string
+    type: object
+  v1.ContactFeedbackSubmitRequest:
+    properties:
+      biz_type:
+        maximum: 3
+        minimum: 1
+        type: integer
+      description:
+        maxLength: 500
+        type: string
+      job_id:
+        type: integer
+      reason:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - biz_type
+    - job_id
+    - reason
+    type: object
   v1.ContactHistoryDeleteRequest:
     properties:
       purpose_id:
@@ -1130,6 +1161,40 @@ definitions:
       subcategory_name:
         type: string
     type: object
+  v1.ReasonOption:
+    properties:
+      label:
+        type: string
+      value:
+        type: integer
+    type: object
+  v1.ReportReasonsResponseData:
+    properties:
+      reasons:
+        items:
+          $ref: '#/definitions/v1.ReasonOption'
+        type: array
+    type: object
+  v1.ReportSubmitRequest:
+    properties:
+      biz_type:
+        maximum: 3
+        minimum: 1
+        type: integer
+      description:
+        maxLength: 500
+        type: string
+      job_id:
+        type: integer
+      reason:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - biz_type
+    - job_id
+    - reason
+    type: object
   v1.Response:
     properties:
       code:
@@ -1448,6 +1513,50 @@ paths:
       summary: 我收藏的岗位
       tags:
       - 收藏模块
+  /contact_feedback/reasons:
+    get:
+      description: '根据 biz_type 返回对应的反馈原因选项。biz_type: 1=招聘 2=求职 3=招租'
+      parameters:
+      - description: '业务类型: 1=招聘 2=求职 3=招租'
+        in: query
+        name: biz_type
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ContactFeedbackConfig'
+      summary: 获取信息反馈原因选项列表
+      tags:
+      - 信息反馈
+  /contact_feedback/submit:
+    post:
+      consumes:
+      - application/json
+      description: '联系对方后提交信息反馈。biz_type: 1=招聘 2=求职 3=招租。reason: 1=电话无法接通 2=空号/错误号码
+        3=对方表示已不再需要 4=信息严重不符 5=其他'
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.ContactFeedbackSubmitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 提交信息反馈
+      tags:
+      - 信息反馈
   /contact_history/in:
     delete:
       consumes:
@@ -2264,6 +2373,43 @@ paths:
       summary: 获取岗位分类列表
       tags:
       - 通用接口
+  /report/reasons:
+    get:
+      description: 返回举报表单的原因选项列表，前端用于渲染单选项
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ReportReasonsResponseData'
+      summary: 获取举报原因选项列表
+      tags:
+      - 举报
+  /report/submit:
+    post:
+      consumes:
+      - application/json
+      description: 对岗位进行违规举报。reason 值域：1=诈骗/收费 2=薪资虚假 3=代招冒充直招 4=无法联系到招聘方 5=其他
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.ReportSubmitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 提交举报
+      tags:
+      - 举报
   /user/info:
     get:
       consumes:

@@ -350,3 +350,39 @@ CREATE TABLE `feedback` (
   KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='意见反馈';
 ```
+
+## 举报表（新建）
+
+```mysql
+CREATE TABLE `report` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` bigint NOT NULL COMMENT '举报人用户ID',
+  `job_id` bigint NOT NULL COMMENT '被举报的岗位ID',
+  `biz_type` tinyint NOT NULL COMMENT '业务类型：1=招聘 2=求职 3=招租',
+  `reason` tinyint NOT NULL COMMENT '举报原因：1=诈骗/收费 2=薪资虚假 3=代招冒充直招 4=无法联系到招聘方 5=其他',
+  `description` varchar(500) DEFAULT '' COMMENT '问题描述（选填）',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1=待处理 2=已处理 3=已驳回',
+  `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_job_id` (`job_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='举报';
+```
+
+## 信息反馈表（新建）
+
+```mysql
+CREATE TABLE `contact_feedback` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` bigint NOT NULL COMMENT '反馈人用户ID',
+  `job_id` bigint NOT NULL COMMENT '关联岗位ID',
+  `biz_type` tinyint NOT NULL COMMENT '业务类型：1=招聘 2=求职 3=招租',
+  `reason` tinyint NOT NULL COMMENT '反馈原因：1=电话无法接通 2=空号/错误号码 3=对方表示已不再需要 4=信息严重不符 5=其他',
+  `description` varchar(500) DEFAULT '' COMMENT '补充说明（选填）',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1=待处理 2=已核实(退券) 3=已驳回',
+  `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_job_id` (`job_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='信息反馈（联系后反馈）';
+```
