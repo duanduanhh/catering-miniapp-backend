@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/admin-ui/',
   server: {
     proxy: {
-      '/admin': 'http://localhost:8000'
+      '/admin/': 'http://localhost:8000'
     }
   }
 })

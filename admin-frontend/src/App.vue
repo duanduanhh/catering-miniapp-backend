@@ -35,15 +35,26 @@
       </el-table-column>
       <el-table-column prop="positions" label="职位" width="120" show-overflow-tooltip />
       <el-table-column prop="description" label="岗位描述" min-width="180" show-overflow-tooltip />
-      <el-table-column label="图片" width="120">
+      <el-table-column label="图片" width="140">
         <template #default="{ row }">
-          <el-image
-            v-if="row.photo_urls?.length"
-            :src="row.photo_urls[0]"
-            :preview-src-list="row.photo_urls"
-            style="width: 60px; height: 60px"
-            fit="cover"
-          />
+          <div v-if="row.photo_urls?.length" class="photo-stack">
+            <el-image
+              v-for="(url, i) in row.photo_urls.slice(0, 3)"
+              :key="i"
+              :src="url"
+              :preview-src-list="row.photo_urls"
+              :initial-index="i"
+              preview-teleported
+              class="photo-stack-item"
+              :style="{ left: i * 28 + 'px', zIndex: 3 - i }"
+              fit="cover"
+            />
+            <span
+              v-if="row.photo_urls.length > 3"
+              class="photo-stack-more"
+              :style="{ left: 3 * 28 + 'px' }"
+            >+{{ row.photo_urls.length - 3 }}</span>
+          </div>
           <span v-else style="color:#ccc">—</span>
         </template>
       </el-table-column>
@@ -124,3 +135,44 @@ async function doAction(type, row) {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.photo-stack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 44px;
+}
+
+.photo-stack-item {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: transform 0.2s, z-index 0.2s;
+}
+
+.photo-stack-item:hover {
+  transform: scale(1.1);
+  z-index: 10 !important;
+}
+
+.photo-stack-more {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+</style>
