@@ -275,9 +275,11 @@ func (s *jobService) Reopen(ctx context.Context, userID, jobID int64) error {
 	if job.UserID != userID {
 		return ErrForbidden
 	}
+	now := time.Now().Truncate(time.Second)
 	job.Status = model.JobStatusActive
 	job.CloseReason = ""
 	job.CloseTime = nil
+	job.RefreshTime = &now
 	return s.jobRepository.Update(ctx, job)
 }
 

@@ -121,7 +121,7 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 	case 1:
 		orderClause := "CASE WHEN top_start_time IS NOT NULL AND top_end_time IS NOT NULL AND top_start_time <= NOW() AND top_end_time >= NOW() THEN 1 ELSE 0 END DESC"
 		db = db.Order(orderClause).
-			Order("refresh_time DESC")
+			Order("GREATEST(COALESCE(refresh_time, create_at), COALESCE(paid_refresh_time, create_at)) DESC")
 	case 2:
 		if query.Longitude != 0 || query.Latitude != 0 {
 			db = db.Order(fmt.Sprintf("((job.longitude-%f)*(job.longitude-%f)+(job.latitude-%f)*(job.latitude-%f)) ASC",
@@ -259,7 +259,7 @@ func (r *jobRepository) ListFeed(ctx context.Context, bizType, firstAreaID, seco
 		pageSize = 10
 	}
 	offset := (pageNum - 1) * pageSize
-	err := db.Order("COALESCE(job.refresh_time, job.create_at) DESC").
+	err := db.Order("GREATEST(COALESCE(job.refresh_time, job.create_at), COALESCE(job.paid_refresh_time, job.create_at)) DESC").
 		Offset(offset).Limit(pageSize).Find(&jobs).Error
 	return jobs, total, err
 }
