@@ -33,7 +33,7 @@ build-linux:
 SWR_REGISTRY ?= swr.cn-north-1.myhuaweicloud.com
 SWR_ORG      ?= catering-cyxx
 IMAGE_NAME   ?= miniapp-backend
-IMAGE_TAG    ?= v1-2026052901
+IMAGE_TAG    ?= v1-2026052902
 
 docker:
 	cd admin-frontend && npm run build

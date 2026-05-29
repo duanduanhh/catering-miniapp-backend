@@ -121,16 +121,16 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 	case 1:
 		orderClause := "CASE WHEN top_start_time IS NOT NULL AND top_end_time IS NOT NULL AND top_start_time <= NOW() AND top_end_time >= NOW() THEN 1 ELSE 0 END DESC"
 		db = db.Order(orderClause).
-			Order("GREATEST(COALESCE(refresh_time, create_at), COALESCE(paid_refresh_time, create_at)) DESC")
+			Order("GREATEST(COALESCE(refresh_time, job.create_at), COALESCE(paid_refresh_time, job.create_at)) DESC")
 	case 2:
 		if query.Longitude != 0 || query.Latitude != 0 {
 			db = db.Order(fmt.Sprintf("((job.longitude-%f)*(job.longitude-%f)+(job.latitude-%f)*(job.latitude-%f)) ASC",
 				query.Longitude, query.Longitude, query.Latitude, query.Latitude))
 		}
 	case 3:
-		db = db.Order("create_at DESC")
+		db = db.Order("job.create_at DESC")
 	default:
-		db = db.Order("create_at DESC")
+		db = db.Order("job.create_at DESC")
 	}
 
 	if err := db.Count(&total).Error; err != nil {
