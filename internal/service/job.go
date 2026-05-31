@@ -54,6 +54,7 @@ type JobCreateInput struct {
 	Longitude          float64
 	Latitude           float64
 	Address            string
+	AddressDetail      string
 	Contact            string
 	ContanctPersonName string
 	Description        string
@@ -83,6 +84,7 @@ type JobUpdateInput struct {
 	Longitude       *float64
 	Latitude        *float64
 	Address         *string
+	AddressDetail   *string
 	Contact         *string
 	Description     *string
 	PhotoURLs       *string
@@ -124,6 +126,7 @@ func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateIn
 		Longitude:         input.Longitude,
 		Latitude:          input.Latitude,
 		Address:           input.Address,
+		AddressDetail:     input.AddressDetail,
 		Contact:           input.Contact,
 		ContactPersonName: input.ContanctPersonName,
 		Description:       input.Description,
@@ -179,6 +182,9 @@ func (s *jobService) Update(ctx context.Context, userID int64, input JobUpdateIn
 	}
 	if input.Address != nil {
 		job.Address = *input.Address
+	}
+	if input.AddressDetail != nil {
+		job.AddressDetail = *input.AddressDetail
 	}
 	if input.Contact != nil {
 		job.Contact = *input.Contact

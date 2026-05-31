@@ -86,6 +86,7 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 		Longitude:          req.Longitude,
 		Latitude:           req.Latitude,
 		Address:            req.Address,
+		AddressDetail:      req.AddressDetail,
 		Contact:            req.Contact,
 		ContanctPersonName: req.ContactPersonName,
 		Description:        req.Description,
@@ -156,6 +157,7 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		Longitude:         req.Longitude,
 		Latitude:          req.Latitude,
 		Address:           req.Address,
+		AddressDetail:     req.AddressDetail,
 		Contact:           req.Contact,
 		Description:       req.Description,
 		PhotoURLs:         nil,
@@ -594,6 +596,8 @@ func (h *JobHandler) My(ctx *gin.Context) {
 			SecondAreaDes:   job.SecondAreaDes,
 			ThirdAreaDes:    job.ThirdAreaDes,
 			Address:         job.Address,
+			AddressDetail:   job.AddressDetail,
+			CompanyName:     job.CompanyName,
 			CreateAt:        formatTime(job.CreateAt),
 			IsTop:           isJobTop(job),
 			Status:          int(job.Status),
@@ -634,7 +638,7 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "top_hour and price must be positive")
 		return
 	}
-	order, _, err := h.orderService.CreateTopOrder(ctx, userID, req.JobID, req.TopHour, req.Price)
+	order, _, err := h.orderService.CreateTopOrder(ctx, userID, req.JobID, req.TopHour, req.Price, req.ContactVoucherNum)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("orderService.CreateTopOrder error", zap.Error(err))
 		if err == service.ErrForbidden {
@@ -743,8 +747,9 @@ func buildJobListItem(job *model.Job) v1.JobListItem {
 		Longitude:         job.Longitude,
 		Latitude:          job.Latitude,
 		Address:           job.Address,
-		Contact:           job.Contact,
+		AddressDetail:     job.AddressDetail,
 		ContactPersonName: job.ContactPersonName,
+		Contact:           job.Contact,
 		Description:       job.Description,
 		PhotoURLs:         photos,
 		Status:            job.Status,

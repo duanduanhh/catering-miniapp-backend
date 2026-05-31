@@ -2912,6 +2912,9 @@
                 "address": {
                     "type": "string"
                 },
+                "address_detail": {
+                    "type": "string"
+                },
                 "attendance_leave": {
                     "type": "array",
                     "items": {
@@ -3097,6 +3100,9 @@
             "type": "object",
             "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "address_detail": {
                     "type": "string"
                 },
                 "attendance_leave": {
@@ -3287,6 +3293,9 @@
                 "address": {
                     "type": "string"
                 },
+                "address_detail": {
+                    "type": "string"
+                },
                 "attendance_leave": {
                     "type": "array",
                     "items": {
@@ -3304,6 +3313,9 @@
                 },
                 "biz_type": {
                     "type": "integer"
+                },
+                "company_name": {
+                    "type": "string"
                 },
                 "contact": {
                     "type": "string"
@@ -3438,6 +3450,10 @@
                 "top_hour"
             ],
             "properties": {
+                "contact_voucher_num": {
+                    "description": "加赠联系券数量，0=不加赠",
+                    "type": "integer"
+                },
                 "job_id": {
                     "type": "integer"
                 },
@@ -3456,6 +3472,9 @@
             ],
             "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "address_detail": {
                     "type": "string"
                 },
                 "attendance_leave": {

@@ -19,6 +19,7 @@ type Job struct {
 	Longitude         float64    `gorm:"column:longitude"`
 	Latitude          float64    `gorm:"column:latitude"`
 	Address           string     `gorm:"column:address"`
+	AddressDetail     string     `gorm:"column:address_detail"`
 	ContactPersonName string     `gorm:"column:contact_person_name"`
 	Contact           string     `gorm:"column:contact"`
 	Description       string     `gorm:"column:description"`

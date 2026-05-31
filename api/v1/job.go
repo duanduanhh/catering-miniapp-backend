@@ -9,6 +9,7 @@ type JobCreateRequest struct {
 	Longitude         float64  `json:"longitude"`
 	Latitude          float64  `json:"latitude"`
 	Address           string   `json:"address"`
+	AddressDetail     string   `json:"address_detail"`
 	Contact           string   `json:"contact" binding:"required"`
 	ContactPersonName string   `json:"contact_person_name" binding:"required"`
 	Description       string   `json:"description" binding:"required"`
@@ -47,6 +48,7 @@ type JobUpdateRequest struct {
 	Longitude         *float64 `json:"longitude"`
 	Latitude          *float64 `json:"latitude"`
 	Address           *string  `json:"address"`
+	AddressDetail     *string  `json:"address_detail"`
 	Contact           *string  `json:"contact"`
 	Description       *string  `json:"description"`
 	PhotoURLs         []string `json:"photo_urls"`
@@ -68,9 +70,10 @@ type JobUpdateRequest struct {
 }
 
 type JobTopRequest struct {
-	JobID   int64   `json:"job_id" binding:"required"`
-	TopHour int     `json:"top_hour" binding:"required"`
-	Price   float64 `json:"price" binding:"required"`
+	JobID          int64   `json:"job_id" binding:"required"`
+	TopHour        int     `json:"top_hour" binding:"required"`
+	Price          float64 `json:"price" binding:"required"`
+	ContactVoucherNum int     `json:"contact_voucher_num"` // 加赠联系券数量，0=不加赠
 }
 
 type JobRefreshRequest struct {
@@ -135,8 +138,9 @@ type JobListItem struct {
 	Longitude         float64         `json:"longitude"`
 	Latitude          float64         `json:"latitude"`
 	Address           string          `json:"address"`
-	Contact           string          `json:"contact"`
+	AddressDetail     string          `json:"address_detail"`
 	ContactPersonName string          `json:"contact_person_name"`
+	Contact           string          `json:"contact"`
 	Description       string          `json:"description"`
 	PhotoURLs         []string        `json:"photo_urls"`
 	Status            model.JobStatus `json:"status"`
@@ -196,6 +200,8 @@ type JobMyItem struct {
 	SecondAreaDes     string   `json:"second_area_des"`
 	ThirdAreaDes      string   `json:"third_area_des"`
 	Address           string   `json:"address"`
+	AddressDetail     string   `json:"address_detail"`
+	CompanyName       string   `json:"company_name"`
 	CreateAt          string   `json:"create_at"`
 	IsTop             int      `json:"is_top"`
 	Status            int      `json:"status"`

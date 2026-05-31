@@ -10,7 +10,7 @@ import (
 )
 
 type OrderService interface {
-	CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64) (*model.Order, *model.OrderItem, error)
+	CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64, contactVoucherNum int) (*model.Order, *model.OrderItem, error)
 	CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int) (*model.Order, *model.OrderItem, error)
 	CreateRefreshOrder(ctx context.Context, userID, jobID int64, price float64) (*model.Order, *model.OrderItem, error)
 	PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
@@ -46,7 +46,7 @@ type orderService struct {
 	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository
 }
 
-func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64) (*model.Order, *model.OrderItem, error) {
+func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64, contactVoucherNum int) (*model.Order, *model.OrderItem, error) {
 	job, err := s.jobRepository.GetByID(ctx, jobID)
 	if err != nil {
 		return nil, nil, err
@@ -71,6 +71,7 @@ func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, 
 		UnitPriceSnapshot: price,
 		TargetType:        model.OrderTargetJob,
 		TargetID:          jobID,
+		ContactVoucherNum: contactVoucherNum,
 		CreateAt:          time.Now(),
 		UpdateAt:          time.Now(),
 	}
@@ -221,11 +222,16 @@ func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order
 				if err := s.applyTop(ctx, item); err != nil {
 					return err
 				}
+				if item.ContactVoucherNum > 0 {
+					if err := s.applyContactVoucher(ctx, order.UserID, item, "购买置顶套餐赠送联系券"); err != nil {
+						return err
+					}
+				}
 				if err := s.applyFirstTopStatus(ctx, order.UserID); err != nil {
 					return err
 				}
 			case model.ProductTypeContactVoucher:
-				if err := s.applyContactVoucher(ctx, order.UserID, item); err != nil {
+				if err := s.applyContactVoucher(ctx, order.UserID, item, "购买联系券"); err != nil {
 					return err
 				}
 				if err := s.applyNewCustomerStatus(ctx, order.UserID); err != nil {
@@ -264,7 +270,7 @@ func (s *orderService) applyTop(ctx context.Context, item *model.OrderItem) erro
 	return s.jobRepository.Update(ctx, job)
 }
 
-func (s *orderService) applyContactVoucher(ctx context.Context, userID int64, item *model.OrderItem) error {
+func (s *orderService) applyContactVoucher(ctx context.Context, userID int64, item *model.OrderItem, remark string) error {
 	voucherNum := item.ContactVoucherNum
 	if voucherNum <= 0 {
 		voucherNum = parseVoucherNum(item.TitleSnapshot)
@@ -289,7 +295,7 @@ func (s *orderService) applyContactVoucher(ctx context.Context, userID int64, it
 		ChangeNum: voucherNum,
 		LastNum:   lastNum,
 		NextNum:   nextNum,
-		Remark:    "购买联系券",
+		Remark:    remark,
 		CreateAt:  time.Now(),
 	}
 	return s.contactVoucherHistoryRepository.Create(ctx, history)

@@ -2919,6 +2919,9 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "address_detail": {
+                    "type": "string"
+                },
                 "attendance_leave": {
                     "type": "array",
                     "items": {
@@ -3104,6 +3107,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "address_detail": {
                     "type": "string"
                 },
                 "attendance_leave": {
@@ -3294,6 +3300,9 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "address_detail": {
+                    "type": "string"
+                },
                 "attendance_leave": {
                     "type": "array",
                     "items": {
@@ -3311,6 +3320,9 @@ const docTemplate = `{
                 },
                 "biz_type": {
                     "type": "integer"
+                },
+                "company_name": {
+                    "type": "string"
                 },
                 "contact": {
                     "type": "string"
@@ -3445,6 +3457,10 @@ const docTemplate = `{
                 "top_hour"
             ],
             "properties": {
+                "contact_voucher_num": {
+                    "description": "加赠联系券数量，0=不加赠",
+                    "type": "integer"
+                },
                 "job_id": {
                     "type": "integer"
                 },
@@ -3463,6 +3479,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "address_detail": {
                     "type": "string"
                 },
                 "attendance_leave": {
