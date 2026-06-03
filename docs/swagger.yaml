@@ -1285,11 +1285,19 @@ definitions:
     properties:
       avatar:
         type: string
+      consume_status:
+        type: integer
       create_at:
         type: string
+      login_status:
+        type: integer
       name:
         type: string
+      publish_status:
+        type: integer
       user_id:
+        type: integer
+      voucher_earned:
         type: integer
     type: object
   v1.UserInviteListRequest:
@@ -1301,12 +1309,18 @@ definitions:
     type: object
   v1.UserInviteListResponseData:
     properties:
+      consume_voucher_reward:
+        type: integer
       invite_total:
         type: integer
       list:
         items:
           $ref: '#/definitions/v1.UserInviteItem'
         type: array
+      login_voucher_reward:
+        type: integer
+      publish_voucher_reward:
+        type: integer
       total:
         type: integer
     type: object

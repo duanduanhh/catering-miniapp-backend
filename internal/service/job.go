@@ -25,16 +25,22 @@ type JobService interface {
 func NewJobService(
 	service *Service,
 	jobRepository repository.JobRepository,
+	userRepository repository.UserRepository,
+	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository,
 ) JobService {
 	return &jobService{
-		Service:       service,
-		jobRepository: jobRepository,
+		Service:                         service,
+		jobRepository:                   jobRepository,
+		userRepository:                  userRepository,
+		contactVoucherHistoryRepository: contactVoucherHistoryRepository,
 	}
 }
 
 type jobService struct {
 	*Service
-	jobRepository repository.JobRepository
+	jobRepository                   repository.JobRepository
+	userRepository                  repository.UserRepository
+	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository
 }
 
 const (
@@ -117,6 +123,13 @@ func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateIn
 	if total >= int64(limit) {
 		return nil, ErrJobLimitExceeded
 	}
+
+	// 检查是否首次发布（所有非删除状态的岗位数为 0）
+	publishedMap, err := s.jobRepository.HasPublishedByUserIDs(ctx, []int64{userID})
+	if err != nil {
+		return nil, err
+	}
+	isFirstJob := !publishedMap[userID]
 	now := time.Now()
 	job := &model.Job{
 		UserID:            userID,
@@ -153,6 +166,9 @@ func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateIn
 	}
 	if err := s.jobRepository.Create(ctx, job); err != nil {
 		return nil, err
+	}
+	if isFirstJob {
+		_ = rewardInviter(ctx, userID, 3, "邀请好友首次发布奖励", s.userRepository, s.contactVoucherHistoryRepository)
 	}
 	return job, nil
 }

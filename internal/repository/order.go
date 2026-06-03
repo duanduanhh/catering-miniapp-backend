@@ -12,6 +12,7 @@ type OrderRepository interface {
 	GetByID(ctx context.Context, id int64) (*model.Order, error)
 	GetByOrderNo(ctx context.Context, orderNo string) (*model.Order, error)
 	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
+	HasPaidOrderByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error)
 }
 
 func NewOrderRepository(
@@ -74,4 +75,26 @@ func (r *orderRepository) ListByUser(ctx context.Context, userID int64, pageNum,
 		return nil, 0, err
 	}
 	return list, total, nil
+}
+
+func (r *orderRepository) HasPaidOrderByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error) {
+	if len(userIDs) == 0 {
+		return map[int64]bool{}, nil
+	}
+	var rows []struct {
+		UserID int64 `gorm:"column:user_id"`
+	}
+	err := r.DB(ctx).Table("orders").
+		Select("user_id").
+		Where("user_id IN ? AND status = ?", userIDs, model.OrderStatusPaid).
+		Group("user_id").
+		Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[int64]bool, len(rows))
+	for _, row := range rows {
+		result[row.UserID] = true
+	}
+	return result, nil
 }

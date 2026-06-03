@@ -35,11 +35,11 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	serviceService := service.NewService(transaction, logger, sidSid, jwtJWT)
 	userRepository := repository.NewUserRepository(repositoryRepository)
 	contactVoucherHistoryRepository := repository.NewContactVoucherHistoryRepository(repositoryRepository)
-	userService := service.NewUserService(serviceService, userRepository, contactVoucherHistoryRepository)
-	userHandler := handler.NewUserHandler(handlerHandler, userService)
 	jobRepository := repository.NewJobRepository(repositoryRepository)
-	jobService := service.NewJobService(serviceService, jobRepository)
 	orderRepository := repository.NewOrderRepository(repositoryRepository)
+	userService := service.NewUserService(serviceService, userRepository, contactVoucherHistoryRepository, jobRepository, orderRepository)
+	userHandler := handler.NewUserHandler(handlerHandler, userService)
+	jobService := service.NewJobService(serviceService, jobRepository, userRepository, contactVoucherHistoryRepository)
 	orderItemRepository := repository.NewOrderItemRepository(repositoryRepository)
 	orderService := service.NewOrderService(serviceService, orderRepository, orderItemRepository, jobRepository, userRepository, contactVoucherHistoryRepository)
 	payService, err := NewPayServiceProvider(viperViper, logger)
@@ -56,7 +56,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	contactHistoryHandler := handler.NewContactHistoryHandler(handlerHandler, contactHistoryService)
 	contactVoucherHistoryService := service.NewContactVoucherHistoryService(serviceService, contactVoucherHistoryRepository, userRepository)
 	contactVoucherHistoryHandler := handler.NewContactVoucherHistoryHandler(handlerHandler, contactVoucherHistoryService, orderService, contactHistoryService, payService)
-	wechatService := service.NewWechatService(logger, viperViper, jwtJWT, userRepository)
+	wechatService := service.NewWechatService(logger, viperViper, jwtJWT, userRepository, contactVoucherHistoryRepository)
 	wechatPayClient, err := NewWechatPayClientProvider(viperViper)
 	if err != nil {
 		return nil, nil, err

@@ -26,7 +26,7 @@ CREATE TABLE `user` (
   `integral` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户积分',
   `collect_num` bigint unsigned DEFAULT '0' COMMENT '收藏数量',
   `buy_num` bigint unsigned DEFAULT '0' COMMENT '购买次数',
-  `invite_id` bigint DEFAULT '0' COMMENT '邀请人用户ID',
+  `inviter_id` bigint DEFAULT '0' COMMENT '邀请人用户ID',
   `invite_num` bigint unsigned DEFAULT '0' COMMENT '成功邀请人数',
   `first_recharge` longtext COMMENT '首次充值标识/记录',
   `total_recharge` double DEFAULT '0' COMMENT '累计充值金额',

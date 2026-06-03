@@ -3835,13 +3835,25 @@ const docTemplate = `{
                 "avatar": {
                     "type": "string"
                 },
+                "consume_status": {
+                    "type": "integer"
+                },
                 "create_at": {
                     "type": "string"
+                },
+                "login_status": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
                 },
+                "publish_status": {
+                    "type": "integer"
+                },
                 "user_id": {
+                    "type": "integer"
+                },
+                "voucher_earned": {
                     "type": "integer"
                 }
             }
@@ -3860,6 +3872,9 @@ const docTemplate = `{
         "v1.UserInviteListResponseData": {
             "type": "object",
             "properties": {
+                "consume_voucher_reward": {
+                    "type": "integer"
+                },
                 "invite_total": {
                     "type": "integer"
                 },
@@ -3868,6 +3883,12 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/v1.UserInviteItem"
                     }
+                },
+                "login_voucher_reward": {
+                    "type": "integer"
+                },
+                "publish_voucher_reward": {
+                    "type": "integer"
                 },
                 "total": {
                     "type": "integer"

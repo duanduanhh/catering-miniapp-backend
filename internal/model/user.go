@@ -25,7 +25,7 @@ type User struct {
 	Integral          uint64    `gorm:"column:integral"`
 	CollectNum        uint64    `gorm:"column:collect_num"`
 	BuyNum            uint64    `gorm:"column:buy_num"`
-	InviteID          int64     `gorm:"column:invite_id"`
+	InviterID         int64     `gorm:"column:inviter_id"`
 	InviteNum         uint64    `gorm:"column:invite_num"`
 	FirstRecharge     string    `gorm:"column:first_recharge"`
 	TotalRecharge     float64   `gorm:"column:total_recharge"`

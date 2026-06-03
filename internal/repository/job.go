@@ -19,6 +19,7 @@ type JobRepository interface {
 	ListFeed(ctx context.Context, bizType, firstAreaID, secondAreaID, pageNum, pageSize int) ([]*model.Job, int64, error)
 	AdminList(ctx context.Context, query AdminJobListQuery) ([]*model.Job, int64, error)
 	AdminUpdateStatus(ctx context.Context, jobID int64, status model.JobStatus) error
+	HasPublishedByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error)
 }
 
 func NewJobRepository(
@@ -300,4 +301,26 @@ func (r *jobRepository) AdminList(ctx context.Context, query AdminJobListQuery) 
 
 func (r *jobRepository) AdminUpdateStatus(ctx context.Context, jobID int64, status model.JobStatus) error {
 	return r.DB(ctx).Model(&model.Job{}).Where("id = ?", jobID).Update("status", status).Error
+}
+
+func (r *jobRepository) HasPublishedByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error) {
+	if len(userIDs) == 0 {
+		return map[int64]bool{}, nil
+	}
+	var rows []struct {
+		UserID int64 `gorm:"column:user_id"`
+	}
+	err := r.DB(ctx).Model(&model.Job{}).
+		Select("user_id").
+		Where("user_id IN ? AND status != ?", userIDs, model.JobStatusDeleted).
+		Group("user_id").
+		Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[int64]bool, len(rows))
+	for _, row := range rows {
+		result[row.UserID] = true
+	}
+	return result, nil
 }

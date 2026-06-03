@@ -121,16 +121,23 @@ func (h *UserHandler) ListInvites(ctx *gin.Context) {
 		return
 	}
 	resp := v1.UserInviteListResponseData{
-		InviteTotal: inviteTotal,
-		List:        make([]v1.UserInviteItem, 0, len(list)),
-		Total:       total,
+		InviteTotal:          inviteTotal,
+		List:                 make([]v1.UserInviteItem, 0, len(list)),
+		Total:                total,
+		LoginVoucherReward:   2,
+		PublishVoucherReward: 3,
+		ConsumeVoucherReward: 5,
 	}
 	for _, u := range list {
 		resp.List = append(resp.List, v1.UserInviteItem{
-			UserID:   u.ID,
-			Avatar:   u.Avatar,
-			Name:     u.Name,
-			CreateAt: formatTime(u.CreateAt),
+			UserID:        u.User.ID,
+			Avatar:        u.User.Avatar,
+			Name:          u.User.Name,
+			CreateAt:      formatTime(u.User.CreateAt),
+			LoginStatus:   u.LoginStatus,
+			PublishStatus: u.PublishStatus,
+			ConsumeStatus: u.ConsumeStatus,
+			VoucherEarned: u.VoucherEarned,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
@@ -169,3 +176,5 @@ func (h *UserHandler) UpdateInfo(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, nil)
 }
+
+

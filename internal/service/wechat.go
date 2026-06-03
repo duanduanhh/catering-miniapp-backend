@@ -30,20 +30,23 @@ func NewWechatService(
 	config *viper.Viper,
 	jwtClient *jwt.JWT,
 	userRepo repository.UserRepository,
+	contactVoucherHistoryRepo repository.ContactVoucherHistoryRepository,
 ) WechatService {
 	return &wechatService{
-		logger:   logger,
-		config:   config,
-		jwt:      jwtClient,
-		userRepo: userRepo,
+		logger:                    logger,
+		config:                    config,
+		jwt:                       jwtClient,
+		userRepo:                  userRepo,
+		contactVoucherHistoryRepo: contactVoucherHistoryRepo,
 	}
 }
 
 type wechatService struct {
-	logger   *log.Logger
-	config   *viper.Viper
-	jwt      *jwt.JWT
-	userRepo repository.UserRepository
+	logger                    *log.Logger
+	config                    *viper.Viper
+	jwt                       *jwt.JWT
+	userRepo                  repository.UserRepository
+	contactVoucherHistoryRepo repository.ContactVoucherHistoryRepository
 }
 
 type wechatSessionResponse struct {
@@ -88,13 +91,15 @@ func (s *wechatService) Register(ctx context.Context, code, loginCode string, in
 	if user != nil {
 		return "", nil, ErrUserExists
 	}
+	const newUserVoucherNum = 5
 	user = &model.User{
-		WechatOpenID: session.OpenID,
-		Phone:        phone,
-		Name:         "餐饮人" + randAlphanumeric(6),
-		InviteID:     inviterID,
-		CreateAt:     now,
-		UpdateAt:     now,
+		WechatOpenID:      session.OpenID,
+		Phone:             phone,
+		Name:              "餐饮人" + randAlphanumeric(6),
+		InviterID:         inviterID,
+		ContactVoucherNum: newUserVoucherNum,
+		CreateAt:          now,
+		UpdateAt:          now,
 	}
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return "", nil, err
@@ -107,6 +112,29 @@ func (s *wechatService) Register(ctx context.Context, code, loginCode string, in
 	user.UpdateAt = time.Now()
 	if err := s.userRepo.Update(ctx, user); err != nil {
 		return "", nil, err
+	}
+	history := &model.ContactVoucherHistory{
+		UserID:    user.ID,
+		BizType:   model.ContactVoucherHistoryBuy,
+		ChangeNum: newUserVoucherNum,
+		LastNum:   0,
+		NextNum:   newUserVoucherNum,
+		Remark:    "新用户登陆",
+		CreateAt:  time.Now(),
+	}
+	if err := s.contactVoucherHistoryRepo.Create(ctx, history); err != nil {
+		return "", nil, err
+	}
+	if inviterID > 0 {
+		// 累加邀请人的 invite_num
+		inviter, err := s.userRepo.GetByID(ctx, inviterID)
+		if err == nil {
+			inviter.InviteNum++
+			inviter.UpdateAt = time.Now()
+			_ = s.userRepo.Update(ctx, inviter)
+		}
+		// 奖励邀请人 2 张联系券
+		_ = rewardInviter(ctx, user.ID, 2, "邀请好友注册奖励", s.userRepo, s.contactVoucherHistoryRepo)
 	}
 	return token, user, nil
 }

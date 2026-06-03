@@ -95,7 +95,7 @@ func (r *userRepository) ListByInviterID(ctx context.Context, inviterID int64, p
 		list  []*model.User
 		total int64
 	)
-	db := r.DB(ctx).Model(&model.User{}).Where("invite_id = ?", inviterID)
+	db := r.DB(ctx).Model(&model.User{}).Where("inviter_id = ?", inviterID)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}

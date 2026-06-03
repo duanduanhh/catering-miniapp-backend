@@ -332,7 +332,10 @@ func (s *orderService) applyNewCustomerStatus(ctx context.Context, userID int64)
 	if user.NewCustomerStatus == 0 {
 		user.NewCustomerStatus = 1
 		user.UpdateAt = time.Now()
-		return s.userRepository.Update(ctx, user)
+		if err := s.userRepository.Update(ctx, user); err != nil {
+			return err
+		}
+		return rewardInviter(ctx, userID, 5, "邀请好友首次消费奖励", s.userRepository, s.contactVoucherHistoryRepository)
 	}
 	return nil
 }

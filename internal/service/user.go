@@ -12,17 +12,21 @@ type UserService interface {
 	GetInfo(ctx context.Context, userID int64) (*model.User, error)
 	UpdateInfo(ctx context.Context, userID int64, input UpdateUserInfoInput) error
 	UpdateGeo(ctx context.Context, userID int64, input UpdateUserGeoInput) error
-	ListInvites(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.User, int64, int64, error)
+	ListInvites(ctx context.Context, userID int64, pageNum, pageSize int) ([]*InviteUserItem, int64, int64, error)
 }
 
 func NewUserService(
 	service *Service,
 	userRepo repository.UserRepository,
 	contactVoucherHistoryRepo repository.ContactVoucherHistoryRepository,
+	jobRepo repository.JobRepository,
+	orderRepo repository.OrderRepository,
 ) UserService {
 	return &userService{
 		userRepo:                  userRepo,
 		contactVoucherHistoryRepo: contactVoucherHistoryRepo,
+		jobRepo:                   jobRepo,
+		orderRepo:                 orderRepo,
 		Service:                   service,
 	}
 }
@@ -30,6 +34,8 @@ func NewUserService(
 type userService struct {
 	userRepo                  repository.UserRepository
 	contactVoucherHistoryRepo repository.ContactVoucherHistoryRepository
+	jobRepo                   repository.JobRepository
+	orderRepo                 repository.OrderRepository
 	*Service
 }
 
@@ -130,8 +136,16 @@ func (s *userService) UpdateGeo(ctx context.Context, userID int64, input UpdateU
 	return s.userRepo.Update(ctx, user)
 }
 
+type InviteUserItem struct {
+	User          *model.User
+	LoginStatus   int
+	PublishStatus int
+	ConsumeStatus int
+	VoucherEarned int
+}
+
 // ListInvites 返回被邀请人列表、分页总数、邀请总人数（取 user.invite_num）
-func (s *userService) ListInvites(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.User, int64, int64, error) {
+func (s *userService) ListInvites(ctx context.Context, userID int64, pageNum, pageSize int) ([]*InviteUserItem, int64, int64, error) {
 	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		return nil, 0, 0, err
@@ -140,5 +154,45 @@ func (s *userService) ListInvites(ctx context.Context, userID int64, pageNum, pa
 	if err != nil {
 		return nil, 0, 0, err
 	}
-	return list, total, int64(user.InviteNum), nil
+	if len(list) == 0 {
+		return []*InviteUserItem{}, total, int64(user.InviteNum), nil
+	}
+
+	userIDs := make([]int64, len(list))
+	for i, u := range list {
+		userIDs[i] = u.ID
+	}
+	publishedMap, err := s.jobRepo.HasPublishedByUserIDs(ctx, userIDs)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	consumedMap, err := s.orderRepo.HasPaidOrderByUserIDs(ctx, userIDs)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	const (
+		loginVoucher   = 2
+		publishVoucher = 3
+		consumeVoucher = 5
+	)
+	items := make([]*InviteUserItem, 0, len(list))
+	for _, u := range list {
+		publishStatus := 0
+		if publishedMap[u.ID] {
+			publishStatus = 1
+		}
+		consumeStatus := 0
+		if consumedMap[u.ID] {
+			consumeStatus = 1
+		}
+		items = append(items, &InviteUserItem{
+			User:          u,
+			LoginStatus:   1,
+			PublishStatus: publishStatus,
+			ConsumeStatus: consumeStatus,
+			VoucherEarned: loginVoucher + publishStatus*publishVoucher + consumeStatus*consumeVoucher,
+		})
+	}
+	return items, total, int64(user.InviteNum), nil
 }

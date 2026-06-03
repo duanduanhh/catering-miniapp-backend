@@ -39,14 +39,21 @@ type UserInviteListRequest struct {
 }
 
 type UserInviteItem struct {
-	UserID   int64  `json:"user_id"`
-	Avatar   string `json:"avatar"`
-	Name     string `json:"name"`
-	CreateAt string `json:"create_at"`
+	UserID        int64  `json:"user_id"`
+	Avatar        string `json:"avatar"`
+	Name          string `json:"name"`
+	CreateAt      string `json:"create_at"`
+	LoginStatus   int    `json:"login_status"`
+	PublishStatus int    `json:"publish_status"`
+	ConsumeStatus int    `json:"consume_status"`
+	VoucherEarned int    `json:"voucher_earned"`
 }
 
 type UserInviteListResponseData struct {
-	InviteTotal int64            `json:"invite_total"`
-	List        []UserInviteItem `json:"list"`
-	Total       int64            `json:"total"`
+	InviteTotal          int64            `json:"invite_total"`
+	List                 []UserInviteItem `json:"list"`
+	Total                int64            `json:"total"`
+	LoginVoucherReward   int              `json:"login_voucher_reward"`
+	PublishVoucherReward int              `json:"publish_voucher_reward"`
+	ConsumeVoucherReward int              `json:"consume_voucher_reward"`
 }
