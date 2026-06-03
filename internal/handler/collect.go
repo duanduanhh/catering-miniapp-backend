@@ -127,6 +127,8 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 			SecondAreaDes:     job.SecondAreaDes,
 			ThirdAreaDes:      job.ThirdAreaDes,
 			Address:           job.Address,
+			AddressDetail:     job.AddressDetail,
+			CompanyName:       job.CompanyName,
 			CreateAt:          formatTime(job.CreateAt),
 			IsTop:             isJobTop(job),
 			Status:            int(job.Status),
