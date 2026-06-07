@@ -73,7 +73,7 @@ func (h *WechatHandler) Login(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	token, user, err := h.wechatService.Login(ctx, req.LoginCode)
+	token, user, isOldUser, err := h.wechatService.Login(ctx, req.LoginCode)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("wechatService.Login error", zap.Error(err))
 		if err == service.ErrUserNotFound {
@@ -84,8 +84,9 @@ func (h *WechatHandler) Login(ctx *gin.Context) {
 		return
 	}
 	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
-		Token:    token,
-		UserInfo: v1.WechatLoginUserInfo{ID: user.ID},
+		Token:     token,
+		IsOldUser: isOldUser,
+		UserInfo:  v1.WechatLoginUserInfo{ID: user.ID},
 	})
 }
 

@@ -48,6 +48,7 @@ func (h *PositionCategoryHandler) GetAllCategories(ctx *gin.Context) {
 			tmp.Subcategories = append(tmp.Subcategories, &v1.PositionSubcategory{
 				ID:              subcategory.ID,
 				SubcategoryName: subcategory.SubcategoryName,
+				Description:     subcategory.Description,
 			})
 		}
 		tmp.SubTotal = len(tmp.Subcategories)

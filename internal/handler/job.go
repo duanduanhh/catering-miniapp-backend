@@ -106,6 +106,7 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 		AttendanceLeave:    strings.Join(req.AttendanceLeave, ","),
 		EnterpriseID:       req.EnterpriseID,
 		RecruitNum:         req.RecruitNum,
+		WorkContent:        req.WorkContent,
 	}
 	job, err := h.jobService.Create(ctx, userID, input)
 	if err != nil {
@@ -173,6 +174,7 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		SalaryMax:         req.SalaryMax,
 		EnterpriseID:      req.EnterpriseID,
 		RecruitNum:        req.RecruitNum,
+		WorkContent:       req.WorkContent,
 	}
 	if req.PhotoURLs != nil {
 		joined := strings.Join(req.PhotoURLs, ",")
@@ -242,8 +244,43 @@ func (h *JobHandler) Refresh(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, nil)
 }
 
+// ShareRefresh godoc
+// @Summary 分享刷新岗位
+// @Description 每个自然日限使用1次，分享后免费刷新岗位排名（更新 refresh_time）。3001=今日次数已用完，403=非本人岗位。
+// @Tags 岗位模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.JobShareRefreshRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /jobs/refresh/share [post]
+func (h *JobHandler) ShareRefresh(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.JobShareRefreshRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	if err := h.jobService.ShareRefresh(ctx, userID, req.JobID); err != nil {
+		switch err {
+		case service.ErrShareRefreshLimitExceeded:
+			v1.HandleError(ctx, http.StatusOK, v1.ErrShareRefreshLimitExceeded, nil)
+		case service.ErrForbidden:
+			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
+		default:
+			h.logger.WithContext(ctx).Error("jobService.ShareRefresh error", zap.Error(err))
+			v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		}
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
+}
+
 // RefreshPay godoc
-// @Summary 付费刷新岗位
 // @Description 创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。price 单位：元。
 // @Tags 岗位模块
 // @Accept json
@@ -602,6 +639,7 @@ func (h *JobHandler) My(ctx *gin.Context) {
 			IsTop:           isJobTop(job),
 			Status:          int(job.Status),
 			LastRefreshTime: formatOptionalTime(job.RefreshTime),
+			WorkContent:     job.WorkContent,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
@@ -778,6 +816,7 @@ func buildJobListItem(job *model.Job) v1.JobListItem {
 		EnterpriseID:      job.EnterpriseID,
 		EnterpriseName:    job.EnterpriseName,
 		RecruitNum:        job.RecruitNum,
+		WorkContent:       job.WorkContent,
 	}
 	return item
 }

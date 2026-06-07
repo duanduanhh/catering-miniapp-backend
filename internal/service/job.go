@@ -12,6 +12,7 @@ type JobService interface {
 	Create(ctx context.Context, userID int64, input JobCreateInput) (*model.Job, error)
 	Update(ctx context.Context, userID int64, input JobUpdateInput) error
 	Refresh(ctx context.Context, userID, jobID int64) error
+	ShareRefresh(ctx context.Context, userID, jobID int64) error
 	Close(ctx context.Context, userID, jobID int64, closeReason string) error
 	Reopen(ctx context.Context, userID, jobID int64) error
 	Delete(ctx context.Context, userID, jobID int64) error
@@ -80,6 +81,7 @@ type JobCreateInput struct {
 	AttendanceLeave    string
 	EnterpriseID       int64
 	RecruitNum         int
+	WorkContent        string
 }
 
 type JobUpdateInput struct {
@@ -109,6 +111,7 @@ type JobUpdateInput struct {
 	AttendanceLeave *string
 	EnterpriseID    *int64
 	RecruitNum      *int
+	WorkContent     *string
 }
 
 func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateInput) (*model.Job, error) {
@@ -160,6 +163,7 @@ func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateIn
 		AttendanceLeave:   input.AttendanceLeave,
 		EnterpriseID:      input.EnterpriseID,
 		RecruitNum:        input.RecruitNum,
+		WorkContent:       input.WorkContent,
 		CreateAt:          now,
 		UpdateAt:          now,
 		RefreshTime:       &now,
@@ -256,6 +260,9 @@ func (s *jobService) Update(ctx context.Context, userID int64, input JobUpdateIn
 	if input.RecruitNum != nil {
 		job.RecruitNum = *input.RecruitNum
 	}
+	if input.WorkContent != nil {
+		job.WorkContent = *input.WorkContent
+	}
 	return s.jobRepository.Update(ctx, job)
 }
 
@@ -270,6 +277,36 @@ func (s *jobService) Refresh(ctx context.Context, userID, jobID int64) error {
 	now := time.Now()
 	job.RefreshTime = &now
 	return s.jobRepository.Update(ctx, job)
+}
+
+func (s *jobService) ShareRefresh(ctx context.Context, userID, jobID int64) error {
+	user, err := s.userRepository.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	if user.ShareRefreshDate != nil && sameDay(*user.ShareRefreshDate, now) {
+		return ErrShareRefreshLimitExceeded
+	}
+	job, err := s.jobRepository.GetByID(ctx, jobID)
+	if err != nil {
+		return err
+	}
+	if job.UserID != userID {
+		return ErrForbidden
+	}
+	job.RefreshTime = &now
+	if err = s.jobRepository.Update(ctx, job); err != nil {
+		return err
+	}
+	user.ShareRefreshDate = &now
+	return s.userRepository.Update(ctx, user)
+}
+
+func sameDay(a, b time.Time) bool {
+	ay, am, ad := a.Date()
+	by, bm, bd := b.Date()
+	return ay == by && am == bm && ad == bd
 }
 
 func (s *jobService) Close(ctx context.Context, userID, jobID int64, closeReason string) error {

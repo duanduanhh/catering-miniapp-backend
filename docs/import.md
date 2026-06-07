@@ -1,0 +1,66 @@
+# 数据导入 SQL
+
+## 岗位工作内容导入（position_subcategory.description）
+
+先执行 ALTER（如果字段已存在可跳过）：
+
+```mysql
+ALTER TABLE `position_subcategory`
+  ADD COLUMN `description` text DEFAULT NULL COMMENT '岗位工作内容默认描述模板' AFTER `subcategory_name`;
+```
+
+按 `subcategory_name` 更新 `description`：
+
+```mysql
+-- 前厅/门店服务
+UPDATE `position_subcategory` SET `description` = '负责门店日常运营管理，制定业绩目标，管控服务、卫生与食品安全，统筹员工排班、培训与考核，处理客诉，优化成本与流程，保障门店高效运转，完成经营指标。' WHERE `subcategory_name` = '店长/副店长';
+UPDATE `position_subcategory` SET `description` = '维护前厅服务秩序，监督员工服务标准，接待顾客并处理突发问题，协调前后厅配合，做好现场管理与卫生检查，提升顾客用餐体验，协助店长完成门店管理工作。' WHERE `subcategory_name` = '大堂经理';
+UPDATE `position_subcategory` SET `description` = '带领服务班组完成接待、点餐、上菜等工作，落实服务规范，督导员工仪容仪表与工作效率，协助处理客诉，做好班前班后安排，保障服务流程顺畅。' WHERE `subcategory_name` = '领班/主管';
+UPDATE `position_subcategory` SET `description` = '负责顾客接待、点餐、上菜、撤台等服务，保持餐桌与区域整洁，主动响应顾客需求，配合团队完成服务流程，遵守门店规章制度，提升用餐满意度。' WHERE `subcategory_name` = '服务员/传菜';
+UPDATE `position_subcategory` SET `description` = '负责门店入口迎宾、引位、排队引导，热情接待顾客，解答咨询，做好客流登记与等位安排，维护前厅形象，配合服务团队提升到店体验。' WHERE `subcategory_name` = '迎宾/接待';
+UPDATE `position_subcategory` SET `description` = '负责门店收银结算、开票、储值办理，核对账单与账目，做好收银设备维护，接待顾客咨询，配合前厅完成接待与结算工作，保证账目准确无误。' WHERE `subcategory_name` = '收银员/前台';
+UPDATE `position_subcategory` SET `description` = '按标准完成餐品打包、核对订单，保障餐品完整与卫生，负责门店内/外送餐，及时送达并确认订单，做好打包区清洁，配合出餐流程高效运转。' WHERE `subcategory_name` = '打包/送餐';
+UPDATE `position_subcategory` SET `description` = '负责门店产品陈列、售卖与推介，接待到店顾客，完成销售结算，做好货品盘点与补货，保持售卖区整洁，主动推广产品，完成门店销售指标。' WHERE `subcategory_name` = '营业/售卖员';
+
+-- 后厨-厨师
+UPDATE `position_subcategory` SET `description` = '统筹厨房管理，制定菜单与出品标准，管控食材成本与质量，安排后厨分工与培训，监督菜品制作流程，保障出品稳定、安全高效，落实卫生规范。' WHERE `subcategory_name` = '厨师长';
+UPDATE `position_subcategory` SET `description` = '负责热菜炒制、调味与出品，把控火候与口味，按标准完成菜品制作，配合厨房流程，维护灶台设备，保障出餐速度与菜品质量。' WHERE `subcategory_name` = '炉子/主厨/炒锅';
+UPDATE `position_subcategory` SET `description` = '负责面食、饺子、面点制作，把控面团、馅料与成型标准，保证出品口感与品相，配合出餐节奏，做好操作台清洁与食材管理。' WHERE `subcategory_name` = '白案/面条/饺子';
+UPDATE `position_subcategory` SET `description` = '负责凉菜、卤味、冷盘制作与摆盘，把控食材新鲜度与调味，按标准出品，做好冷藏与卫生管理，保障冷菜安全与口感稳定。' WHERE `subcategory_name` = '凉菜/冷盘/腊卤';
+UPDATE `position_subcategory` SET `description` = '负责点心、糕点制作与烘焙，把控配方、温度与成型，保证点心口感与品相，做好原料管理与设备清洁，配合门店出餐需求。' WHERE `subcategory_name` = '点心/烘焙';
+UPDATE `position_subcategory` SET `description` = '负责蒸制菜品、高汤制作与上什工作，把控蒸制时间与火候，保证菜品鲜嫩入味，做好蒸箱维护与区域卫生，配合厨房出品流程。' WHERE `subcategory_name` = '蒸菜/上什';
+UPDATE `position_subcategory` SET `description` = '负责高汤、汤品、粥水熬制，把控食材配比与熬制时长，保证汤品浓郁鲜香，做好汤锅维护与食材管理，保障每日出品稳定。' WHERE `subcategory_name` = '汤锅/煲汤/粥水';
+UPDATE `position_subcategory` SET `description` = '负责火锅底料炒制、调配与打锅，把控底料口味与浓度，按顾客需求调整锅底，做好底料储存与设备清洁，保障火锅出品标准。' WHERE `subcategory_name` = '火锅底料/打锅';
+UPDATE `position_subcategory` SET `description` = '负责烧烤、烤鸭制作与食材穿串，把控烤制火候与调味，保证食材熟度与口感，做好烤具维护与卫生，按订单高效出品。' WHERE `subcategory_name` = '烧烤/烤鸭/穿串';
+UPDATE `position_subcategory` SET `description` = '负责西餐菜品制作、摆盘与出品，把控食材新鲜度与烹饪标准，熟悉西餐流程，配合出餐节奏，保障菜品口味与颜值达标。' WHERE `subcategory_name` = '西餐厨师';
+UPDATE `position_subcategory` SET `description` = '负责寿司、刺身、日料小食制作，把控食材新鲜度与刀工，按标准摆盘出品，做好冷藏与卫生管理，保障日料品质与安全。' WHERE `subcategory_name` = '日料/寿司/刺身';
+UPDATE `position_subcategory` SET `description` = '负责韩餐菜品制作、腌制与调味，熟悉韩料流程与口味标准，把控食材处理与烹饪，配合出餐，保证韩餐口味正宗、出品稳定。' WHERE `subcategory_name` = '韩料';
+UPDATE `position_subcategory` SET `description` = '负责特色小吃制作与出品，把控配方与制作流程，保证小吃口感与品相，做好食材管理与区域清洁，按订单高效完成制作。' WHERE `subcategory_name` = '小吃厨师';
+UPDATE `position_subcategory` SET `description` = '负责菜品雕刻、盘饰与姿造摆盘，提升菜品颜值与档次，配合厨师团队完成出品，做好工具维护与卫生，打造精致菜品呈现。' WHERE `subcategory_name` = '雕刻/姿造';
+
+-- 后厨-其他
+UPDATE `position_subcategory` SET `description` = '负责餐具清洗、消毒与归类，清理后厨垃圾与卫生，维护洗碗设备，保障餐具洁净充足，配合后厨运转，做好区域清洁与安全。' WHERE `subcategory_name` = '勤杂工/洗碗工';
+UPDATE `position_subcategory` SET `description` = '负责食材清洗、切配、改刀与分装，把控食材规格与新鲜度，按订单精准配货，做好墩台清洁与食材管理，保障出餐效率。' WHERE `subcategory_name` = '配菜/切配/墩子';
+UPDATE `position_subcategory` SET `description` = '负责菜品传递、摆盘辅助、餐具准备，配合炒锅师傅完成出品，做好荷台清洁与物料补给，衔接后厨流程，保障出餐顺畅。' WHERE `subcategory_name` = '打荷';
+UPDATE `position_subcategory` SET `description` = '负责快餐食材预处理、分装与备餐，按标准准备餐品，把控食材新鲜度，配合出餐节奏，做好备餐区清洁，保障快餐高效出品。' WHERE `subcategory_name` = '快餐备餐员';
+UPDATE `position_subcategory` SET `description` = '协助厨师完成食材清洗、切配、打杂等工作，学习后厨流程与技能，配合团队完成备餐、清洁等任务，遵守后厨规章制度。' WHERE `subcategory_name` = '后厨学徒/帮厨';
+
+-- 饮品/甜点
+UPDATE `position_subcategory` SET `description` = '负责咖啡冲泡、拉花与制作，把控萃取、奶泡与口感，维护咖啡设备，推介咖啡产品，做好吧台清洁，为顾客提供优质咖啡饮品。' WHERE `subcategory_name` = '咖啡师';
+UPDATE `position_subcategory` SET `description` = '负责奶茶、果茶制作，把控茶汤、配料与甜度，按标准出品，维护饮品设备，做好吧台清洁，高效完成订单，保证饮品口感稳定。' WHERE `subcategory_name` = '奶茶师';
+UPDATE `position_subcategory` SET `description` = '负责茶叶冲泡、茶艺展示与茶品推介，把控水温、冲泡时长，提供专业茶服务，做好茶台清洁与茶具维护，提升顾客品茶体验。' WHERE `subcategory_name` = '茶艺师';
+UPDATE `position_subcategory` SET `description` = '负责蛋糕、甜品烘焙与裱花装饰，把控配方与造型，保证甜品口感与颜值，做好原料管理与设备清洁，按订单完成制作。' WHERE `subcategory_name` = '烘焙/裱花';
+UPDATE `position_subcategory` SET `description` = '负责各类饮品制作、备料与出杯，把控饮品标准，维护水吧设备，做好吧台清洁与物料补给，高效完成饮品订单，配合门店运营。' WHERE `subcategory_name` = '水吧';
+UPDATE `position_subcategory` SET `description` = '负责鸡尾酒、特调饮品制作，把控配方与口感，熟悉酒水知识，推介酒品，做好吧台清洁与酒具维护，提供专业调酒服务。' WHERE `subcategory_name` = '调酒师';
+
+-- 综合职能支持
+UPDATE `position_subcategory` SET `description` = '负责门店文档整理、数据统计，食材入库、盘点、保管与出库，管控库存数量与保质期，做好台账记录，保障库存准确、物料充足。' WHERE `subcategory_name` = '文员/库管';
+UPDATE `position_subcategory` SET `description` = '负责员工招聘、入职、考勤、社保办理，组织培训与绩效考核，处理员工关系，完善人事流程，保障门店人力配置与管理规范。' WHERE `subcategory_name` = '人力资源';
+UPDATE `position_subcategory` SET `description` = '负责门店账务核对、收支登记、报销与现金管理，编制财务报表，对接税务与对账工作，保证账目清晰、资金安全，合规完成财务工作。' WHERE `subcategory_name` = '财务/出纳';
+UPDATE `position_subcategory` SET `description` = '负责食材、物料询价、采购与验收，把控品质与成本，对接供应商，保障物料及时供应，做好采购台账，优化采购流程与成本管控。' WHERE `subcategory_name` = '采购';
+UPDATE `position_subcategory` SET `description` = '负责门店活动策划、线上线下推广，提升客流与业绩，维护客户关系，分析运营数据，优化经营策略，完成销售与运营指标。' WHERE `subcategory_name` = '运营/营销/销售';
+UPDATE `position_subcategory` SET `description` = '负责食品安全、卫生与出品质量检查，落实食安规范，督导门店运营标准，排查风险，整改问题，保障门店合规安全运营。' WHERE `subcategory_name` = '品控/食安/督导';
+
+-- 其他
+UPDATE `position_subcategory` SET `description` = '例如：负责门店交办的各类辅助工作，配合各岗位完成日常运营，做好区域清洁与物料协助，遵守门店规章制度，保障门店整体运转顺畅。' WHERE `subcategory_name` = '其他';
+```

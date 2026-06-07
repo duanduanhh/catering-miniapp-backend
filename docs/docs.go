@@ -1392,7 +1392,6 @@ const docTemplate = `{
                 "tags": [
                     "岗位模块"
                 ],
-                "summary": "付费刷新岗位",
                 "parameters": [
                     {
                         "description": "params",
@@ -1409,6 +1408,45 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.PayOrderResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/refresh/share": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "每个自然日限使用1次，分享后免费刷新岗位排名（更新 refresh_time）。3001=今日次数已用完，403=非本人岗位。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位模块"
+                ],
+                "summary": "分享刷新岗位",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.JobShareRefreshRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -3005,6 +3043,9 @@ const docTemplate = `{
                 },
                 "third_area_id": {
                     "type": "integer"
+                },
+                "work_content": {
+                    "type": "string"
                 }
             }
         },
@@ -3240,6 +3281,9 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
+                },
+                "work_content": {
+                    "type": "string"
                 }
             }
         },
@@ -3374,6 +3418,9 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "integer"
+                },
+                "work_content": {
+                    "type": "string"
                 }
             }
         },
@@ -3439,6 +3486,17 @@ const docTemplate = `{
             }
         },
         "v1.JobReopenRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "job_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.JobShareRefreshRequest": {
             "type": "object",
             "required": [
                 "job_id"
@@ -3567,6 +3625,9 @@ const docTemplate = `{
                 },
                 "third_area_id": {
                     "type": "integer"
+                },
+                "work_content": {
+                    "type": "string"
                 }
             }
         },
@@ -3660,6 +3721,9 @@ const docTemplate = `{
         "v1.PositionSubcategory": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -3967,6 +4031,9 @@ const docTemplate = `{
         "v1.WechatLoginResponseData": {
             "type": "object",
             "properties": {
+                "is_old_user": {
+                    "type": "boolean"
+                },
                 "token": {
                     "type": "string"
                 },

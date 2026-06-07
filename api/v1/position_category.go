@@ -10,6 +10,7 @@ type PositionCategory struct {
 type PositionSubcategory struct {
 	ID              int64  `json:"id"`
 	SubcategoryName string `json:"subcategory_name"`
+	Description     string `json:"description"`
 }
 
 type GetPositionCategoryResponseData struct {

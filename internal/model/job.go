@@ -23,6 +23,7 @@ type Job struct {
 	ContactPersonName string     `gorm:"column:contact_person_name"`
 	Contact           string     `gorm:"column:contact"`
 	Description       string     `gorm:"column:description"`
+	WorkContent       string     `gorm:"column:work_content"`
 	PhotoURLs         string     `gorm:"column:photo_urls"`
 	Status            JobStatus  `gorm:"column:status"`
 	FirstAreaID       int        `gorm:"column:first_area_id"`

@@ -29,6 +29,7 @@ type JobCreateRequest struct {
 	AttendanceLeave   []string `json:"attendance_leave"`
 	EnterpriseID      int64    `json:"enterprise_id"`
 	RecruitNum        int      `json:"recruit_num"`
+	WorkContent       string   `json:"work_content"`
 }
 
 type JobCreateResponseData struct {
@@ -67,6 +68,7 @@ type JobUpdateRequest struct {
 	AttendanceLeave   []string `json:"attendance_leave"`
 	EnterpriseID      *int64   `json:"enterprise_id"`
 	RecruitNum        *int     `json:"recruit_num"`
+	WorkContent       *string  `json:"work_content"`
 }
 
 type JobTopRequest struct {
@@ -77,6 +79,10 @@ type JobTopRequest struct {
 }
 
 type JobRefreshRequest struct {
+	JobID int64 `json:"job_id" binding:"required"`
+}
+
+type JobShareRefreshRequest struct {
 	JobID int64 `json:"job_id" binding:"required"`
 }
 
@@ -171,6 +177,7 @@ type JobListItem struct {
 	EnterpriseID      int64           `json:"enterprise_id"`
 	EnterpriseName    string          `json:"enterprise_name"`
 	RecruitNum        int             `json:"recruit_num"`
+	WorkContent       string          `json:"work_content"`
 }
 
 type JobListResponseData struct {
@@ -214,6 +221,7 @@ type JobMyItem struct {
 	AttendanceLeave   []string `json:"attendance_leave"`
 	UserID            int64    `json:"user_id"`
 	Description       string   `json:"description"`
+	WorkContent       string   `json:"work_content"`
 }
 
 type JobMyResponseData struct {

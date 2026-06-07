@@ -728,6 +728,8 @@ definitions:
         type: string
       third_area_id:
         type: integer
+      work_content:
+        type: string
     required:
     - contact
     - contact_person_name
@@ -892,6 +894,8 @@ definitions:
         type: string
       user_id:
         type: integer
+      work_content:
+        type: string
     type: object
   v1.JobListRequest:
     properties:
@@ -980,6 +984,8 @@ definitions:
         type: string
       user_id:
         type: integer
+      work_content:
+        type: string
     type: object
   v1.JobMyRequest:
     properties:
@@ -1022,6 +1028,13 @@ definitions:
     - job_id
     type: object
   v1.JobReopenRequest:
+    properties:
+      job_id:
+        type: integer
+    required:
+    - job_id
+    type: object
+  v1.JobShareRefreshRequest:
     properties:
       job_id:
         type: integer
@@ -1106,6 +1119,8 @@ definitions:
         type: string
       third_area_id:
         type: integer
+      work_content:
+        type: string
     required:
     - id
     type: object
@@ -1169,6 +1184,8 @@ definitions:
     type: object
   v1.PositionSubcategory:
     properties:
+      description:
+        type: string
       id:
         type: integer
       subcategory_name:
@@ -1372,6 +1389,8 @@ definitions:
     type: object
   v1.WechatLoginResponseData:
     properties:
+      is_old_user:
+        type: boolean
       token:
         type: string
       user_info:
@@ -2285,7 +2304,30 @@ paths:
             $ref: '#/definitions/v1.PayOrderResponseData'
       security:
       - Bearer: []
-      summary: 付费刷新岗位
+      tags:
+      - 岗位模块
+  /jobs/refresh/share:
+    post:
+      consumes:
+      - application/json
+      description: 每个自然日限使用1次，分享后免费刷新岗位排名（更新 refresh_time）。3001=今日次数已用完，403=非本人岗位。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.JobShareRefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 分享刷新岗位
       tags:
       - 岗位模块
   /jobs/reopen:

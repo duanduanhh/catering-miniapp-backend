@@ -22,7 +22,7 @@ import (
 
 type WechatService interface {
 	Register(ctx context.Context, code, loginCode string, inviterID int64) (string, *model.User, error)
-	Login(ctx context.Context, code string) (string, *model.User, error)
+	Login(ctx context.Context, code string) (token string, user *model.User, isOldUser bool, err error)
 }
 
 func NewWechatService(
@@ -139,31 +139,35 @@ func (s *wechatService) Register(ctx context.Context, code, loginCode string, in
 	return token, user, nil
 }
 
-func (s *wechatService) Login(ctx context.Context, code string) (string, *model.User, error) {
+func (s *wechatService) Login(ctx context.Context, code string) (string, *model.User, bool, error) {
 	if code == "" {
-		return "", nil, errors.New("code is empty")
+		return "", nil, false, errors.New("code is empty")
 	}
 	session, err := s.code2session(ctx, code)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 	user, err := s.userRepo.GetByOpenID(ctx, session.OpenID)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 	if user == nil {
-		return "", nil, ErrUserNotFound
+		return "", nil, false, ErrUserNotFound
+	}
+	isOldUser := user.OldUserStatus == 1
+	if isOldUser {
+		user.OldUserStatus = 2
 	}
 	token, err := s.jwt.GenTokenWithOpenid(strconv.FormatInt(user.ID, 10), user.WechatOpenID, time.Time{})
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 	user.Token = token
 	user.UpdateAt = time.Now()
 	if err := s.userRepo.Update(ctx, user); err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
-	return token, user, nil
+	return token, user, isOldUser, nil
 }
 
 func randAlphanumeric(n int) string {

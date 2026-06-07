@@ -36,6 +36,8 @@ CREATE TABLE `user` (
   `first_top_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '首单状态：0=未触发，1=已触发（首次置顶支付成功后设为1，不可回退）',
   `new_customer_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '新客状态：0=未触发，1=已触发（购买联系券支付成功后设为1，不可回退）',
   `profile_complete_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '信息完善状态：0=未完善，1=已完善（首次编辑个人信息成功后设为1，赠送2张联系券，不可回退）',
+  `old_user_status` tinyint NOT NULL DEFAULT '0' COMMENT '老用户转化状态：0=新用户 1=老用户待通知 2=老用户已通知（存量用户上线时手动执行 UPDATE 设为1）',
+  `share_refresh_date` datetime(3) DEFAULT NULL COMMENT '分享刷新最近使用时间（自然日内限1次，按日期比较）',
   `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   `update_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (`id`)
@@ -104,6 +106,7 @@ CREATE TABLE `job` (
   `contact_person_name` varchar(64) NOT NULL COMMENT '联系人昵称',
   `contact` varchar(64) NOT NULL COMMENT '联系方式（手机号）',
   `description` text COMMENT '岗位描述',
+  `work_content` text COMMENT '工作内容',
   `photo_urls` longtext COMMENT '岗位相关图片URL列表（支持多个, 逗号分割）',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=生效 2=用户关闭 3=管理员下架 4=删除',
   `close_reason` varchar(255) DEFAULT NULL COMMENT '关闭原因：用户关闭/管理员下架时填写',
@@ -234,6 +237,7 @@ CREATE TABLE `position_subcategory` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `category_id` bigint NOT NULL COMMENT '一级分类ID',
   `subcategory_name` varchar(64) NOT NULL COMMENT '二级分类名称',
+  `description` text DEFAULT NULL COMMENT '岗位工作内容默认描述模板',
   `sort_order` int NOT NULL DEFAULT 0 COMMENT '排序序号',
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1=生效 0=禁用',
   `create_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
@@ -337,6 +341,13 @@ ALTER TABLE `job`
   ADD COLUMN `recruit_num` int NOT NULL DEFAULT '0' COMMENT '招募人数' AFTER `enterprise_id`;
 ```
 
+## 招聘信息表变更（新增工作内容字段）
+
+```mysql
+ALTER TABLE `job`
+  ADD COLUMN `work_content` text DEFAULT NULL COMMENT '工作内容' AFTER `description`;
+```
+
 ## 意见反馈表（新建）
 
 ```mysql
@@ -386,4 +397,22 @@ CREATE TABLE `contact_feedback` (
   KEY `idx_job_id` (`job_id`),
   KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='信息反馈（联系后反馈）';
+```
+
+## 岗位二级分类表变更（新增字段）
+
+```mysql
+ALTER TABLE `position_subcategory`
+  ADD COLUMN `description` text DEFAULT NULL COMMENT '岗位工作内容默认描述模板' AFTER `subcategory_name`;
+```
+
+## 用户表变更（新增老用户转化 & 分享刷新字段）
+
+```mysql
+ALTER TABLE `user`
+  ADD COLUMN `old_user_status` tinyint NOT NULL DEFAULT '0' COMMENT '老用户转化状态：0=新用户 1=老用户待通知 2=老用户已通知' AFTER `profile_complete_status`,
+  ADD COLUMN `share_refresh_date` datetime(3) DEFAULT NULL COMMENT '分享刷新最近使用时间（自然日内限1次）' AFTER `old_user_status`;
+
+-- 上线后手动执行一次，将存量用户标记为老用户：
+UPDATE `user` SET `old_user_status` = 1 WHERE `old_user_status` = 0;
 ```

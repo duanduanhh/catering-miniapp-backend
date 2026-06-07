@@ -19,4 +19,7 @@ var (
 	ErrEnterpriseDuplicate = newError(2002, "Enterprise already exists.")
 	ErrEnterpriseOCRFailed = newError(2003, "OCR recognition failed.")
 	ErrInvalidCreditCode   = newError(2004, "Invalid social credit code.")
+
+	// job errors
+	ErrShareRefreshLimitExceeded = newError(3001, "Share refresh already used today.")
 )
