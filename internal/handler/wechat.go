@@ -30,7 +30,7 @@ func NewWechatHandler(handler *Handler, orderService service.OrderService, wecha
 
 // Register godoc
 // @Summary 微信注册
-// @Description 通过微信小程序注册新用户，需同时传手机号授权 code 和登录 code。inviter_id 为可选邀请人用户ID。注册成功后不返回 token，需再调用 /login 获取。若 openid 已注册返回 400。
+// @Description 通过微信小程序注册新用户，需同时传手机号授权 code 和登录 code。inviter_id 为可选邀请人用户ID。注册成功后直接返回 token，无需再调 /login。若 openid 已注册返回 400。
 // @Tags 用户模块
 // @Accept json
 // @Produce json
@@ -43,7 +43,7 @@ func (h *WechatHandler) Register(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	_, user, err := h.wechatService.Register(ctx, req.PhoneCode, req.LoginCode, req.InviterID)
+	token, user, err := h.wechatService.Register(ctx, req.PhoneCode, req.LoginCode, req.InviterID)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("wechatService.Register error", zap.Error(err))
 		if err == service.ErrUserExists {
@@ -54,6 +54,7 @@ func (h *WechatHandler) Register(ctx *gin.Context) {
 		return
 	}
 	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
+		Token:    token,
 		UserInfo: v1.WechatLoginUserInfo{ID: user.ID},
 	})
 }

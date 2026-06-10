@@ -1943,7 +1943,7 @@ const docTemplate = `{
         },
         "/wechat/user/register": {
             "post": {
-                "description": "通过微信小程序注册新用户，需同时传手机号授权 code 和登录 code。inviter_id 为可选邀请人用户ID。注册成功后不返回 token，需再调用 /login 获取。若 openid 已注册返回 400。",
+                "description": "通过微信小程序注册新用户，需同时传手机号授权 code 和登录 code。inviter_id 为可选邀请人用户ID。注册成功后直接返回 token，无需再调 /login。若 openid 已注册返回 400。",
                 "consumes": [
                     "application/json"
                 ],
