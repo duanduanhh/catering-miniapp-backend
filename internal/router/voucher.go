@@ -7,7 +7,7 @@ import (
 )
 
 func InitVoucherRouter(deps RouterDeps, r *gin.RouterGroup) {
-	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
+	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
 	{
 		strictAuthRouter.POST("/contact_voucher/buy", deps.ContactVoucherHistoryHandler.Buy)
 		strictAuthRouter.POST("/contact_voucher/cost", deps.ContactVoucherHistoryHandler.Cost)

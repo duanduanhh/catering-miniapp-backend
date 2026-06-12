@@ -19,7 +19,7 @@ func InitJobRouter(deps RouterDeps, r *gin.RouterGroup) {
 		noStrictAuthRouter.POST("/jobs/info", deps.JobHandler.Info)
 	}
 
-	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
+	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
 	{
 		strictAuthRouter.POST("/jobs/create", deps.JobHandler.Create)
 		strictAuthRouter.POST("/jobs/update", deps.JobHandler.Update)

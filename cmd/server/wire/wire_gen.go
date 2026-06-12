@@ -27,13 +27,13 @@ import (
 
 func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), error) {
 	jwtJWT := jwt.NewJwt(viperViper)
-	handlerHandler := handler.NewHandler(logger)
 	db := repository.NewDB(viperViper, logger)
 	repositoryRepository := repository.NewRepository(logger, db)
+	userRepository := repository.NewUserRepository(repositoryRepository)
+	handlerHandler := handler.NewHandler(logger)
 	transaction := repository.NewTransaction(repositoryRepository)
 	sidSid := sid.NewSid()
 	serviceService := service.NewService(transaction, logger, sidSid, jwtJWT)
-	userRepository := repository.NewUserRepository(repositoryRepository)
 	contactVoucherHistoryRepository := repository.NewContactVoucherHistoryRepository(repositoryRepository)
 	jobRepository := repository.NewJobRepository(repositoryRepository)
 	orderRepository := repository.NewOrderRepository(repositoryRepository)
@@ -85,6 +85,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 		Logger:                       logger,
 		Config:                       viperViper,
 		JWT:                          jwtJWT,
+		UserRepo:                     userRepository,
 		UserHandler:                  userHandler,
 		JobHandler:                   jobHandler,
 		OrderHandler:                 orderHandler,

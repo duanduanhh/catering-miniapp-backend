@@ -12,7 +12,7 @@ func InitReportRouter(deps RouterDeps, r *gin.RouterGroup) {
 		noAuthRouter.GET("/report/reasons", deps.ReportHandler.Reasons)
 	}
 
-	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
+	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
 	{
 		strictAuthRouter.POST("/report/submit", deps.ReportHandler.Submit)
 	}

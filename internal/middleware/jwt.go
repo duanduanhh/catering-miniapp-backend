@@ -2,16 +2,18 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
+	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/jwt"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 )
 
-func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
+func StrictAuth(j *jwt.JWT, logger *log.Logger, userRepo repository.UserRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		tokenString := ctx.Request.Header.Get("token")
 		if tokenString == "" {
@@ -31,6 +33,18 @@ func StrictAuth(j *jwt.JWT, logger *log.Logger) gin.HandlerFunc {
 				"params": ctx.Params,
 			}), zap.Error(err))
 			v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, err.Error())
+			ctx.Abort()
+			return
+		}
+
+		userId, _ := strconv.ParseInt(claims.UserId, 10, 64)
+		if userId <= 0 {
+			v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "invalid user id")
+			ctx.Abort()
+			return
+		}
+		if _, err := userRepo.GetByID(ctx, userId); err != nil {
+			v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "user not found")
 			ctx.Abort()
 			return
 		}

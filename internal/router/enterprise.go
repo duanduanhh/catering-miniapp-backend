@@ -7,7 +7,7 @@ import (
 )
 
 func InitEnterpriseRouter(deps RouterDeps, r *gin.RouterGroup) {
-	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
+	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
 	{
 		strictAuthRouter.POST("/enterprise/ocr", deps.EnterpriseHandler.OCR)
 		strictAuthRouter.POST("/enterprise/create", deps.EnterpriseHandler.Create)

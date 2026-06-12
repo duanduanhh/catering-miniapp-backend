@@ -7,7 +7,7 @@ import (
 )
 
 func InitCollectRouter(deps RouterDeps, r *gin.RouterGroup) {
-	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
+	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
 	{
 		strictAuthRouter.POST("/jobs/collect", deps.CollectHandler.Collect)
 		strictAuthRouter.POST("/jobs/cancel_collect", deps.CollectHandler.Cancel)

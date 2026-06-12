@@ -12,7 +12,7 @@ func InitContactFeedbackRouter(deps RouterDeps, r *gin.RouterGroup) {
 		noAuthRouter.GET("/contact_feedback/reasons", deps.ContactFeedbackHandler.Reasons)
 	}
 
-	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
+	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
 	{
 		strictAuthRouter.POST("/contact_feedback/submit", deps.ContactFeedbackHandler.Submit)
 	}

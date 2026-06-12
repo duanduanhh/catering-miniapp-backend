@@ -11,7 +11,7 @@ func InitUserRouter(
 	r *gin.RouterGroup,
 ) {
 	// No route group has permission
-	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger))
+	strictAuthRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
 	{
 		strictAuthRouter.GET("/user/info", deps.UserHandler.GetInfo)
 		strictAuthRouter.POST("/user/update/geo", deps.UserHandler.UpdateGeo)
