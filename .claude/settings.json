@@ -1,7 +1,32 @@
 {
   "permissions": {
     "allow": [
-      "Bash(go build *)"
+      "Bash(make *)",
+      "Bash(make)",
+      "Bash(go *)",
+      "Bash(cd cmd/server/wire && wire)",
+      "Bash(git status *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git log)",
+      "Bash(git diff *)",
+      "Bash(git diff)",
+      "Bash(git branch *)",
+      "Bash(git branch)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(find *)",
+      "Bash(ls *)",
+      "Bash(ls)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(tree *)",
+      "Bash(tree)",
+      "Read",
+      "Write",
+      "Edit"
     ]
   }
 }

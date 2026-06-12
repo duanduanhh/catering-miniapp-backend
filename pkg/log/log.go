@@ -3,13 +3,14 @@ package log
 import (
 	"context"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const ctxLoggerKey = "zapLogger"
@@ -19,11 +20,9 @@ type Logger struct {
 }
 
 func NewLog(conf *viper.Viper) *Logger {
-	// log address "out.log" User-defined
 	lp := conf.GetString("log.log_file_name")
 	lv := conf.GetString("log.log_level")
 	var level zapcore.Level
-	// debug<info<warn<error<fatal<panic
 	switch lv {
 	case "debug":
 		level = zap.DebugLevel
@@ -36,47 +35,39 @@ func NewLog(conf *viper.Viper) *Logger {
 	default:
 		level = zap.InfoLevel
 	}
-	// Add timestamp to filename for daily rotation
-	currentTime := time.Now()
-	datedFileName := currentTime.Format("20060102")
-	// Simple string replacement for %Y%m%d pattern
-	actualLogPath := lp
-	if len(lp) > 0 {
-		// Replace %Y%m%d with actual date
-		actualLogPath = lp
-		for i := 0; i <= len(lp)-6; i++ {
-			if lp[i:i+6] == "%Y%m%d" {
-				actualLogPath = lp[:i] + datedFileName + lp[i+6:]
-				break
-			}
-		}
-	}
 
-	hook := lumberjack.Logger{
-		Filename:   actualLogPath,                  // Log file path
-		MaxSize:    conf.GetInt("log.max_size"),    // Maximum size unit for each log file: M
-		MaxBackups: conf.GetInt("log.max_backups"), // The maximum number of backups that can be saved for log files
-		MaxAge:     conf.GetInt("log.max_age"),     // Maximum number of days the file can be saved (30 days)
-		Compress:   conf.GetBool("log.compress"),   // Compression or not
-	}
+	maxAge := time.Duration(conf.GetInt("log.max_age")) * 24 * time.Hour
 
-	var encoder zapcore.Encoder
-	if conf.GetString("log.encoding") == "console" {
-		encoder = zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
-			TimeKey:        "ts",
-			LevelKey:       "level",
-			NameKey:        "Logger",
-			CallerKey:      "caller",
-			MessageKey:     "msg",
-			StacktraceKey:  "stacktrace",
-			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.LowercaseColorLevelEncoder,
-			EncodeTime:     timeEncoder,
-			EncodeDuration: zapcore.SecondsDurationEncoder,
-			EncodeCaller:   zapcore.FullCallerEncoder,
-		})
-	} else {
-		encoder = zapcore.NewJSONEncoder(zapcore.EncoderConfig{
+	// File encoder: no color
+	fileEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
+		TimeKey:        "ts",
+		LevelKey:       "level",
+		NameKey:        "Logger",
+		CallerKey:      "caller",
+		MessageKey:     "msg",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+		EncodeTime:     timeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.FullCallerEncoder,
+	})
+	// Console encoder: with color
+	consoleEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
+		TimeKey:        "ts",
+		LevelKey:       "level",
+		NameKey:        "Logger",
+		CallerKey:      "caller",
+		MessageKey:     "msg",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.LowercaseColorLevelEncoder,
+		EncodeTime:     timeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.FullCallerEncoder,
+	})
+	if conf.GetString("log.encoding") != "console" {
+		fileEncoder = zapcore.NewJSONEncoder(zapcore.EncoderConfig{
 			TimeKey:        "ts",
 			LevelKey:       "level",
 			NameKey:        "logger",
@@ -90,28 +81,36 @@ func NewLog(conf *viper.Viper) *Logger {
 			EncodeDuration: zapcore.SecondsDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 		})
+		consoleEncoder = fileEncoder
 	}
-	// default(both) log to console and file
-	core := zapcore.NewCore(
-		encoder,
-		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), // Print to console and file
-		level,
-	)
+
+	// Create per-level file cores
+	levels := []zapcore.Level{zap.DebugLevel, zap.InfoLevel, zap.WarnLevel, zap.ErrorLevel}
+	var cores []zapcore.Core
+	for _, lvl := range levels {
+		if lvl < level {
+			continue
+		}
+		w, _ := rotatelogs.New(
+			strings.Replace(lp, ".log", "."+lvl.String()+".log", 1),
+			rotatelogs.WithRotationTime(time.Hour),
+			rotatelogs.WithMaxAge(maxAge),
+		)
+		cores = append(cores, zapcore.NewCore(
+			fileEncoder,
+			zapcore.AddSync(w),
+			zap.LevelEnablerFunc(func(target zapcore.Level) func(zapcore.Level) bool {
+				return func(l zapcore.Level) bool { return l == target }
+			}(lvl)),
+		))
+	}
+
 	mode := conf.GetString("log.mode")
-	switch mode {
-	case "console":
-		core = zapcore.NewCore(
-			encoder,
-			zapcore.AddSync(os.Stdout),
-			level,
-		)
-	case "file":
-		core = zapcore.NewCore(
-			encoder,
-			zapcore.AddSync(&hook),
-			level,
-		)
+	if mode != "file" {
+		cores = append(cores, zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), level))
 	}
+
+	core := zapcore.NewTee(cores...)
 	if conf.GetString("env") != "prod" {
 		return &Logger{Logger: zap.New(core, zap.Development(), zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel))}
 	}
