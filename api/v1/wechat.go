@@ -11,7 +11,8 @@ type WechatLoginResponseData struct {
 }
 
 type WechatLoginUserInfo struct {
-	ID int64 `json:"id"`
+	ID       int64  `json:"id"`
+	UserCode string `json:"user_code"`
 }
 
 type WechatRegisterRequest struct {

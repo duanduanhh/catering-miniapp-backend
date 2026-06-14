@@ -3888,6 +3888,9 @@ const docTemplate = `{
                 "sex": {
                     "type": "integer"
                 },
+                "user_code": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "integer"
                 }
@@ -4047,6 +4050,9 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "user_code": {
+                    "type": "string"
                 }
             }
         },

@@ -55,7 +55,7 @@ func (h *WechatHandler) Register(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
 		Token:    token,
-		UserInfo: v1.WechatLoginUserInfo{ID: user.ID},
+		UserInfo: v1.WechatLoginUserInfo{ID: user.ID, UserCode: user.UserCode},
 	})
 }
 
@@ -87,7 +87,7 @@ func (h *WechatHandler) Login(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, v1.WechatLoginResponseData{
 		Token:     token,
 		IsOldUser: isOldUser,
-		UserInfo:  v1.WechatLoginUserInfo{ID: user.ID},
+		UserInfo:  v1.WechatLoginUserInfo{ID: user.ID, UserCode: user.UserCode},
 	})
 }
 

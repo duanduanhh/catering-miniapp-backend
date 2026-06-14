@@ -18,6 +18,7 @@ type UserRepository interface {
 	GetByOpenID(ctx context.Context, openID string) (*model.User, error)
 	ListByIDs(ctx context.Context, ids []int64) ([]*model.User, error)
 	ListByInviterID(ctx context.Context, inviterID int64, pageNum, pageSize int) ([]*model.User, int64, error)
+	ExistsByUserCode(ctx context.Context, code string) (bool, error)
 }
 
 func NewUserRepository(
@@ -88,6 +89,14 @@ func (r *userRepository) ListByIDs(ctx context.Context, ids []int64) ([]*model.U
 		return nil, err
 	}
 	return users, nil
+}
+
+func (r *userRepository) ExistsByUserCode(ctx context.Context, code string) (bool, error) {
+	var count int64
+	if err := r.DB(ctx).Model(&model.User{}).Where("user_code = ?", code).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (r *userRepository) ListByInviterID(ctx context.Context, inviterID int64, pageNum, pageSize int) ([]*model.User, int64, error) {

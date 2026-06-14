@@ -49,6 +49,7 @@ func (h *UserHandler) GetInfo(ctx *gin.Context) {
 		Name:                  user.Name,
 		Sex:                   user.Sex,
 		Phone:                 user.Phone,
+		UserCode:              user.UserCode,
 		ContactVoucherNum:     user.ContactVoucherNum,
 		FirstTopStatus:        user.FirstTopStatus,
 		NewCustomerStatus:     user.NewCustomerStatus,

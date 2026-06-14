@@ -11,6 +11,7 @@ CREATE TABLE `user` (
   `age` int DEFAULT '0' COMMENT '年龄',
   `birthday` longtext COMMENT '生日',
   `phone` varchar(64) DEFAULT NULL COMMENT '手机号（登录/联系）',
+  `user_code` varchar(8) DEFAULT NULL COMMENT '用户编号（8位字母数字混合，唯一）',
   `wechart_code` varchar(255) DEFAULT NULL COMMENT '微信登录临时code（wx.login获取, 一次性）',
   `wechat_open_id` longtext COMMENT '微信 openId（用户唯一标识）',
   `token` longtext COMMENT '登录态 token',
@@ -415,4 +416,12 @@ ALTER TABLE `user`
 
 -- 上线后手动执行一次，将存量用户标记为老用户：
 UPDATE `user` SET `old_user_status` = 1 WHERE `old_user_status` = 0;
+```
+
+## 用户表变更（新增用户编号字段）
+
+```mysql
+ALTER TABLE `user`
+  ADD COLUMN `user_code` varchar(8) DEFAULT NULL COMMENT '用户编号（8位字母数字混合，唯一）' AFTER `phone`,
+  ADD UNIQUE INDEX `uk_user_code` (`user_code`);
 ```

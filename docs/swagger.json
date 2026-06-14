@@ -3881,6 +3881,9 @@
                 "sex": {
                     "type": "integer"
                 },
+                "user_code": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "integer"
                 }
@@ -4040,6 +4043,9 @@
             "properties": {
                 "id": {
                     "type": "integer"
+                },
+                "user_code": {
+                    "type": "string"
                 }
             }
         },

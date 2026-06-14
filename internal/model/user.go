@@ -10,6 +10,7 @@ type User struct {
 	Age               int       `gorm:"column:age"`
 	Birthday          string    `gorm:"column:birthday"`
 	Phone             string    `gorm:"column:phone"`
+	UserCode          string    `gorm:"column:user_code;type:varchar(8);uniqueIndex"`
 	WechartCode       string    `gorm:"column:wechart_code"`
 	WechatOpenID      string    `gorm:"column:wechat_open_id"`
 	Token             string    `gorm:"column:token"`

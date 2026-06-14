@@ -1295,6 +1295,8 @@ definitions:
         type: integer
       sex:
         type: integer
+      user_code:
+        type: string
       user_id:
         type: integer
     type: object
@@ -1400,6 +1402,8 @@ definitions:
     properties:
       id:
         type: integer
+      user_code:
+        type: string
     type: object
   v1.WechatPayNotifyRequest:
     type: object

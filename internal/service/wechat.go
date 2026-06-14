@@ -92,9 +92,25 @@ func (s *wechatService) Register(ctx context.Context, code, loginCode string, in
 		return "", nil, ErrUserExists
 	}
 	const newUserVoucherNum = 5
+	var userCode string
+	for i := 0; i < 5; i++ {
+		candidate := randAlphanumeric(8)
+		exists, err := s.userRepo.ExistsByUserCode(ctx, candidate)
+		if err != nil {
+			return "", nil, err
+		}
+		if !exists {
+			userCode = candidate
+			break
+		}
+	}
+	if userCode == "" {
+		return "", nil, errors.New("failed to generate unique user code")
+	}
 	user = &model.User{
 		WechatOpenID:      session.OpenID,
 		Phone:             phone,
+		UserCode:          userCode,
 		Name:              "餐饮人" + randAlphanumeric(6),
 		InviterID:         inviterID,
 		ContactVoucherNum: newUserVoucherNum,
