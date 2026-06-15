@@ -27,7 +27,6 @@ ENV APP_ENV=${APP_ENV}
 
 WORKDIR /data/app
 COPY --from=builder /data/app/bin /data/app
-COPY admin-frontend/dist /data/app/admin-ui
 
 EXPOSE 8000
 ENTRYPOINT [ "./server" ]

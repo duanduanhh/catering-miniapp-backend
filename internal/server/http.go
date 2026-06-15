@@ -64,7 +64,6 @@ func NewHTTPServer(
 	router.InitContactFeedbackRouter(deps, root)
 
 	s.Static("/uploads", "./storage/uploads")
-	s.Static("/admin-ui", "./admin-ui")
 
 	return s
 }
