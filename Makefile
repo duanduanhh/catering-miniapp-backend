@@ -33,7 +33,7 @@ build-linux:
 SWR_REGISTRY ?= swr.cn-north-1.myhuaweicloud.com
 SWR_ORG      ?= catering-cyxx
 IMAGE_NAME   ?= miniapp-backend
-IMAGE_TAG    ?= v1-20260615
+IMAGE_TAG    ?= v1-2026061502
 
 docker:
 	make swag

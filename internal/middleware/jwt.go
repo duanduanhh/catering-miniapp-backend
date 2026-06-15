@@ -43,7 +43,7 @@ func StrictAuth(j *jwt.JWT, logger *log.Logger, userRepo repository.UserReposito
 			ctx.Abort()
 			return
 		}
-		if _, err := userRepo.GetByID(ctx, userId); err != nil {
+		if _, err := userRepo.GetByIDAndOpenID(ctx, userId, claims.Openid); err != nil {
 			v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "user not found")
 			ctx.Abort()
 			return
