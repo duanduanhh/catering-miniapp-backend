@@ -17,6 +17,106 @@
     },
     "host": "localhost:8000",
     "paths": {
+        "/admin/contact_histories/list": {
+            "post": {
+                "description": "拨打电话记录列表，附带最新一条对应的拨打反馈聚合。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "管理后台联系记录列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminContactHistoryListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminContactHistoryListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/enterprises/list": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "管理后台企业列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminEnterpriseListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminEnterpriseListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/feedbacks/list": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "管理后台意见反馈列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminFeedbackListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminFeedbackListResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/jobs/delete": {
             "post": {
                 "consumes": [
@@ -179,6 +279,72 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.AdminLoginResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/reports/list": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "管理后台举报列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminReportListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminReportListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users/list": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "管理后台用户列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminUserListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminUserListResponseData"
                         }
                     }
                 }
@@ -2046,6 +2212,257 @@
                 "JobStatusDeleted"
             ]
         },
+        "v1.AdminContactHistoryItem": {
+            "type": "object",
+            "properties": {
+                "create_at": {
+                    "type": "string"
+                },
+                "feedback_create_at": {
+                    "description": "空字符串表示无",
+                    "type": "string"
+                },
+                "feedback_id": {
+                    "description": "关联反馈（取该联系记录最新一条）",
+                    "type": "integer"
+                },
+                "feedback_reason": {
+                    "type": "integer"
+                },
+                "feedback_status": {
+                    "description": "1 待处理 2 已核实 3 已驳回",
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "purpose_id": {
+                    "description": "即 job_id",
+                    "type": "integer"
+                },
+                "purpose_type": {
+                    "type": "integer"
+                },
+                "purpose_user_deleted": {
+                    "type": "integer"
+                },
+                "purpose_user_id": {
+                    "type": "integer"
+                },
+                "purpose_user_name": {
+                    "type": "string"
+                },
+                "purpose_user_phone": {
+                    "type": "string"
+                },
+                "user_deleted": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminContactHistoryListRequest": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "purpose_user_id": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminContactHistoryListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminContactHistoryItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminEnterpriseItem": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "business_scope": {
+                    "type": "string"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_default": {
+                    "type": "integer"
+                },
+                "legal_representative": {
+                    "type": "string"
+                },
+                "license_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "social_credit_code": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "update_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminEnterpriseListRequest": {
+            "type": "object",
+            "properties": {
+                "keyword": {
+                    "description": "name / social_credit_code",
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminEnterpriseListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminEnterpriseItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminFeedbackItem": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "photo_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "type_name": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminFeedbackListRequest": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminFeedbackListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminFeedbackItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
         "v1.AdminJobIDRequest": {
             "type": "object",
             "required": [
@@ -2183,6 +2600,183 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.AdminReportItem": {
+            "type": "object",
+            "properties": {
+                "biz_type": {
+                    "type": "integer"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "integer"
+                },
+                "reason_label": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminReportListRequest": {
+            "type": "object",
+            "properties": {
+                "biz_type": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminReportListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminReportItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminUserItem": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "age": {
+                    "type": "integer"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "buy_num": {
+                    "type": "integer"
+                },
+                "collect_num": {
+                    "type": "integer"
+                },
+                "contact_voucher_num": {
+                    "type": "integer"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "invite_num": {
+                    "type": "integer"
+                },
+                "inviter_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "sex": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "total_recharge": {
+                    "type": "number"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "update_at": {
+                    "type": "string"
+                },
+                "user_code": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminUserListRequest": {
+            "type": "object",
+            "properties": {
+                "end_time": {
+                    "type": "string"
+                },
+                "keyword": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminUserListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminUserItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

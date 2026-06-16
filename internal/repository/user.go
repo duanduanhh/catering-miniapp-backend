@@ -20,6 +20,18 @@ type UserRepository interface {
 	ListByIDs(ctx context.Context, ids []int64) ([]*model.User, error)
 	ListByInviterID(ctx context.Context, inviterID int64, pageNum, pageSize int) ([]*model.User, int64, error)
 	ExistsByUserCode(ctx context.Context, code string) (bool, error)
+	AdminList(ctx context.Context, query AdminUserListQuery) ([]*model.User, int64, error)
+}
+
+// AdminUserListQuery 管理后台用户列表筛选条件
+type AdminUserListQuery struct {
+	Keyword   string // 模糊匹配 name / phone / user_code
+	Status    *int   // 用 *int 区分"未传"和"传 0"
+	Type      *int
+	StartTime string // 注册时间区间（含）
+	EndTime   string
+	PageNum   int
+	PageSize  int
 }
 
 func NewUserRepository(
@@ -128,6 +140,45 @@ func (r *userRepository) ListByInviterID(ctx context.Context, inviterID int64, p
 	}
 	offset := (pageNum - 1) * pageSize
 	if err := db.Order("create_at DESC").Offset(offset).Limit(pageSize).Find(&list).Error; err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
+}
+
+// AdminList 管理后台用户列表，支持关键词（name/phone/user_code）、status、type、注册时间区间筛选。
+func (r *userRepository) AdminList(ctx context.Context, query AdminUserListQuery) ([]*model.User, int64, error) {
+	var (
+		list  []*model.User
+		total int64
+	)
+	db := r.DB(ctx).Model(&model.User{})
+	if kw := query.Keyword; kw != "" {
+		like := "%" + kw + "%"
+		db = db.Where("name LIKE ? OR phone LIKE ? OR user_code LIKE ?", like, like, like)
+	}
+	if query.Status != nil {
+		db = db.Where("status = ?", *query.Status)
+	}
+	if query.Type != nil {
+		db = db.Where("type = ?", *query.Type)
+	}
+	if query.StartTime != "" {
+		db = db.Where("create_at >= ?", query.StartTime)
+	}
+	if query.EndTime != "" {
+		db = db.Where("create_at <= ?", query.EndTime)
+	}
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if query.PageNum <= 0 {
+		query.PageNum = 1
+	}
+	if query.PageSize <= 0 {
+		query.PageSize = 20
+	}
+	offset := (query.PageNum - 1) * query.PageSize
+	if err := db.Order("create_at DESC").Offset(offset).Limit(query.PageSize).Find(&list).Error; err != nil {
 		return nil, 0, err
 	}
 	return list, total, nil

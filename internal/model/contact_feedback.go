@@ -11,14 +11,15 @@ const (
 )
 
 type ContactFeedback struct {
-	ID          int64                 `gorm:"primaryKey;column:id"`
-	UserID      int64                 `gorm:"column:user_id"`
-	JobID       int64                 `gorm:"column:job_id"`
-	BizType     int                   `gorm:"column:biz_type"`
-	Reason      int                   `gorm:"column:reason"`
-	Description string                `gorm:"column:description;size:500"`
-	Status      ContactFeedbackStatus `gorm:"column:status"`
-	CreateAt    time.Time             `gorm:"column:create_at"`
+	ID               int64                 `gorm:"primaryKey;column:id"`
+	UserID           int64                 `gorm:"column:user_id"`
+	ContactHistoryID int64                 `gorm:"column:contact_history_id;default:0;index"` // 关联 contact_history.id；提交时按 (user,job,biz_type) 反查匹配的最新一条；0 表示历史数据无法关联
+	JobID            int64                 `gorm:"column:job_id"`
+	BizType          int                   `gorm:"column:biz_type"`
+	Reason           int                   `gorm:"column:reason"`
+	Description      string                `gorm:"column:description;size:500"`
+	Status           ContactFeedbackStatus `gorm:"column:status"`
+	CreateAt         time.Time             `gorm:"column:create_at"`
 }
 
 func (m *ContactFeedback) TableName() string {
