@@ -26,6 +26,7 @@ type RouterDeps struct {
 	FeedbackHandler              *handler.FeedbackHandler
 	EnterpriseHandler            *handler.EnterpriseHandler
 	AdminJobHandler              *handler.AdminJobHandler
+	AdminAuthHandler             *handler.AdminAuthHandler
 	ReportHandler                *handler.ReportHandler
 	ContactFeedbackHandler       *handler.ContactFeedbackHandler
 }

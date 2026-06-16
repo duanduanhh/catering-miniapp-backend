@@ -22,4 +22,8 @@ var (
 
 	// job errors
 	ErrShareRefreshLimitExceeded = newError(3001, "Share refresh already used today.")
+
+	// admin errors
+	ErrAdminLoginFailed  = newError(4001, "Invalid admin username or password.")
+	ErrAdminUnauthorized = newError(4002, "Admin token invalid or expired.")
 )

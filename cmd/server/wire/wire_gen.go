@@ -75,6 +75,8 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	enterpriseHandler := handler.NewEnterpriseHandler(handlerHandler, enterpriseService)
 	adminJobService := service.NewAdminJobService(serviceService, jobRepository)
 	adminJobHandler := handler.NewAdminJobHandler(handlerHandler, adminJobService)
+	adminAuthService := service.NewAdminAuthService(viperViper)
+	adminAuthHandler := handler.NewAdminAuthHandler(handlerHandler, adminAuthService)
 	reportRepository := repository.NewReportRepository(repositoryRepository)
 	reportService := service.NewReportService(serviceService, reportRepository)
 	reportHandler := handler.NewReportHandler(handlerHandler, reportService)
@@ -98,6 +100,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 		FeedbackHandler:              feedbackHandler,
 		EnterpriseHandler:            enterpriseHandler,
 		AdminJobHandler:              adminJobHandler,
+		AdminAuthHandler:             adminAuthHandler,
 		ReportHandler:                reportHandler,
 		ContactFeedbackHandler:       contactFeedbackHandler,
 	}
@@ -114,9 +117,9 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewContactVoucherHistoryRepository, repository.NewPositionCategoryRepository, repository.NewFeedbackRepository, repository.NewEnterpriseRepository, repository.NewReportRepository, repository.NewContactFeedbackRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewUploadService, NewPayServiceProvider, service.NewPositionCategoryService, service.NewFeedbackService, service.NewEnterpriseService, service.NewAdminJobService, service.NewReportService, service.NewContactFeedbackService)
+var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewUploadService, NewPayServiceProvider, service.NewPositionCategoryService, service.NewFeedbackService, service.NewEnterpriseService, service.NewAdminJobService, service.NewAdminAuthService, service.NewReportService, service.NewContactFeedbackService)
 
-var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewOrderHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler, handler.NewFeedbackHandler, handler.NewEnterpriseHandler, handler.NewAdminJobHandler, handler.NewReportHandler, handler.NewContactFeedbackHandler)
+var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewOrderHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler, handler.NewFeedbackHandler, handler.NewEnterpriseHandler, handler.NewAdminJobHandler, handler.NewAdminAuthHandler, handler.NewReportHandler, handler.NewContactFeedbackHandler)
 
 var wechatPaySet = wire.NewSet(
 	NewWechatPayClientProvider,

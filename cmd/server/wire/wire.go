@@ -57,6 +57,7 @@ var serviceSet = wire.NewSet(
 	service.NewFeedbackService,
 	service.NewEnterpriseService,
 	service.NewAdminJobService,
+	service.NewAdminAuthService,
 	service.NewReportService,
 	service.NewContactFeedbackService,
 )
@@ -75,6 +76,7 @@ var handlerSet = wire.NewSet(
 	handler.NewFeedbackHandler,
 	handler.NewEnterpriseHandler,
 	handler.NewAdminJobHandler,
+	handler.NewAdminAuthHandler,
 	handler.NewReportHandler,
 	handler.NewContactFeedbackHandler,
 )
