@@ -234,14 +234,16 @@ func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order
 				if err := s.applyContactVoucher(ctx, order.UserID, item, "购买联系券"); err != nil {
 					return err
 				}
-				if err := s.applyNewCustomerStatus(ctx, order.UserID); err != nil {
-					return err
-				}
 			case model.ProductTypeRefresh:
 				if err := s.applyRefresh(ctx, item); err != nil {
 					return err
 				}
 			}
+		}
+		// 任意付费订单支付成功都触发"首次消费"判定；
+		// applyNewCustomerStatus 内部以 user.new_customer_status 字段幂等，重复调用安全。
+		if err := s.applyNewCustomerStatus(ctx, order.UserID); err != nil {
+			return err
 		}
 		return nil
 	})
