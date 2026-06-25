@@ -10,6 +10,7 @@ type WechatPayNotifyRequest struct {
 type ContactVoucherBuyRequest struct {
 	Price             float64 `json:"price" binding:"required"`
 	ContactVoucherNum int     `json:"contact_voucher_num" binding:"required"`
+	GiftNum           int     `json:"gift_num"`
 }
 
 type PayParams struct {

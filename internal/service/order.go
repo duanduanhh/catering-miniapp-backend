@@ -11,7 +11,7 @@ import (
 
 type OrderService interface {
 	CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64, contactVoucherNum int) (*model.Order, *model.OrderItem, error)
-	CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int) (*model.Order, *model.OrderItem, error)
+	CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int, giftNum int) (*model.Order, *model.OrderItem, error)
 	CreateRefreshOrder(ctx context.Context, userID, jobID int64, price float64) (*model.Order, *model.OrderItem, error)
 	PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
 	PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
@@ -89,7 +89,7 @@ func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, 
 	return order, item, nil
 }
 
-func (s *orderService) CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int) (*model.Order, *model.OrderItem, error) {
+func (s *orderService) CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int, giftNum int) (*model.Order, *model.OrderItem, error) {
 	order := &model.Order{
 		OrderNo:     s.generateOrderNo("CV"),
 		UserID:      userID,
@@ -104,7 +104,7 @@ func (s *orderService) CreateContactVoucherOrder(ctx context.Context, userID int
 		ProductType:       model.ProductTypeContactVoucher,
 		TitleSnapshot:     fmt.Sprintf("购买联系券"),
 		UnitPriceSnapshot: price,
-		ContactVoucherNum: voucherNum,
+		ContactVoucherNum: voucherNum + giftNum,
 		CreateAt:          time.Now(),
 		UpdateAt:          time.Now(),
 	}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -43,6 +44,15 @@ func (h *UserHandler) GetInfo(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
+	shareRefreshAvailable := 1
+	if user.ShareRefreshDate != nil {
+		now := time.Now()
+		ay, am, ad := user.ShareRefreshDate.Date()
+		by, bm, bd := now.Date()
+		if ay == by && am == bm && ad == bd {
+			shareRefreshAvailable = 0
+		}
+	}
 	v1.HandleSuccess(ctx, v1.UserInfoResponseData{
 		UserID:                user.ID,
 		Avatar:                user.Avatar,
@@ -54,6 +64,7 @@ func (h *UserHandler) GetInfo(ctx *gin.Context) {
 		FirstTopStatus:        user.FirstTopStatus,
 		NewCustomerStatus:     user.NewCustomerStatus,
 		ProfileCompleteStatus: user.ProfileCompleteStatus,
+		ShareRefreshAvailable: shareRefreshAvailable,
 	})
 }
 

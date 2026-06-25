@@ -2973,6 +2973,9 @@ const docTemplate = `{
                 "contact_voucher_num": {
                     "type": "integer"
                 },
+                "gift_num": {
+                    "type": "integer"
+                },
                 "price": {
                     "type": "number"
                 }
@@ -4544,6 +4547,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "sex": {
+                    "type": "integer"
+                },
+                "share_refresh_available": {
                     "type": "integer"
                 },
                 "user_code": {

@@ -531,6 +531,8 @@ definitions:
     properties:
       contact_voucher_num:
         type: integer
+      gift_num:
+        type: integer
       price:
         type: number
     required:
@@ -1596,6 +1598,8 @@ definitions:
       profile_complete_status:
         type: integer
       sex:
+        type: integer
+      share_refresh_available:
         type: integer
       user_code:
         type: string

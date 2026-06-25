@@ -11,6 +11,7 @@ type UserInfoResponseData struct {
 	FirstTopStatus        int    `json:"first_top_status"`
 	NewCustomerStatus     int    `json:"new_customer_status"`
 	ProfileCompleteStatus int    `json:"profile_complete_status"`
+	ShareRefreshAvailable int    `json:"share_refresh_available"`
 }
 
 type UserInfoResponse struct {

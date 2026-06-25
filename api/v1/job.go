@@ -72,9 +72,9 @@ type JobUpdateRequest struct {
 }
 
 type JobTopRequest struct {
-	JobID          int64   `json:"job_id" binding:"required"`
-	TopHour        int     `json:"top_hour" binding:"required"`
-	Price          float64 `json:"price" binding:"required"`
+	JobID             int64   `json:"job_id" binding:"required"`
+	TopHour           int     `json:"top_hour" binding:"required"`
+	Price             float64 `json:"price" binding:"required"`
 	ContactVoucherNum int     `json:"contact_voucher_num"` // 加赠联系券数量，0=不加赠
 }
 

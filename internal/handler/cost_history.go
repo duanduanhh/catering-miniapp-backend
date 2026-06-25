@@ -66,7 +66,7 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	order, _, err := h.orderService.CreateContactVoucherOrder(ctx, userID, req.Price, req.ContactVoucherNum)
+	order, _, err := h.orderService.CreateContactVoucherOrder(ctx, userID, req.Price, req.ContactVoucherNum, req.GiftNum)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("orderService.CreateContactVoucherOrder error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
