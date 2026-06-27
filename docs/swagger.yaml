@@ -469,44 +469,51 @@ definitions:
       address:
         type: string
       avatar:
-        description: 头像
+        description: 被联系方头像
         type: string
       biz_type:
         type: integer
       company_name:
-        description: 企业名称
         type: string
       create_at:
         type: string
       first_area_des:
-        description: 一级地区
         type: string
       id:
         type: integer
       job_id:
+        description: 岗位信息
         type: integer
       job_status:
-        description: 岗位状态
         type: integer
       positions:
         type: string
       purpose_user_id:
+        description: 被联系方信息
         type: integer
       purpose_user_name:
         type: string
       purpose_user_phone:
         type: string
       salary_max:
-        description: 薪资上限
         type: integer
       salary_min:
-        description: 薪资下限
         type: integer
       second_area_des:
-        description: 二级地区
         type: string
       third_area_des:
-        description: 三级地区
+        type: string
+      user_avatar:
+        description: 发起方头像
+        type: string
+      user_id:
+        description: 发起方信息
+        type: integer
+      user_name:
+        description: 发起方用户名
+        type: string
+      user_phone:
+        description: 发起方手机号
         type: string
     type: object
   v1.ContactHistoryListRequest:

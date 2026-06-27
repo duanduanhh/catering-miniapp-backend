@@ -55,6 +55,10 @@ type ContactHistoryItem struct {
 	PurposeUserID    int64
 	PurposeUserName  string
 	PurposeUserPhone string
+	UserID           int64
+	UserName         string
+	UserPhone        string
+	UserAvatar       string
 	CreateAt         time.Time
 	// 新增字段
 	Avatar        string
@@ -116,6 +120,7 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 	for _, item := range histories {
 		jobIDs = append(jobIDs, item.PurposeID)
 		userIDs = append(userIDs, item.PurposeUserID)
+		userIDs = append(userIDs, item.UserID)
 	}
 	jobs, _ := s.jobRepository.ListByIDs(ctx, jobIDs)
 
@@ -140,6 +145,7 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 			PurposeUserID:    history.PurposeUserID,
 			PurposeUserName:  history.PurposeUserName,
 			PurposeUserPhone: history.PurposeUserPhone,
+			UserID:           history.UserID,
 		}
 		if job, ok := jobMap[history.PurposeID]; ok {
 			item.BizType = job.BizType
@@ -155,6 +161,11 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 		}
 		if user, ok := userMap[history.PurposeUserID]; ok {
 			item.Avatar = user.Avatar
+		}
+		if user, ok := userMap[history.UserID]; ok {
+			item.UserName = user.Name
+			item.UserPhone = user.Phone
+			item.UserAvatar = user.Avatar
 		}
 		items = append(items, item)
 	}
