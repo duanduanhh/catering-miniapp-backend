@@ -76,6 +76,8 @@ definitions:
     properties:
       end_time:
         type: string
+      id:
+        type: integer
       job_id:
         type: integer
       page_num:
@@ -131,6 +133,8 @@ definitions:
     type: object
   v1.AdminEnterpriseListRequest:
     properties:
+      enterprise_id:
+        type: integer
       keyword:
         description: name / social_credit_code
         type: string
@@ -179,6 +183,8 @@ definitions:
     properties:
       end_time:
         type: string
+      feedback_id:
+        type: integer
       page_num:
         type: integer
       page_size:
@@ -251,6 +257,8 @@ definitions:
     properties:
       biz_type:
         type: integer
+      job_id:
+        type: integer
       keyword:
         type: string
       page_num:
@@ -261,6 +269,8 @@ definitions:
         items:
           type: integer
         type: array
+      user_id:
+        type: integer
     type: object
   v1.AdminJobListResponseData:
     properties:
@@ -327,6 +337,8 @@ definitions:
       page_size:
         type: integer
       reason:
+        type: integer
+      report_id:
         type: integer
       start_time:
         type: string
@@ -396,6 +408,8 @@ definitions:
       status:
         type: integer
       type:
+        type: integer
+      user_id:
         type: integer
     type: object
   v1.AdminUserListResponseData:
@@ -545,6 +559,19 @@ definitions:
     required:
     - contact_voucher_num
     - price
+    type: object
+  v1.ContactVoucherCallbackCostRequest:
+    properties:
+      purpose_id:
+        type: integer
+      purpose_type:
+        type: integer
+      purpose_user_id:
+        type: integer
+      purpose_user_name:
+        type: string
+      purpose_user_phone:
+        type: string
     type: object
   v1.ContactVoucherCostRequest:
     properties:
@@ -2167,6 +2194,30 @@ paths:
       security:
       - Bearer: []
       summary: 联系券充值
+      tags:
+      - 联系券模块
+  /contact_voucher/callback_cost:
+    post:
+      consumes:
+      - application/json
+      description: 消耗1张联系券用于回拨电话，不写入联系记录表，仅记录到回拨记录表。券余额不足时返回错误码 ErrInsufficientVoucher。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.ContactVoucherCallbackCostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 联系券消费（回拨电话）
       tags:
       - 联系券模块
   /contact_voucher/cost:

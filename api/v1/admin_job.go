@@ -1,6 +1,8 @@
 package v1
 
 type AdminJobListRequest struct {
+	JobID    int64  `json:"job_id"`
+	UserID   int64  `json:"user_id"`
 	BizType  int    `json:"biz_type"`
 	Status   []int  `json:"status"`
 	Keyword  string `json:"keyword"`

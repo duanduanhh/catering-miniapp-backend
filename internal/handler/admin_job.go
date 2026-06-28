@@ -42,6 +42,8 @@ func (h *AdminJobHandler) List(ctx *gin.Context) {
 		return
 	}
 	items, total, err := h.adminJobService.List(ctx, repository.AdminJobListQuery{
+		JobID:    req.JobID,
+		UserID:   req.UserID,
 		BizType:  req.BizType,
 		Status:   req.Status,
 		Keyword:  req.Keyword,

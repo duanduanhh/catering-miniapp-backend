@@ -39,6 +39,7 @@ var repositorySet = wire.NewSet(
 	repository.NewEnterpriseRepository,
 	repository.NewReportRepository,
 	repository.NewContactFeedbackRepository,
+	repository.NewCallbackHistoryRepository,
 )
 
 var serviceSet = wire.NewSet(
@@ -61,6 +62,7 @@ var serviceSet = wire.NewSet(
 	service.NewAdminListService,
 	service.NewReportService,
 	service.NewContactFeedbackService,
+	service.NewCallbackHistoryService,
 )
 
 var handlerSet = wire.NewSet(

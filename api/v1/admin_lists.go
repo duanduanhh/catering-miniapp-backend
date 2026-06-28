@@ -9,6 +9,7 @@ type AdminTimeRangeRequest struct {
 // ===== 用户列表 =====
 
 type AdminUserListRequest struct {
+	UserID    int64  `json:"user_id"`
 	Keyword   string `json:"keyword"`
 	Status    *int   `json:"status"`
 	Type      *int   `json:"type"`
@@ -47,11 +48,12 @@ type AdminUserListResponseData struct {
 // ===== 企业列表 =====
 
 type AdminEnterpriseListRequest struct {
-	Keyword  string `json:"keyword"` // name / social_credit_code
-	Status   *int   `json:"status"`
-	UserID   int64  `json:"user_id"`
-	PageNum  int    `json:"page_num"`
-	PageSize int    `json:"page_size"`
+	EnterpriseID int64  `json:"enterprise_id"`
+	Keyword      string `json:"keyword"` // name / social_credit_code
+	Status       *int   `json:"status"`
+	UserID       int64  `json:"user_id"`
+	PageNum      int    `json:"page_num"`
+	PageSize     int    `json:"page_size"`
 }
 
 type AdminEnterpriseItem struct {
@@ -79,12 +81,13 @@ type AdminEnterpriseListResponseData struct {
 // ===== 意见反馈列表 =====
 
 type AdminFeedbackListRequest struct {
-	Type      *int   `json:"type"`
-	UserID    int64  `json:"user_id"`
-	StartTime string `json:"start_time"`
-	EndTime   string `json:"end_time"`
-	PageNum   int    `json:"page_num"`
-	PageSize  int    `json:"page_size"`
+	FeedbackID int64  `json:"feedback_id"`
+	Type       *int   `json:"type"`
+	UserID     int64  `json:"user_id"`
+	StartTime  string `json:"start_time"`
+	EndTime    string `json:"end_time"`
+	PageNum    int    `json:"page_num"`
+	PageSize   int    `json:"page_size"`
 }
 
 type AdminFeedbackItem struct {
@@ -107,6 +110,7 @@ type AdminFeedbackListResponseData struct {
 // ===== 联系记录列表 =====
 
 type AdminContactHistoryListRequest struct {
+	ID            int64  `json:"id"`
 	UserID        int64  `json:"user_id"`
 	PurposeUserID int64  `json:"purpose_user_id"`
 	JobID         int64  `json:"job_id"`
@@ -144,6 +148,7 @@ type AdminContactHistoryListResponseData struct {
 // ===== 举报列表 =====
 
 type AdminReportListRequest struct {
+	ReportID  int64  `json:"report_id"`
 	Status    *int   `json:"status"`
 	Reason    *int   `json:"reason"`
 	BizType   *int   `json:"biz_type"`

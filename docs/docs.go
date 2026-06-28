@@ -687,6 +687,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/contact_voucher/callback_cost": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "消耗1张联系券用于回拨电话，不写入联系记录表，仅记录到回拨记录表。券余额不足时返回错误码 ErrInsufficientVoucher。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "联系券模块"
+                ],
+                "summary": "联系券消费（回拨电话）",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ContactVoucherCallbackCostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/contact_voucher/cost": {
             "post": {
                 "security": [
@@ -2282,6 +2321,9 @@ const docTemplate = `{
                 "end_time": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "integer"
+                },
                 "job_id": {
                     "type": "integer"
                 },
@@ -2366,6 +2408,9 @@ const docTemplate = `{
         "v1.AdminEnterpriseListRequest": {
             "type": "object",
             "properties": {
+                "enterprise_id": {
+                    "type": "integer"
+                },
                 "keyword": {
                     "description": "name / social_credit_code",
                     "type": "string"
@@ -2438,6 +2483,9 @@ const docTemplate = `{
             "properties": {
                 "end_time": {
                     "type": "string"
+                },
+                "feedback_id": {
+                    "type": "integer"
                 },
                 "page_num": {
                     "type": "integer"
@@ -2549,6 +2597,9 @@ const docTemplate = `{
                 "biz_type": {
                     "type": "integer"
                 },
+                "job_id": {
+                    "type": "integer"
+                },
                 "keyword": {
                     "type": "string"
                 },
@@ -2563,6 +2614,9 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -2664,6 +2718,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "reason": {
+                    "type": "integer"
+                },
+                "report_id": {
                     "type": "integer"
                 },
                 "start_time": {
@@ -2769,6 +2826,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "type": {
+                    "type": "integer"
+                },
+                "user_id": {
                     "type": "integer"
                 }
             }
@@ -2989,6 +3049,26 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "v1.ContactVoucherCallbackCostRequest": {
+            "type": "object",
+            "properties": {
+                "purpose_id": {
+                    "type": "integer"
+                },
+                "purpose_type": {
+                    "type": "integer"
+                },
+                "purpose_user_id": {
+                    "type": "integer"
+                },
+                "purpose_user_name": {
+                    "type": "string"
+                },
+                "purpose_user_phone": {
+                    "type": "string"
                 }
             }
         },

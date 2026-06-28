@@ -18,6 +18,7 @@ type ContactVoucherHistoryHandler struct {
 	contactVoucherHistoryService service.ContactVoucherHistoryService
 	orderService                 service.OrderService
 	contactHistoryService        service.ContactHistoryService
+	callbackHistoryService       service.CallbackHistoryService
 	payService                   service.PayService
 }
 
@@ -26,6 +27,7 @@ func NewContactVoucherHistoryHandler(
 	contactVoucherHistoryService service.ContactVoucherHistoryService,
 	orderService service.OrderService,
 	contactHistoryService service.ContactHistoryService,
+	callbackHistoryService service.CallbackHistoryService,
 	payService service.PayService,
 ) *ContactVoucherHistoryHandler {
 	return &ContactVoucherHistoryHandler{
@@ -33,6 +35,7 @@ func NewContactVoucherHistoryHandler(
 		contactVoucherHistoryService: contactVoucherHistoryService,
 		orderService:                 orderService,
 		contactHistoryService:        contactHistoryService,
+		callbackHistoryService:       callbackHistoryService,
 		payService:                   payService,
 	}
 }
@@ -129,6 +132,50 @@ func (h *ContactVoucherHistoryHandler) Cost(ctx *gin.Context) {
 	}
 	if req.PurposeID != nil && req.PurposeType != nil {
 		_, _ = h.contactHistoryService.Create(ctx, service.ContactHistoryCreateInput{
+			UserID:           userID,
+			PurposeID:        *req.PurposeID,
+			PurposeType:      *req.PurposeType,
+			PurposeUserID:    getInt64(req.PurposeUserID),
+			PurposeUserName:  getString(req.PurposeUserName),
+			PurposeUserPhone: getString(req.PurposeUserPhone),
+		})
+	}
+	v1.HandleSuccess(ctx, nil)
+}
+
+// CallbackCost godoc
+// @Summary 联系券消费（回拨电话）
+// @Description 消耗1张联系券用于回拨电话，不写入联系记录表，仅记录到回拨记录表。券余额不足时返回错误码 ErrInsufficientVoucher。
+// @Tags 联系券模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.ContactVoucherCallbackCostRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /contact_voucher/callback_cost [post]
+func (h *ContactVoucherHistoryHandler) CallbackCost(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.ContactVoucherCallbackCostRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	_, err := h.contactVoucherHistoryService.AdjustVoucher(ctx, userID, model.ContactVoucherHistoryCost, -1, "回拨")
+	if err != nil {
+		h.logger.WithContext(ctx).Error("contactVoucherHistoryService.AdjustVoucher error", zap.Error(err))
+		if err == service.ErrInsufficientVoucher {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrInsufficientVoucher, err.Error())
+			return
+		}
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	if req.PurposeID != nil && req.PurposeType != nil {
+		_ = h.callbackHistoryService.Create(ctx, service.CallbackHistoryCreateInput{
 			UserID:           userID,
 			PurposeID:        *req.PurposeID,
 			PurposeType:      *req.PurposeType,

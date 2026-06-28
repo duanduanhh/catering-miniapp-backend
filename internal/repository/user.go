@@ -25,6 +25,7 @@ type UserRepository interface {
 
 // AdminUserListQuery 管理后台用户列表筛选条件
 type AdminUserListQuery struct {
+	UserID    int64
 	Keyword   string // 模糊匹配 name / phone / user_code
 	Status    *int   // 用 *int 区分"未传"和"传 0"
 	Type      *int
@@ -152,6 +153,9 @@ func (r *userRepository) AdminList(ctx context.Context, query AdminUserListQuery
 		total int64
 	)
 	db := r.DB(ctx).Model(&model.User{})
+	if query.UserID != 0 {
+		db = db.Where("id = ?", query.UserID)
+	}
 	if kw := query.Keyword; kw != "" {
 		like := "%" + kw + "%"
 		db = db.Where("name LIKE ? OR phone LIKE ? OR user_code LIKE ?", like, like, like)

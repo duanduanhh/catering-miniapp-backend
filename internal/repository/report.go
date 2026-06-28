@@ -13,6 +13,7 @@ type ReportRepository interface {
 
 // AdminReportListQuery 管理后台举报列表筛选条件
 type AdminReportListQuery struct {
+	ReportID  int64
 	Status    *int
 	Reason    *int
 	BizType   *int
@@ -56,6 +57,9 @@ func (r *reportRepository) AdminList(ctx context.Context, query AdminReportListQ
 		Select("rp.*, u.name AS user_name, u.phone AS user_phone").
 		Joins("LEFT JOIN user u ON rp.user_id = u.id")
 
+	if query.ReportID != 0 {
+		db = db.Where("rp.id = ?", query.ReportID)
+	}
 	if query.Status != nil {
 		db = db.Where("rp.status = ?", *query.Status)
 	}

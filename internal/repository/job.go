@@ -35,6 +35,8 @@ type jobRepository struct {
 }
 
 type AdminJobListQuery struct {
+	JobID    int64
+	UserID   int64
 	BizType  int
 	Status   []int
 	Keyword  string
@@ -274,6 +276,12 @@ func (r *jobRepository) AdminList(ctx context.Context, query AdminJobListQuery) 
 		Select("job.*, user.name AS user_name, user.phone AS user_phone").
 		Joins("LEFT JOIN user ON job.user_id = user.id").
 		Where("job.status != ?", model.JobStatusDeleted)
+	if query.JobID != 0 {
+		db = db.Where("job.id = ?", query.JobID)
+	}
+	if query.UserID != 0 {
+		db = db.Where("job.user_id = ?", query.UserID)
+	}
 	if query.BizType > 0 {
 		db = db.Where("job.biz_type = ?", query.BizType)
 	}

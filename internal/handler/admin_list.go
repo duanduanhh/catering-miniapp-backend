@@ -51,6 +51,7 @@ func (h *AdminListHandler) ListUsers(ctx *gin.Context) {
 		return
 	}
 	res, err := h.adminListService.Users(ctx, repository.AdminUserListQuery{
+		UserID:    req.UserID,
 		Keyword:   req.Keyword,
 		Status:    req.Status,
 		Type:      req.Type,
@@ -105,11 +106,12 @@ func (h *AdminListHandler) ListEnterprises(ctx *gin.Context) {
 		return
 	}
 	res, err := h.adminListService.Enterprises(ctx, repository.AdminEnterpriseListQuery{
-		Keyword:  req.Keyword,
-		Status:   req.Status,
-		UserID:   req.UserID,
-		PageNum:  req.PageNum,
-		PageSize: req.PageSize,
+		EnterpriseID: req.EnterpriseID,
+		Keyword:      req.Keyword,
+		Status:       req.Status,
+		UserID:       req.UserID,
+		PageNum:      req.PageNum,
+		PageSize:     req.PageSize,
 	})
 	if err != nil {
 		h.logger.WithContext(ctx).Error("adminListService.Enterprises error", zap.Error(err))
@@ -153,12 +155,13 @@ func (h *AdminListHandler) ListFeedbacks(ctx *gin.Context) {
 		return
 	}
 	res, err := h.adminListService.Feedbacks(ctx, repository.AdminFeedbackListQuery{
-		Type:      req.Type,
-		UserID:    req.UserID,
-		StartTime: req.StartTime,
-		EndTime:   req.EndTime,
-		PageNum:   req.PageNum,
-		PageSize:  req.PageSize,
+		FeedbackID: req.FeedbackID,
+		Type:       req.Type,
+		UserID:     req.UserID,
+		StartTime:  req.StartTime,
+		EndTime:    req.EndTime,
+		PageNum:    req.PageNum,
+		PageSize:   req.PageSize,
 	})
 	if err != nil {
 		h.logger.WithContext(ctx).Error("adminListService.Feedbacks error", zap.Error(err))
@@ -198,6 +201,7 @@ func (h *AdminListHandler) ListContactHistories(ctx *gin.Context) {
 		return
 	}
 	res, err := h.adminListService.ContactHistories(ctx, repository.AdminContactHistoryListQuery{
+		ID:            req.ID,
 		UserID:        req.UserID,
 		PurposeUserID: req.PurposeUserID,
 		JobID:         req.JobID,
@@ -254,6 +258,7 @@ func (h *AdminListHandler) ListReports(ctx *gin.Context) {
 		return
 	}
 	res, err := h.adminListService.Reports(ctx, repository.AdminReportListQuery{
+		ReportID:  req.ReportID,
 		Status:    req.Status,
 		Reason:    req.Reason,
 		BizType:   req.BizType,

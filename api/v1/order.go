@@ -41,6 +41,14 @@ type ContactVoucherCostRequest struct {
 	PurposeUserPhone *string `json:"purpose_user_phone"`
 }
 
+type ContactVoucherCallbackCostRequest struct {
+	PurposeID        *int64  `json:"purpose_id"`
+	PurposeType      *int    `json:"purpose_type"`
+	PurposeUserID    *int64  `json:"purpose_user_id"`
+	PurposeUserName  *string `json:"purpose_user_name"`
+	PurposeUserPhone *string `json:"purpose_user_phone"`
+}
+
 type ContactVoucherRecordsResponseData struct {
 	ContactVoucherNum int                         `json:"contact_voucher_num"`
 	List              []ContactVoucherRecordsItem `json:"list"`

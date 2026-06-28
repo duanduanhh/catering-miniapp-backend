@@ -11,6 +11,7 @@ func InitVoucherRouter(deps RouterDeps, r *gin.RouterGroup) {
 	{
 		strictAuthRouter.POST("/contact_voucher/buy", deps.ContactVoucherHistoryHandler.Buy)
 		strictAuthRouter.POST("/contact_voucher/cost", deps.ContactVoucherHistoryHandler.Cost)
+		strictAuthRouter.POST("/contact_voucher/callback_cost", deps.ContactVoucherHistoryHandler.CallbackCost)
 		strictAuthRouter.POST("/contact_voucher/records", deps.ContactVoucherHistoryHandler.Records)
 	}
 }

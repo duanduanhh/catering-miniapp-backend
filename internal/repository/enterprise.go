@@ -22,11 +22,12 @@ type EnterpriseRepository interface {
 
 // AdminEnterpriseListQuery 管理后台企业列表筛选条件
 type AdminEnterpriseListQuery struct {
-	Keyword  string // name / social_credit_code 模糊匹配
-	Status   *int
-	UserID   int64
-	PageNum  int
-	PageSize int
+	EnterpriseID int64
+	Keyword      string // name / social_credit_code 模糊匹配
+	Status       *int
+	UserID       int64
+	PageNum      int
+	PageSize     int
 }
 
 // AdminEnterpriseRow 企业记录 + JOIN user 出的发布人信息
@@ -117,6 +118,9 @@ func (r *enterpriseRepository) AdminList(ctx context.Context, query AdminEnterpr
 		Joins("LEFT JOIN user u ON e.user_id = u.id").
 		Where("e.status != ?", model.EnterpriseStatusDeleted)
 
+	if query.EnterpriseID != 0 {
+		db = db.Where("e.id = ?", query.EnterpriseID)
+	}
 	if kw := query.Keyword; kw != "" {
 		like := "%" + kw + "%"
 		db = db.Where("e.name LIKE ? OR e.social_credit_code LIKE ?", like, like)

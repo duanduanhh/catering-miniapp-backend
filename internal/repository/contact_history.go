@@ -32,6 +32,7 @@ type contactHistoryRepository struct {
 
 // AdminContactHistoryListQuery 管理后台联系记录筛选条件
 type AdminContactHistoryListQuery struct {
+	ID            int64
 	UserID        int64
 	PurposeUserID int64
 	JobID         int64
@@ -183,6 +184,9 @@ func (r *contactHistoryRepository) AdminList(ctx context.Context, query AdminCon
 		Joins("LEFT JOIN user u ON ch.user_id = u.id").
 		Joins("LEFT JOIN " + feedbackSub + " fb ON fb.contact_history_id = ch.id")
 
+	if query.ID != 0 {
+		db = db.Where("ch.id = ?", query.ID)
+	}
 	if query.UserID > 0 {
 		db = db.Where("ch.user_id = ?", query.UserID)
 	}

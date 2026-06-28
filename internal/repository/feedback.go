@@ -14,12 +14,13 @@ type FeedbackRepository interface {
 
 // AdminFeedbackListQuery 管理后台意见反馈列表筛选条件
 type AdminFeedbackListQuery struct {
-	Type      *int
-	UserID    int64
-	StartTime string
-	EndTime   string
-	PageNum   int
-	PageSize  int
+	FeedbackID int64
+	Type       *int
+	UserID     int64
+	StartTime  string
+	EndTime    string
+	PageNum    int
+	PageSize   int
 }
 
 // AdminFeedbackRow 反馈 + JOIN 出的用户姓名手机号
@@ -78,6 +79,9 @@ func (r *feedbackRepository) AdminList(ctx context.Context, query AdminFeedbackL
 		Select("f.*, u.name AS user_name, u.phone AS user_phone").
 		Joins("LEFT JOIN user u ON f.user_id = u.id")
 
+	if query.FeedbackID != 0 {
+		db = db.Where("f.id = ?", query.FeedbackID)
+	}
 	if query.Type != nil {
 		db = db.Where("f.type = ?", *query.Type)
 	}
