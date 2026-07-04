@@ -2,12 +2,10 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -35,6 +33,7 @@ func NewUploadHandler(handler *Handler, uploadService service.UploadService) *Up
 // @Produce json
 // @Security Bearer
 // @Param file formData file true "file"
+// @Param check_mode formData string false "审核方式：sync=同步审核后上传，async=上传后异步审核，默认sync"
 // @Success 200 {object} v1.UploadImageResponseData
 // @Router /img/upload [post]
 func (h *UploadHandler) UploadImage(ctx *gin.Context) {
@@ -56,29 +55,36 @@ func (h *UploadHandler) UploadImage(ctx *gin.Context) {
 	}
 	defer localFile.Close()
 
-	userID := GetUserIdFromCtx(ctx)
-	ext := filepath.Ext(file.Filename)
-	if ext == "" {
-		ext = ".bin"
-	}
-	filename := fmt.Sprintf("%d_%d%s", userID, time.Now().UnixNano(), ext)
-	url, err := h.uploadService.Upload(ctx, localFile, filename)
+	result, err := h.uploadService.UploadImage(ctx, localFile, file.Filename, GetUserIdFromCtx(ctx), GetOpenidFromCtx(ctx), ctx.PostForm("check_mode"))
 	if err != nil {
-		h.logger.WithContext(ctx).Error("uploadService.Upload error", zap.Error(err))
+		if errors.Is(err, service.ErrImageRiskyContent) {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrImageRiskyContent, "图片内容可能违规，请更换后重试")
+			return
+		}
+		if errors.Is(err, service.ErrInvalidImageCheckMode) {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+			return
+		}
+		h.logger.WithContext(ctx).Error("uploadService.UploadImage error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	v1.HandleSuccess(ctx, v1.UploadImageResponseData{URL: url})
+	v1.HandleSuccess(ctx, v1.UploadImageResponseData{
+		URL:         result.URL,
+		CheckMode:   result.CheckMode,
+		AuditStatus: result.AuditStatus,
+		TraceID:     result.TraceID,
+	})
 }
 
 func validateImageFile(file *multipart.FileHeader) error {
-	const maxSize = 20 * 1024 * 1024
+	const maxSize = 10 * 1024 * 1024
 	if file.Size > maxSize {
-		return errors.New("image size exceeds 20MB")
+		return errors.New("image size exceeds 10MB")
 	}
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".bmp", ".webp":
+	case ".jpg", ".jpeg", ".png", ".gif":
 		return nil
 	default:
 		return errors.New("unsupported image format")

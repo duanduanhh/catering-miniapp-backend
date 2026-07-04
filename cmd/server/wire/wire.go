@@ -53,6 +53,7 @@ var serviceSet = wire.NewSet(
 	service.NewContactVoucherHistoryService,
 	service.NewWechatService,
 	service.NewUploadService,
+	service.NewImageSecurityService,
 	NewPayServiceProvider,
 	service.NewPositionCategoryService,
 	service.NewFeedbackService,

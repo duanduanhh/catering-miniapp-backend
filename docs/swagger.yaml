@@ -1601,6 +1601,12 @@ definitions:
     type: object
   v1.UploadImageResponseData:
     properties:
+      audit_status:
+        type: string
+      check_mode:
+        type: string
+      trace_id:
+        type: string
       url:
         type: string
     type: object
@@ -2549,6 +2555,10 @@ paths:
         name: file
         required: true
         type: file
+      - description: 审核方式：sync=同步审核后上传，async=上传后异步审核，默认sync
+        in: formData
+        name: check_mode
+        type: string
       produces:
       - application/json
       responses:

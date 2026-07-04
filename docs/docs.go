@@ -1256,6 +1256,12 @@ const docTemplate = `{
                         "name": "file",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "审核方式：sync=同步审核后上传，async=上传后异步审核，默认sync",
+                        "name": "check_mode",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -4591,6 +4597,15 @@ const docTemplate = `{
         "v1.UploadImageResponseData": {
             "type": "object",
             "properties": {
+                "audit_status": {
+                    "type": "string"
+                },
+                "check_mode": {
+                    "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
+                },
                 "url": {
                     "type": "string"
                 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/duke-git/lancet/v2/cryptor"
@@ -28,16 +29,21 @@ func RequestLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 		logger.WithValue(ctx, zap.Any("request_headers", ctx.Request.Header))
 		logger.WithValue(ctx, zap.String("request_url", ctx.Request.URL.String()))
 		if ctx.Request.Body != nil {
-			bodyBytes, _ := ctx.GetRawData()
-			ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes)) // 关键点
+			contentType := ctx.GetHeader("Content-Type")
+			if !isTextRequestBody(contentType) {
+				logger.WithValue(ctx, zap.String("request_params", "<body omitted>"))
+			} else {
+				bodyBytes, _ := ctx.GetRawData()
+				ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes)) // 关键点
 
-			// Format JSON request body for better readability
-			var formattedBody any
-			if len(bodyBytes) > 0 {
-				if err := json.Unmarshal(bodyBytes, &formattedBody); err == nil {
-					logger.WithValue(ctx, zap.Any("request_params", formattedBody))
-				} else {
-					logger.WithValue(ctx, zap.String("request_params", string(bodyBytes)))
+				// Format JSON request body for better readability
+				var formattedBody any
+				if len(bodyBytes) > 0 {
+					if err := json.Unmarshal(bodyBytes, &formattedBody); err == nil {
+						logger.WithValue(ctx, zap.Any("request_params", formattedBody))
+					} else {
+						logger.WithValue(ctx, zap.String("request_params", string(bodyBytes)))
+					}
 				}
 			}
 		}
@@ -64,6 +70,17 @@ func ResponseLogMiddleware(logger *log.Logger) gin.HandlerFunc {
 			logger.WithContext(ctx).Info("Response", zap.String("response_body", responseBody), zap.Any("time", duration))
 		}
 	}
+}
+
+func isTextRequestBody(contentType string) bool {
+	if contentType == "" {
+		return true
+	}
+	contentType = strings.ToLower(contentType)
+	return strings.HasPrefix(contentType, "application/json") ||
+		strings.HasPrefix(contentType, "text/") ||
+		strings.HasPrefix(contentType, "application/x-www-form-urlencoded") ||
+		strings.Contains(contentType, "+json")
 }
 
 type bodyLogWriter struct {
