@@ -257,6 +257,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/jobs/update": {
+            "post": {
+                "description": "管理后台编辑岗位的岗位描述和工作内容，两个字段均为可选，传哪个改哪个。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "编辑岗位",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminJobUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/login": {
             "post": {
                 "description": "校验管理员账号密码，签发 24 小时有效期的 JWT。Token 通过 ` + "`" + `token` + "`" + ` header 携带访问其它 /admin/* 接口。",
@@ -2281,6 +2315,9 @@ const docTemplate = `{
                 "feedback_reason": {
                     "type": "integer"
                 },
+                "feedback_reason_label": {
+                    "type": "string"
+                },
                 "feedback_status": {
                     "description": "1 待处理 2 已核实 3 已驳回",
                     "type": "integer"
@@ -2541,10 +2578,25 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "address_detail": {
+                    "type": "string"
+                },
                 "biz_type": {
                     "type": "integer"
                 },
+                "close_reason": {
+                    "type": "string"
+                },
+                "close_time": {
+                    "type": "string"
+                },
                 "company_name": {
+                    "type": "string"
+                },
+                "contact": {
+                    "type": "string"
+                },
+                "contact_person_name": {
                     "type": "string"
                 },
                 "create_at": {
@@ -2567,6 +2619,9 @@ const docTemplate = `{
                 },
                 "positions": {
                     "type": "string"
+                },
+                "recruit_num": {
+                    "type": "integer"
                 },
                 "salary_max": {
                     "type": "integer"
@@ -2593,6 +2648,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_phone": {
+                    "type": "string"
+                },
+                "work_content": {
                     "type": "string"
                 }
             }
@@ -2637,6 +2695,23 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.AdminJobUpdateRequest": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "work_content": {
+                    "type": "string"
                 }
             }
         },

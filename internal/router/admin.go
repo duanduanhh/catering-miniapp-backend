@@ -18,6 +18,7 @@ func InitAdminRouter(deps RouterDeps, r *gin.RouterGroup) {
 	{
 		jobs := authed.Group("/jobs")
 		jobs.POST("/list", deps.AdminJobHandler.List)
+		jobs.POST("/update", deps.AdminJobHandler.Update)
 		jobs.POST("/disable", deps.AdminJobHandler.Disable)
 		jobs.POST("/enable", deps.AdminJobHandler.Enable)
 		jobs.POST("/delete", deps.AdminJobHandler.Delete)

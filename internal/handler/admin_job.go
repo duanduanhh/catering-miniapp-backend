@@ -61,27 +61,62 @@ func (h *AdminJobHandler) List(ctx *gin.Context) {
 	}
 	for _, item := range items {
 		resp.List = append(resp.List, v1.AdminJobItem{
-			JobID:         item.JobID,
-			BizType:       item.BizType,
-			Positions:     item.Positions,
-			CompanyName:   item.CompanyName,
-			Address:       item.Address,
-			SalaryMin:     item.SalaryMin,
-			SalaryMax:     item.SalaryMax,
-			Status:        item.Status,
-			UserID:        item.UserID,
-			UserName:      item.UserName,
-			UserPhone:     item.UserPhone,
-			CreateAt:      formatTime(item.CreateAt),
-			UpdateAt:      formatTime(item.UpdateAt),
-			FirstAreaDes:  item.FirstAreaDes,
-			SecondAreaDes: item.SecondAreaDes,
-			ThirdAreaDes:  item.ThirdAreaDes,
-			Description:   item.Description,
-			PhotoURLs:     splitCSV(item.PhotoURLs),
+			JobID:             item.JobID,
+			BizType:           item.BizType,
+			Positions:         item.Positions,
+			CompanyName:       item.CompanyName,
+			ContactPersonName: item.ContactPersonName,
+			Contact:           item.Contact,
+			Address:           item.Address,
+			AddressDetail:     item.AddressDetail,
+			SalaryMin:         item.SalaryMin,
+			SalaryMax:         item.SalaryMax,
+			Status:            item.Status,
+			UserID:            item.UserID,
+			UserName:          item.UserName,
+			UserPhone:         item.UserPhone,
+			CreateAt:          formatTime(item.CreateAt),
+			UpdateAt:          formatTime(item.UpdateAt),
+			FirstAreaDes:      item.FirstAreaDes,
+			SecondAreaDes:     item.SecondAreaDes,
+			ThirdAreaDes:      item.ThirdAreaDes,
+			Description:       item.Description,
+			WorkContent:       item.WorkContent,
+			RecruitNum:        item.RecruitNum,
+			PhotoURLs:         splitCSV(item.PhotoURLs),
+			CloseReason:       item.CloseReason,
+			CloseTime:         formatOptionalTime(item.CloseTime),
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
+}
+
+// AdminUpdateJob godoc
+// @Summary 编辑岗位
+// @Description 管理后台编辑岗位的岗位描述和工作内容，两个字段均为可选，传哪个改哪个。
+// @Tags 管理后台
+// @Accept json
+// @Produce json
+// @Param request body v1.AdminJobUpdateRequest true "params"
+// @Success 200 {object} v1.Response
+// @Router /admin/jobs/update [post]
+func (h *AdminJobHandler) Update(ctx *gin.Context) {
+	var req v1.AdminJobUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	input := service.AdminJobUpdateInput{
+		JobID:       req.JobID,
+		Description: req.Description,
+		WorkContent: req.WorkContent,
+	}
+	if err := h.adminJobService.Update(ctx, input); err != nil {
+		h.logger.WithContext(ctx).Error("adminJobService.Update error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	v1.HandleSuccess(ctx, nil)
 }
 
 // AdminDisableJob godoc

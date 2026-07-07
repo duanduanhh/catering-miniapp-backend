@@ -134,10 +134,11 @@ type AdminContactHistoryItem struct {
 	PurposeUserDeleted int    `json:"purpose_user_deleted"`
 	CreateAt           string `json:"create_at"`
 	// 关联反馈（取该联系记录最新一条）
-	FeedbackID       int64  `json:"feedback_id"`        // 0 表示无反馈
-	FeedbackReason   int    `json:"feedback_reason"`
-	FeedbackStatus   int    `json:"feedback_status"`    // 1 待处理 2 已核实 3 已驳回
-	FeedbackCreateAt string `json:"feedback_create_at"` // 空字符串表示无
+	FeedbackID          int64  `json:"feedback_id"` // 0 表示无反馈
+	FeedbackReason      int    `json:"feedback_reason"`
+	FeedbackReasonLabel string `json:"feedback_reason_label"`
+	FeedbackStatus      int    `json:"feedback_status"`    // 1 待处理 2 已核实 3 已驳回
+	FeedbackCreateAt    string `json:"feedback_create_at"` // 空字符串表示无
 }
 
 type AdminContactHistoryListResponseData struct {

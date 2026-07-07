@@ -45,6 +45,8 @@ definitions:
         type: integer
       feedback_reason:
         type: integer
+      feedback_reason_label:
+        type: string
       feedback_status:
         description: 1 待处理 2 已核实 3 已驳回
         type: integer
@@ -216,9 +218,19 @@ definitions:
     properties:
       address:
         type: string
+      address_detail:
+        type: string
       biz_type:
         type: integer
+      close_reason:
+        type: string
+      close_time:
+        type: string
       company_name:
+        type: string
+      contact:
+        type: string
+      contact_person_name:
         type: string
       create_at:
         type: string
@@ -234,6 +246,8 @@ definitions:
         type: array
       positions:
         type: string
+      recruit_num:
+        type: integer
       salary_max:
         type: integer
       salary_min:
@@ -251,6 +265,8 @@ definitions:
       user_name:
         type: string
       user_phone:
+        type: string
+      work_content:
         type: string
     type: object
   v1.AdminJobListRequest:
@@ -280,6 +296,17 @@ definitions:
         type: array
       total:
         type: integer
+    type: object
+  v1.AdminJobUpdateRequest:
+    properties:
+      description:
+        type: string
+      job_id:
+        type: integer
+      work_content:
+        type: string
+    required:
+    - job_id
     type: object
   v1.AdminLoginRequest:
     properties:
@@ -1926,6 +1953,28 @@ paths:
           schema:
             $ref: '#/definitions/v1.AdminJobListResponseData'
       summary: 后台岗位列表
+      tags:
+      - 管理后台
+  /admin/jobs/update:
+    post:
+      consumes:
+      - application/json
+      description: 管理后台编辑岗位的岗位描述和工作内容，两个字段均为可选，传哪个改哪个。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminJobUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 编辑岗位
       tags:
       - 管理后台
   /admin/login:

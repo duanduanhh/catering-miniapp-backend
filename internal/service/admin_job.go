@@ -10,9 +10,16 @@ import (
 
 type AdminJobService interface {
 	List(ctx context.Context, query repository.AdminJobListQuery) ([]AdminJobItem, int64, error)
+	Update(ctx context.Context, input AdminJobUpdateInput) error
 	Disable(ctx context.Context, jobID int64) error
 	Enable(ctx context.Context, jobID int64) error
 	Delete(ctx context.Context, jobID int64) error
+}
+
+type AdminJobUpdateInput struct {
+	JobID       int64
+	Description *string
+	WorkContent *string
 }
 
 func NewAdminJobService(
@@ -31,24 +38,31 @@ type adminJobService struct {
 }
 
 type AdminJobItem struct {
-	JobID         int64
-	BizType       int
-	Positions     string
-	CompanyName   string
-	Address       string
-	SalaryMin     int
-	SalaryMax     int
-	Status        int
-	UserID        int64
-	UserName      string
-	UserPhone     string
-	CreateAt      time.Time
-	UpdateAt      time.Time
-	FirstAreaDes  string
-	SecondAreaDes string
-	ThirdAreaDes  string
-	Description   string
-	PhotoURLs     string
+	JobID             int64
+	BizType           int
+	Positions         string
+	CompanyName       string
+	ContactPersonName string
+	Contact           string
+	Address           string
+	AddressDetail     string
+	SalaryMin         int
+	SalaryMax         int
+	Status            int
+	UserID            int64
+	UserName          string
+	UserPhone         string
+	CreateAt          time.Time
+	UpdateAt          time.Time
+	FirstAreaDes      string
+	SecondAreaDes     string
+	ThirdAreaDes      string
+	Description       string
+	WorkContent       string
+	RecruitNum        int
+	PhotoURLs         string
+	CloseReason       string
+	CloseTime         *time.Time
 }
 
 func (s *adminJobService) List(ctx context.Context, query repository.AdminJobListQuery) ([]AdminJobItem, int64, error) {
@@ -59,27 +73,48 @@ func (s *adminJobService) List(ctx context.Context, query repository.AdminJobLis
 	items := make([]AdminJobItem, 0, len(jobs))
 	for _, job := range jobs {
 		items = append(items, AdminJobItem{
-			JobID:         job.ID,
-			BizType:       job.BizType,
-			Positions:     job.Positions,
-			CompanyName:   job.CompanyName,
-			Address:       job.Address,
-			SalaryMin:     job.SalaryMin,
-			SalaryMax:     job.SalaryMax,
-			Status:        int(job.Status),
-			UserID:        job.UserID,
-			UserName:      job.UserName,
-			UserPhone:     job.UserPhone,
-			CreateAt:      job.CreateAt,
-			UpdateAt:      job.UpdateAt,
-			FirstAreaDes:  job.FirstAreaDes,
-			SecondAreaDes: job.SecondAreaDes,
-			ThirdAreaDes:  job.ThirdAreaDes,
-			Description:   job.Description,
-			PhotoURLs:     job.PhotoURLs,
+			JobID:             job.ID,
+			BizType:           job.BizType,
+			Positions:         job.Positions,
+			CompanyName:       job.CompanyName,
+			ContactPersonName: job.ContactPersonName,
+			Contact:           job.Contact,
+			Address:           job.Address,
+			AddressDetail:     job.AddressDetail,
+			SalaryMin:         job.SalaryMin,
+			SalaryMax:         job.SalaryMax,
+			Status:            int(job.Status),
+			UserID:            job.UserID,
+			UserName:          job.UserName,
+			UserPhone:         job.UserPhone,
+			CreateAt:          job.CreateAt,
+			UpdateAt:          job.UpdateAt,
+			FirstAreaDes:      job.FirstAreaDes,
+			SecondAreaDes:     job.SecondAreaDes,
+			ThirdAreaDes:      job.ThirdAreaDes,
+			Description:       job.Description,
+			WorkContent:       job.WorkContent,
+			RecruitNum:        job.RecruitNum,
+			PhotoURLs:         job.PhotoURLs,
+			CloseReason:       job.CloseReason,
+			CloseTime:         job.CloseTime,
 		})
 	}
 	return items, total, nil
+}
+
+func (s *adminJobService) Update(ctx context.Context, input AdminJobUpdateInput) error {
+	job, err := s.jobRepository.GetByID(ctx, input.JobID)
+	if err != nil {
+		return err
+	}
+	if input.Description != nil {
+		job.Description = *input.Description
+	}
+	if input.WorkContent != nil {
+		job.WorkContent = *input.WorkContent
+	}
+	return s.jobRepository.Update(ctx, job)
 }
 
 func (s *adminJobService) Disable(ctx context.Context, jobID int64) error {

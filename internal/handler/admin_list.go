@@ -36,6 +36,20 @@ func reportReasonLabel(reason int) string {
 	return ""
 }
 
+// contactFeedbackReasonLabel 把联系反馈 reason int 转成展示文案，按 bizType 区分文案
+func contactFeedbackReasonLabel(bizType, reason int) string {
+	cfg, ok := v1.ContactFeedbackConfigs[bizType]
+	if !ok {
+		return ""
+	}
+	for _, r := range cfg.Reasons {
+		if r.Value == reason {
+			return r.Label
+		}
+	}
+	return ""
+}
+
 // ListUsers godoc
 // @Summary  管理后台用户列表
 // @Tags     管理后台
@@ -222,22 +236,23 @@ func (h *AdminListHandler) ListContactHistories(ctx *gin.Context) {
 			fbCreate = formatTime(*c.FeedbackCreateAt)
 		}
 		resp.List = append(resp.List, v1.AdminContactHistoryItem{
-			ID:                 c.ID,
-			UserID:             c.UserID,
-			UserName:           c.UserName,
-			UserPhone:          c.UserPhone,
-			PurposeID:          c.PurposeID,
-			PurposeType:        c.PurposeType,
-			PurposeUserID:      c.PurposeUserID,
-			PurposeUserName:    c.PurposeUserName,
-			PurposeUserPhone:   c.PurposeUserPhone,
-			UserDeleted:        c.UserDeleted,
-			PurposeUserDeleted: c.PurposeUserDeleted,
-			CreateAt:           formatTime(c.CreateAt),
-			FeedbackID:         c.FeedbackID,
-			FeedbackReason:     c.FeedbackReason,
-			FeedbackStatus:     c.FeedbackStatus,
-			FeedbackCreateAt:   fbCreate,
+			ID:                  c.ID,
+			UserID:              c.UserID,
+			UserName:            c.UserName,
+			UserPhone:           c.UserPhone,
+			PurposeID:           c.PurposeID,
+			PurposeType:         c.PurposeType,
+			PurposeUserID:       c.PurposeUserID,
+			PurposeUserName:     c.PurposeUserName,
+			PurposeUserPhone:    c.PurposeUserPhone,
+			UserDeleted:         c.UserDeleted,
+			PurposeUserDeleted:  c.PurposeUserDeleted,
+			CreateAt:            formatTime(c.CreateAt),
+			FeedbackID:          c.FeedbackID,
+			FeedbackReason:      c.FeedbackReason,
+			FeedbackReasonLabel: contactFeedbackReasonLabel(c.PurposeType, c.FeedbackReason),
+			FeedbackStatus:      c.FeedbackStatus,
+			FeedbackCreateAt:    fbCreate,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
