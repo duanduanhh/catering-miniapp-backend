@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 )
@@ -20,6 +21,8 @@ type JobRepository interface {
 	AdminList(ctx context.Context, query AdminJobListQuery) ([]*model.Job, int64, error)
 	AdminUpdateStatus(ctx context.Context, jobID int64, status model.JobStatus) error
 	HasPublishedByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error)
+	ActivatePendingRent(ctx context.Context, jobID int64) error
+	ListPendingRentBefore(ctx context.Context, before time.Time, limit int) ([]*model.Job, error)
 }
 
 func NewJobRepository(
@@ -45,7 +48,7 @@ type AdminJobListQuery struct {
 }
 
 type JobListQuery struct {
-	BizType         int // 0=不限，1=招聘，2=求职
+	BizType         int // 0=不限，1=招聘，2=求职，3=招租
 	QueryType       int
 	Positions       string
 	FirstAreaID     int
@@ -57,6 +60,9 @@ type JobListQuery struct {
 	AttendanceLeave []string
 	Longitude       float64
 	Latitude        float64
+	// 招租专属筛选（仅当 BizType=3 时生效，通过 LEFT JOIN rent_detail 过滤）
+	AreaSizeRange   int // 0=不限 1=<15 2=[15,30) 3=[30,50) 4=[50,100) 5=[100,200) 6=>=200
+	TransferFeeFlag int // 0=不限 1=有转让费 2=无转让费
 	PageNum         int
 	PageSize        int
 }
@@ -118,6 +124,23 @@ func (r *jobRepository) List(ctx context.Context, query JobListQuery) ([]*model.
 	}
 	for _, item := range query.AttendanceLeave {
 		db = db.Where("attendance_leave LIKE ?", "%"+item+"%")
+	}
+	// 招租专属筛选：仅当明确按 biz_type=3 查询时启用 JOIN，其他 biz_type 不影响。
+	if query.BizType == 3 && (query.AreaSizeRange > 0 || query.TransferFeeFlag > 0) {
+		db = db.Joins("LEFT JOIN rent_detail ON rent_detail.job_id = job.id")
+		if lo, hi, ok := areaSizeRangeBounds(query.AreaSizeRange); ok {
+			if hi > 0 {
+				db = db.Where("rent_detail.area_size >= ? AND rent_detail.area_size < ?", lo, hi)
+			} else {
+				db = db.Where("rent_detail.area_size >= ?", lo)
+			}
+		}
+		switch query.TransferFeeFlag {
+		case 1:
+			db = db.Where("rent_detail.transfer_fee_type > 0")
+		case 2:
+			db = db.Where("rent_detail.transfer_fee_type = 0")
+		}
 	}
 
 	switch query.QueryType {
@@ -331,4 +354,52 @@ func (r *jobRepository) HasPublishedByUserIDs(ctx context.Context, userIDs []int
 		result[row.UserID] = true
 	}
 	return result, nil
+}
+
+// areaSizeRangeBounds 将招租店铺面积区间枚举翻译为 [lo, hi) 上下界；
+// hi=0 表示上界为 +∞（如 200㎡以上）。
+func areaSizeRangeBounds(rangeEnum int) (int, int, bool) {
+	switch rangeEnum {
+	case 1:
+		return 0, 15, true
+	case 2:
+		return 15, 30, true
+	case 3:
+		return 30, 50, true
+	case 4:
+		return 50, 100, true
+	case 5:
+		return 100, 200, true
+	case 6:
+		return 200, 0, true
+	}
+	return 0, 0, false
+}
+// WHERE 条件保证幂等：重复回调不会重置 refresh_time；status 已被其他动作修改的记录不受影响。
+func (r *jobRepository) ActivatePendingRent(ctx context.Context, jobID int64) error {
+	now := time.Now()
+	return r.DB(ctx).Model(&model.Job{}).
+		Where("id = ? AND status = ? AND biz_type = ?", jobID, model.JobStatusPendingPay, 3).
+		Updates(map[string]interface{}{
+			"status":       model.JobStatusActive,
+			"refresh_time": now,
+			"update_at":    now,
+		}).Error
+}
+
+// ListPendingRentBefore 招租超时清理任务专用：查询指定时间之前仍处于待支付状态的招租 job。
+func (r *jobRepository) ListPendingRentBefore(ctx context.Context, before time.Time, limit int) ([]*model.Job, error) {
+	var jobs []*model.Job
+	if limit <= 0 {
+		limit = 100
+	}
+	err := r.DB(ctx).
+		Where("biz_type = ? AND status = ? AND create_at < ?", 3, model.JobStatusPendingPay, before).
+		Order("create_at ASC").
+		Limit(limit).
+		Find(&jobs).Error
+	if err != nil {
+		return nil, err
+	}
+	return jobs, nil
 }

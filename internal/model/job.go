@@ -9,6 +9,7 @@ const (
 	JobStatusUserClosed    JobStatus = 2
 	JobStatusAdminDisabled JobStatus = 3
 	JobStatusDeleted       JobStatus = 4
+	JobStatusPendingPay    JobStatus = 5 // 招租发布：待支付；支付成功后由回调翻转为 Active
 )
 
 type Job struct {

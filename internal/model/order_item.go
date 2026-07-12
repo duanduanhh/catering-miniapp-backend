@@ -8,6 +8,7 @@ const (
 	ProductTypeTop            ProductType = 1
 	ProductTypeContactVoucher ProductType = 2
 	ProductTypeRefresh        ProductType = 3
+	ProductTypePublishRent    ProductType = 4 // 发布招租（付费）
 )
 
 type OrderTargetType int

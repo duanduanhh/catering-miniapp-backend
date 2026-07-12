@@ -1432,7 +1432,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "发布招聘或求职信息。biz_type: 1=招聘（默认）2=求职，不传默认1。招聘时 company_name/address/longitude/latitude 必填；求职时留空即可。photo_urls 最多4张。每个用户招聘上限10条、求职上限5条（active状态）。",
+                "description": "发布招聘或求职信息。biz_type: 1=招聘（默认）2=求职 3=招租，不传默认1。招聘时 company_name/address/longitude/latitude 必填；求职时留空即可。**招租(biz_type=3)必须走 /jobs/rent/pre_publish 付费流程，本接口不受理。** photo_urls 最多4张。每个用户招聘上限10条、求职上限5条（active状态）。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1544,7 +1544,7 @@ const docTemplate = `{
         },
         "/jobs/list": {
             "post": {
-                "description": "公开接口，无需登录。filter.biz_type: 0=全部 1=招聘 2=求职，不传默认全部。query_type: 1=置顶优先+刷新时间倒序 2=距离最近（需传 longitude/latitude） 3=最新发布，不传默认3。salary_min/salary_max 为0时不过滤薪资。basic_protection/salary_benefits/attendance_leave 数组，AND 过滤，多个值同时满足才返回。",
+                "description": "公开接口，无需登录。filter.biz_type: 0=全部 1=招聘 2=求职 3=招租，不传默认全部。query_type: 1=置顶优先+刷新时间倒序 2=距离最近（需传 longitude/latitude） 3=最新发布，不传默认3。salary_min/salary_max 为0时不过滤薪资。basic_protection/salary_benefits/attendance_leave 数组，AND 过滤，多个值同时满足才返回。招租专属筛选(仅 biz_type=3 生效)：area_size_range(1=\u003c15 2=[15,30) 3=[30,50) 4=[50,100) 5=[100,200) 6=\u003e=200)，transfer_fee_flag(1=有 2=无)。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1731,6 +1731,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/rent/pre_publish": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "招租(biz_type=3)专用发布接口。一次事务预建 job(status=待支付) + rent_detail + order，返回微信支付参数。小程序完成支付后，微信回调将 job 翻转为 active 并刷新时间。photo_urls 至少1张、最多4张；transfer_fee_type=1 时 transfer_fee_amount 必填。发布价格从服务端配置 rent.publish_price 读取，客户端不传。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位模块"
+                ],
+                "summary": "发布招租（付费预下单）",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.RentPrePublishRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.RentPrePublishResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/jobs/reopen": {
             "post": {
                 "security": [
@@ -1816,7 +1855,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。",
+                "description": "更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。招租(biz_type=3)可传 rent_detail 更新月租、面积、转让费。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2289,13 +2328,25 @@ const docTemplate = `{
                 1,
                 2,
                 3,
-                4
+                4,
+                5
+            ],
+            "x-enum-comments": {
+                "JobStatusPendingPay": "招租发布：待支付；支付成功后由回调翻转为 Active"
+            },
+            "x-enum-descriptions": [
+                "",
+                "",
+                "",
+                "",
+                "招租发布：待支付；支付成功后由回调翻转为 Active"
             ],
             "x-enum-varnames": [
                 "JobStatusActive",
                 "JobStatusUserClosed",
                 "JobStatusAdminDisabled",
-                "JobStatusDeleted"
+                "JobStatusDeleted",
+                "JobStatusPendingPay"
             ]
         },
         "v1.AdminContactHistoryItem": {
@@ -3921,6 +3972,10 @@ const docTemplate = `{
         "v1.JobFilter": {
             "type": "object",
             "properties": {
+                "area_size_range": {
+                    "description": "招租专属筛选（仅当 BizType=3 时生效）",
+                    "type": "integer"
+                },
                 "attendance_leave": {
                     "type": "array",
                     "items": {
@@ -3934,7 +3989,7 @@ const docTemplate = `{
                     }
                 },
                 "biz_type": {
-                    "description": "0=不限，1=招聘，2=求职",
+                    "description": "0=不限，1=招聘，2=求职，3=招租",
                     "type": "integer"
                 },
                 "first_area_id": {
@@ -3962,6 +4017,10 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "second_area_id": {
+                    "type": "integer"
+                },
+                "transfer_fee_flag": {
+                    "description": "0=不限 1=有转让费 2=无转让费",
                     "type": "integer"
                 }
             }
@@ -4075,6 +4134,14 @@ const docTemplate = `{
                 },
                 "recruit_num": {
                     "type": "integer"
+                },
+                "rent_detail": {
+                    "description": "招租(biz_type=3)扩展字段",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.RentDetailDTO"
+                        }
+                    ]
                 },
                 "salary_benefits": {
                     "type": "array",
@@ -4227,6 +4294,14 @@ const docTemplate = `{
                 },
                 "positions": {
                     "type": "string"
+                },
+                "rent_detail": {
+                    "description": "招租(biz_type=3)扩展字段",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.RentDetailDTO"
+                        }
+                    ]
                 },
                 "salary_benefits": {
                     "type": "array",
@@ -4435,6 +4510,9 @@ const docTemplate = `{
                 "recruit_num": {
                     "type": "integer"
                 },
+                "rent_detail": {
+                    "$ref": "#/definitions/v1.RentDetailDTO"
+                },
                 "salary_benefits": {
                     "type": "array",
                     "items": {
@@ -4573,6 +4651,172 @@ const docTemplate = `{
                 },
                 "value": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.RentDetailDTO": {
+            "type": "object",
+            "properties": {
+                "area_size": {
+                    "description": "店铺面积(平方米)",
+                    "type": "integer"
+                },
+                "monthly_rent": {
+                    "description": "月租(元)",
+                    "type": "integer"
+                },
+                "transfer_desc": {
+                    "type": "string"
+                },
+                "transfer_fee_amount": {
+                    "description": "转让费金额(元)",
+                    "type": "integer"
+                },
+                "transfer_fee_type": {
+                    "description": "0=无转让费 1=固定金额 2=面议",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "example": 1
+                }
+            }
+        },
+        "v1.RentPrePublishRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "area_size",
+                "contact",
+                "contact_person_name",
+                "first_area_des",
+                "latitude",
+                "longitude",
+                "monthly_rent",
+                "photo_urls",
+                "positions",
+                "second_area_des"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "address_detail": {
+                    "type": "string"
+                },
+                "area_size": {
+                    "description": "店铺面积(㎡)",
+                    "type": "integer"
+                },
+                "contact": {
+                    "type": "string"
+                },
+                "contact_person_name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "first_area_des": {
+                    "type": "string"
+                },
+                "first_area_id": {
+                    "type": "integer"
+                },
+                "four_area_des": {
+                    "type": "string"
+                },
+                "four_area_id": {
+                    "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "monthly_rent": {
+                    "description": "招租扩展字段",
+                    "type": "integer"
+                },
+                "photo_urls": {
+                    "type": "array",
+                    "maxItems": 4,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "positions": {
+                    "description": "招租标题",
+                    "type": "string"
+                },
+                "second_area_des": {
+                    "type": "string"
+                },
+                "second_area_id": {
+                    "type": "integer"
+                },
+                "third_area_des": {
+                    "type": "string"
+                },
+                "third_area_id": {
+                    "type": "integer"
+                },
+                "transfer_desc": {
+                    "type": "string"
+                },
+                "transfer_fee_amount": {
+                    "description": "仅当 TransferFeeType=1 时必填",
+                    "type": "integer"
+                },
+                "transfer_fee_type": {
+                    "description": "0=无 1=固定 2=面议",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "v1.RentPrePublishResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/v1.RentPrePublishResponseData"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.RentPrePublishResponseData": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "pay_params": {
+                    "$ref": "#/definitions/v1.PayParams"
                 }
             }
         },

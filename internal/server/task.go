@@ -15,15 +15,18 @@ type TaskServer struct {
 	log       *log.Logger
 	scheduler *gocron.Scheduler
 	userTask  task.UserTask
+	rentTask  task.RentTask
 }
 
 func NewTaskServer(
 	log *log.Logger,
 	userTask task.UserTask,
+	rentTask task.RentTask,
 ) *TaskServer {
 	return &TaskServer{
 		log:      log,
 		userTask: userTask,
+		rentTask: rentTask,
 	}
 }
 
@@ -46,6 +49,16 @@ func (t *TaskServer) Start(ctx context.Context) error {
 	})
 	if err != nil {
 		t.log.Error("CheckUser error", zap.Error(err))
+	}
+
+	// 招租超时清理：每 5 分钟扫描一次，清理超过 rent.pending_ttl_minutes 未支付的招租 job。
+	_, err = t.scheduler.Cron("*/5 * * * *").Do(func() {
+		if err := t.rentTask.CleanupPending(ctx); err != nil {
+			t.log.Error("CleanupPending rent error", zap.Error(err))
+		}
+	})
+	if err != nil {
+		t.log.Error("register CleanupPending rent error", zap.Error(err))
 	}
 
 	t.scheduler.StartBlocking()

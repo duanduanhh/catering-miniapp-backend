@@ -31,5 +31,6 @@ func InitJobRouter(deps RouterDeps, r *gin.RouterGroup) {
 		strictAuthRouter.POST("/jobs/delete", deps.JobHandler.Delete)
 		strictAuthRouter.POST("/jobs/my", deps.JobHandler.My)
 		strictAuthRouter.POST("/jobs/top", deps.JobHandler.Top)
+		strictAuthRouter.POST("/jobs/rent/pre_publish", deps.JobHandler.PrePublishRent)
 	}
 }

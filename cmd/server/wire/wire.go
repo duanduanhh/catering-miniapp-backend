@@ -40,6 +40,7 @@ var repositorySet = wire.NewSet(
 	repository.NewReportRepository,
 	repository.NewContactFeedbackRepository,
 	repository.NewCallbackHistoryRepository,
+	repository.NewRentDetailRepository,
 )
 
 var serviceSet = wire.NewSet(

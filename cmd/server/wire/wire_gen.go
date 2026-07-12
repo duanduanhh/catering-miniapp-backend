@@ -39,13 +39,14 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	orderRepository := repository.NewOrderRepository(repositoryRepository)
 	userService := service.NewUserService(serviceService, userRepository, contactVoucherHistoryRepository, jobRepository, orderRepository)
 	userHandler := handler.NewUserHandler(handlerHandler, userService)
-	jobService := service.NewJobService(serviceService, jobRepository, userRepository, contactVoucherHistoryRepository)
+	rentDetailRepository := repository.NewRentDetailRepository(repositoryRepository)
 	orderItemRepository := repository.NewOrderItemRepository(repositoryRepository)
-	orderService := service.NewOrderService(serviceService, orderRepository, orderItemRepository, jobRepository, userRepository, contactVoucherHistoryRepository)
 	payService, err := NewPayServiceProvider(viperViper, logger)
 	if err != nil {
 		return nil, nil, err
 	}
+	jobService := service.NewJobService(serviceService, jobRepository, userRepository, contactVoucherHistoryRepository, rentDetailRepository, orderRepository, orderItemRepository, payService, viperViper)
+	orderService := service.NewOrderService(serviceService, orderRepository, orderItemRepository, jobRepository, userRepository, contactVoucherHistoryRepository)
 	collectRepository := repository.NewCollectRepository(repositoryRepository)
 	contactHistoryRepository := repository.NewContactHistoryRepository(repositoryRepository)
 	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService, payService, collectRepository, contactHistoryRepository)
@@ -121,7 +122,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 // wire.go:
 
-var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewContactVoucherHistoryRepository, repository.NewPositionCategoryRepository, repository.NewFeedbackRepository, repository.NewEnterpriseRepository, repository.NewReportRepository, repository.NewContactFeedbackRepository, repository.NewCallbackHistoryRepository)
+var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewContactVoucherHistoryRepository, repository.NewPositionCategoryRepository, repository.NewFeedbackRepository, repository.NewEnterpriseRepository, repository.NewReportRepository, repository.NewContactFeedbackRepository, repository.NewCallbackHistoryRepository, repository.NewRentDetailRepository)
 
 var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewUploadService, service.NewImageSecurityService, NewPayServiceProvider, service.NewPositionCategoryService, service.NewFeedbackService, service.NewEnterpriseService, service.NewAdminJobService, service.NewAdminAuthService, service.NewAdminListService, service.NewReportService, service.NewContactFeedbackService, service.NewCallbackHistoryService)
 

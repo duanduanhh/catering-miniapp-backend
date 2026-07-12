@@ -238,6 +238,11 @@ func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order
 				if err := s.applyRefresh(ctx, item); err != nil {
 					return err
 				}
+			case model.ProductTypePublishRent:
+				// 招租发布支付成功：将 job 从待支付翻转为 Active，刷新时间更新为当前
+				if err := s.jobRepository.ActivatePendingRent(ctx, item.TargetID); err != nil {
+					return err
+				}
 			}
 		}
 		// 任意付费订单支付成功都触发"首次消费"判定；

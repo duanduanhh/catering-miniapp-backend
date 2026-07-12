@@ -43,9 +43,83 @@ func NewJobHandler(
 	}
 }
 
+// PrePublishRent godoc
+// @Summary 发布招租（付费预下单）
+// @Description 招租(biz_type=3)专用发布接口。一次事务预建 job(status=待支付) + rent_detail + order，返回微信支付参数。小程序完成支付后，微信回调将 job 翻转为 active 并刷新时间。photo_urls 至少1张、最多4张；transfer_fee_type=1 时 transfer_fee_amount 必填。发布价格从服务端配置 rent.publish_price 读取，客户端不传。
+// @Tags 岗位模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.RentPrePublishRequest true "params"
+// @Success 200 {object} v1.RentPrePublishResponse
+// @Router /jobs/rent/pre_publish [post]
+func (h *JobHandler) PrePublishRent(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	if userID == 0 {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	openid := GetOpenidFromCtx(ctx)
+	if openid == "" {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "openid not found in token")
+		return
+	}
+	var req v1.RentPrePublishRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	if err := validatePhotoURLs(req.PhotoURLs); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	input := service.RentPrePublishInput{
+		Positions:         req.Positions,
+		Address:           req.Address,
+		AddressDetail:     req.AddressDetail,
+		Longitude:         req.Longitude,
+		Latitude:          req.Latitude,
+		Contact:           req.Contact,
+		ContactPersonName: req.ContactPersonName,
+		Description:       req.Description,
+		PhotoURLs:         strings.Join(req.PhotoURLs, ","),
+		FirstAreaID:       req.FirstAreaID,
+		FirstAreaDes:      req.FirstAreaDes,
+		SecondAreaID:      req.SecondAreaID,
+		SecondAreaDes:     req.SecondAreaDes,
+		ThirdAreaID:       req.ThirdAreaID,
+		ThirdAreaDes:      req.ThirdAreaDes,
+		FourAreaID:        req.FourAreaID,
+		FourAreaDes:       req.FourAreaDes,
+		MonthlyRent:       req.MonthlyRent,
+		AreaSize:          req.AreaSize,
+		TransferFeeType:   model.TransferFeeType(req.TransferFeeType),
+		TransferFeeAmount: req.TransferFeeAmount,
+		TransferDesc:      req.TransferDesc,
+	}
+	result, err := h.jobService.PrePublishRent(ctx, userID, openid, input)
+	if err != nil {
+		h.logger.WithContext(ctx).Error("jobService.PrePublishRent error", zap.Error(err))
+		if err == service.ErrInvalidRentInput {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+			return
+		}
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	params, _ := result.PayParams.(v1.PayParams)
+	v1.HandleSuccess(ctx, v1.RentPrePublishResponseData{
+		JobID:     result.JobID,
+		OrderID:   result.OrderID,
+		OrderNo:   result.OrderNo,
+		Amount:    result.Amount,
+		PayParams: params,
+	})
+}
+
 // Create godoc
 // @Summary 发布岗位信息
-// @Description 发布招聘或求职信息。biz_type: 1=招聘（默认）2=求职，不传默认1。招聘时 company_name/address/longitude/latitude 必填；求职时留空即可。photo_urls 最多4张。每个用户招聘上限10条、求职上限5条（active状态）。
+// @Description 发布招聘或求职信息。biz_type: 1=招聘（默认）2=求职 3=招租，不传默认1。招聘时 company_name/address/longitude/latitude 必填；求职时留空即可。**招租(biz_type=3)必须走 /jobs/rent/pre_publish 付费流程，本接口不受理。** photo_urls 最多4张。每个用户招聘上限10条、求职上限5条（active状态）。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -71,6 +145,11 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 	// biz_type 不传时默认为招聘
 	if req.BizType == 0 {
 		req.BizType = v1.BizTypeRecruit
+	}
+	// 招租禁止走通用 Create，必须走 /jobs/rent/pre_publish
+	if req.BizType == v1.BizTypeRent {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "rent must be published via /jobs/rent/pre_publish")
+		return
 	}
 	// 招聘时工作地点相关字段必填
 	if req.BizType == v1.BizTypeRecruit {
@@ -115,6 +194,10 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 			return
 		}
+		if err == service.ErrRentUseDedicatedAPI {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+			return
+		}
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
@@ -125,7 +208,7 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 
 // Update godoc
 // @Summary 修改岗位信息
-// @Description 更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。
+// @Description 更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。招租(biz_type=3)可传 rent_detail 更新月租、面积、转让费。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -192,10 +275,23 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		joined := strings.Join(req.AttendanceLeave, ",")
 		input.AttendanceLeave = &joined
 	}
+	if req.RentDetail != nil {
+		input.RentDetail = &service.RentDetailUpdateInput{
+			MonthlyRent:       req.RentDetail.MonthlyRent,
+			AreaSize:          req.RentDetail.AreaSize,
+			TransferFeeType:   model.TransferFeeType(req.RentDetail.TransferFeeType),
+			TransferFeeAmount: req.RentDetail.TransferFeeAmount,
+			TransferDesc:      req.RentDetail.TransferDesc,
+		}
+	}
 	if err := h.jobService.Update(ctx, userID, input); err != nil {
 		h.logger.WithContext(ctx).Error("jobService.Update error", zap.Error(err))
 		if err == service.ErrForbidden {
 			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
+			return
+		}
+		if err == service.ErrInvalidRentInput {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 			return
 		}
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
@@ -304,6 +400,11 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 	var req v1.JobRefreshPayRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	// 招租(biz_type=3)不支持付费刷新
+	if jobInfo, err := h.jobService.GetByID(ctx, req.JobID); err == nil && jobInfo != nil && jobInfo.BizType == v1.BizTypeRent {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "rent does not support paid refresh")
 		return
 	}
 	order, _, err := h.orderService.CreateRefreshOrder(ctx, userID, req.JobID, req.Price)
@@ -497,7 +598,7 @@ func (h *JobHandler) GetCloseReasons(ctx *gin.Context) {
 
 // List godoc
 // @Summary 岗位列表（带筛选+分页）
-// @Description 公开接口，无需登录。filter.biz_type: 0=全部 1=招聘 2=求职，不传默认全部。query_type: 1=置顶优先+刷新时间倒序 2=距离最近（需传 longitude/latitude） 3=最新发布，不传默认3。salary_min/salary_max 为0时不过滤薪资。basic_protection/salary_benefits/attendance_leave 数组，AND 过滤，多个值同时满足才返回。
+// @Description 公开接口，无需登录。filter.biz_type: 0=全部 1=招聘 2=求职 3=招租，不传默认全部。query_type: 1=置顶优先+刷新时间倒序 2=距离最近（需传 longitude/latitude） 3=最新发布，不传默认3。salary_min/salary_max 为0时不过滤薪资。basic_protection/salary_benefits/attendance_leave 数组，AND 过滤，多个值同时满足才返回。招租专属筛选(仅 biz_type=3 生效)：area_size_range(1=<15 2=[15,30) 3=[30,50) 4=[50,100) 5=[100,200) 6=>=200)，transfer_fee_flag(1=有 2=无)。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -524,6 +625,8 @@ func (h *JobHandler) List(ctx *gin.Context) {
 		AttendanceLeave: req.Filter.AttendanceLeave,
 		Longitude:       req.Filter.Longitude,
 		Latitude:        req.Filter.Latitude,
+		AreaSizeRange:   req.Filter.AreaSizeRange,
+		TransferFeeFlag: req.Filter.TransferFeeFlag,
 		PageNum:         req.PageNum,
 		PageSize:        req.PageSize,
 	}
@@ -533,12 +636,21 @@ func (h *JobHandler) List(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
+	// 批量补齐招租扩展信息
+	rentMap := h.batchLoadRentDetails(ctx, jobs)
 	resp := v1.JobListResponseData{
 		Jobs:  make([]v1.JobListItem, 0, len(jobs)),
 		Total: total,
 	}
 	for _, job := range jobs {
-		resp.Jobs = append(resp.Jobs, buildJobListItem(job))
+		item := buildJobListItem(job)
+		if job.BizType == v1.BizTypeRent {
+			if d, ok := rentMap[job.ID]; ok && d != nil {
+				dto := toRentDetailDTO(d)
+				item.RentDetail = &dto
+			}
+		}
+		resp.Jobs = append(resp.Jobs, item)
 	}
 	v1.HandleSuccess(ctx, resp)
 }
@@ -574,6 +686,12 @@ func (h *JobHandler) Info(ctx *gin.Context) {
 	}
 
 	item := buildJobListItem(job)
+	if job.BizType == v1.BizTypeRent {
+		if d, err := h.jobService.GetRentDetailByJobID(ctx, job.ID); err == nil && d != nil {
+			dto := toRentDetailDTO(d)
+			item.RentDetail = &dto
+		}
+	}
 
 	if userID > 0 {
 		collect, err := h.collectRepository.Get(ctx, userID, job.ID, job.BizType)
@@ -618,12 +736,13 @@ func (h *JobHandler) My(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
+	rentMap := h.batchLoadRentDetails(ctx, jobs)
 	resp := v1.JobMyResponseData{
 		List:  make([]v1.JobMyItem, 0, len(jobs)),
 		Total: total,
 	}
 	for _, job := range jobs {
-		resp.List = append(resp.List, v1.JobMyItem{
+		myItem := v1.JobMyItem{
 			JobID:           job.ID,
 			BizType:         job.BizType,
 			Positions:       job.Positions,
@@ -640,7 +759,14 @@ func (h *JobHandler) My(ctx *gin.Context) {
 			Status:          int(job.Status),
 			LastRefreshTime: formatOptionalTime(job.RefreshTime),
 			WorkContent:     job.WorkContent,
-		})
+		}
+		if job.BizType == v1.BizTypeRent {
+			if d, ok := rentMap[job.ID]; ok && d != nil {
+				dto := toRentDetailDTO(d)
+				myItem.RentDetail = &dto
+			}
+		}
+		resp.List = append(resp.List, myItem)
 	}
 	v1.HandleSuccess(ctx, resp)
 }
@@ -674,6 +800,11 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 	}
 	if req.TopHour <= 0 || req.Price <= 0 {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "top_hour and price must be positive")
+		return
+	}
+	// 招租(biz_type=3)不支持置顶
+	if jobInfo, err := h.jobService.GetByID(ctx, req.JobID); err == nil && jobInfo != nil && jobInfo.BizType == v1.BizTypeRent {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "rent does not support top")
 		return
 	}
 	order, _, err := h.orderService.CreateTopOrder(ctx, userID, req.JobID, req.TopHour, req.Price, req.ContactVoucherNum)
@@ -731,11 +862,19 @@ func (h *JobHandler) HomeTop(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
+	rentMap := h.batchLoadRentDetails(ctx, jobs)
 	resp := v1.HomeTopResponseData{
 		List: make([]v1.JobListItem, 0, len(jobs)),
 	}
 	for _, job := range jobs {
-		resp.List = append(resp.List, buildJobListItem(job))
+		item := buildJobListItem(job)
+		if job.BizType == v1.BizTypeRent {
+			if d, ok := rentMap[job.ID]; ok && d != nil {
+				dto := toRentDetailDTO(d)
+				item.RentDetail = &dto
+			}
+		}
+		resp.List = append(resp.List, item)
 	}
 	v1.HandleSuccess(ctx, resp)
 }
@@ -761,12 +900,20 @@ func (h *JobHandler) HomeFeed(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
+	rentMap := h.batchLoadRentDetails(ctx, jobs)
 	resp := v1.HomeFeedResponseData{
 		List:  make([]v1.JobListItem, 0, len(jobs)),
 		Total: total,
 	}
 	for _, job := range jobs {
-		resp.List = append(resp.List, buildJobListItem(job))
+		item := buildJobListItem(job)
+		if job.BizType == v1.BizTypeRent {
+			if d, ok := rentMap[job.ID]; ok && d != nil {
+				dto := toRentDetailDTO(d)
+				item.RentDetail = &dto
+			}
+		}
+		resp.List = append(resp.List, item)
 	}
 	v1.HandleSuccess(ctx, resp)
 }
@@ -845,6 +992,36 @@ func splitCSV(value string) []string {
 		}
 	}
 	return result
+}
+
+// batchLoadRentDetails 从 jobs 中筛出招租(biz_type=3)条目，批量读扩展表。
+func (h *JobHandler) batchLoadRentDetails(ctx *gin.Context, jobs []*model.Job) map[int64]*model.RentDetail {
+	ids := make([]int64, 0)
+	for _, j := range jobs {
+		if j.BizType == v1.BizTypeRent {
+			ids = append(ids, j.ID)
+		}
+	}
+	if len(ids) == 0 {
+		return map[int64]*model.RentDetail{}
+	}
+	m, err := h.jobService.GetRentDetailsByJobIDs(ctx, ids)
+	if err != nil {
+		h.logger.WithContext(ctx).Warn("GetRentDetailsByJobIDs error", zap.Error(err))
+		return map[int64]*model.RentDetail{}
+	}
+	return m
+}
+
+// toRentDetailDTO 将 model.RentDetail 转为 API DTO。
+func toRentDetailDTO(d *model.RentDetail) v1.RentDetailDTO {
+	return v1.RentDetailDTO{
+		MonthlyRent:       d.MonthlyRent,
+		AreaSize:          d.AreaSize,
+		TransferFeeType:   int(d.TransferFeeType),
+		TransferFeeAmount: d.TransferFeeAmount,
+		TransferDesc:      d.TransferDesc,
+	}
 }
 
 func maskPhone(phone string) string {
