@@ -251,7 +251,7 @@ func (r *jobRepository) ListTop(ctx context.Context, bizType, firstAreaID, secon
 	if secondAreaID > 0 {
 		db = db.Where("job.second_area_id = ?", secondAreaID)
 	}
-	err := db.Order("job.top_end_time DESC").Limit(limit).Find(&jobs).Error
+	err := db.Order("GREATEST(COALESCE(job.refresh_time, job.create_at), COALESCE(job.paid_refresh_time, job.create_at)) DESC").Limit(limit).Find(&jobs).Error
 	return jobs, err
 }
 

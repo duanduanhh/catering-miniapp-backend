@@ -843,7 +843,7 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 
 // HomeTop godoc
 // @Summary 首页置顶区
-// @Description 公开接口，无需登录。返回当前有效置顶时间窗口内的岗位，按到期时间倒序。type: 0或不传=全部 1=招聘 2=求职，不传默认0。limit: 最大返回条数，不传默认5。
+// @Description 公开接口，无需登录。返回当前有效置顶时间窗口内的岗位，按普通刷新和付费刷新中较晚的一次倒序；均未刷新时按发布时间排序。type: 0或不传=全部 1=招聘 2=求职，不传默认0。limit: 最大返回条数，不传默认5。
 // @Tags 首页
 // @Accept json
 // @Produce json
