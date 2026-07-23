@@ -60,19 +60,18 @@ func NewUploadService(config *viper.Viper, imageSecurityService ImageSecuritySer
 }
 
 func (s *uploadService) UploadImage(ctx context.Context, file io.Reader, originalFilename string, userID int64, openid string, checkMode string) (*UploadImageResult, error) {
-	checkMode = normalizeImageCheckMode(checkMode)
 	imageData, ext, err := compressForSecurityCheck(file)
 	if err != nil {
 		return nil, err
 	}
-	switch checkMode {
-	case ImageCheckModeSync:
-		return s.uploadImageWithSyncCheck(ctx, imageData, ext, originalFilename, userID)
-	case ImageCheckModeAsync:
-		return s.uploadImageWithAsyncCheck(ctx, imageData, ext, userID, openid)
-	default:
-		return nil, ErrInvalidImageCheckMode
+
+	// 微信图片审核暂时关闭，保留同步/异步审核实现以便后续恢复。
+	// check_mode 当前不生效，图片压缩后直接上传 OSS。
+	url, err := s.uploadCompressedImage(ctx, imageData, ext, userID)
+	if err != nil {
+		return nil, err
 	}
+	return &UploadImageResult{URL: url}, nil
 }
 
 func (s *uploadService) uploadImageWithSyncCheck(ctx context.Context, imageData []byte, ext, originalFilename string, userID int64) (*UploadImageResult, error) {

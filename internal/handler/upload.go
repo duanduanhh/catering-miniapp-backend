@@ -33,7 +33,7 @@ func NewUploadHandler(handler *Handler, uploadService service.UploadService) *Up
 // @Produce json
 // @Security Bearer
 // @Param file formData file true "file"
-// @Param check_mode formData string false "审核方式：sync=同步审核后上传，async=上传后异步审核，默认sync"
+// @Param check_mode formData string false "预留审核方式参数；当前微信图片审核已关闭，传入值会被忽略"
 // @Success 200 {object} v1.UploadImageResponseData
 // @Router /img/upload [post]
 func (h *UploadHandler) UploadImage(ctx *gin.Context) {
