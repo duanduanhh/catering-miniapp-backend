@@ -208,7 +208,7 @@ func (h *JobHandler) Create(ctx *gin.Context) {
 
 // Update godoc
 // @Summary 修改岗位信息
-// @Description 更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。招租(biz_type=3)可传 rent_detail 更新月租、面积、转让费。
+// @Description 更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。招租(biz_type=3)可传 monthly_rent/area_size/transfer_fee_type/transfer_fee_amount/transfer_desc（与 /jobs/rent/pre_publish 一致的扁平结构）更新月租、面积、转让费。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -258,6 +258,11 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 		EnterpriseID:      req.EnterpriseID,
 		RecruitNum:        req.RecruitNum,
 		WorkContent:       req.WorkContent,
+		MonthlyRent:       req.MonthlyRent,
+		AreaSize:          req.AreaSize,
+		TransferFeeType:   req.TransferFeeType,
+		TransferFeeAmount: req.TransferFeeAmount,
+		TransferDesc:      req.TransferDesc,
 	}
 	if req.PhotoURLs != nil {
 		joined := strings.Join(req.PhotoURLs, ",")
@@ -274,15 +279,6 @@ func (h *JobHandler) Update(ctx *gin.Context) {
 	if req.AttendanceLeave != nil {
 		joined := strings.Join(req.AttendanceLeave, ",")
 		input.AttendanceLeave = &joined
-	}
-	if req.RentDetail != nil {
-		input.RentDetail = &service.RentDetailUpdateInput{
-			MonthlyRent:       req.RentDetail.MonthlyRent,
-			AreaSize:          req.RentDetail.AreaSize,
-			TransferFeeType:   model.TransferFeeType(req.RentDetail.TransferFeeType),
-			TransferFeeAmount: req.RentDetail.TransferFeeAmount,
-			TransferDesc:      req.RentDetail.TransferDesc,
-		}
 	}
 	if err := h.jobService.Update(ctx, userID, input); err != nil {
 		h.logger.WithContext(ctx).Error("jobService.Update error", zap.Error(err))
@@ -758,6 +754,7 @@ func (h *JobHandler) My(ctx *gin.Context) {
 			IsTop:           isJobTop(job),
 			Status:          int(job.Status),
 			LastRefreshTime: formatOptionalTime(job.RefreshTime),
+			PhotoURLs:       splitCSV(job.PhotoURLs),
 			WorkContent:     job.WorkContent,
 		}
 		if job.BizType == v1.BizTypeRent {

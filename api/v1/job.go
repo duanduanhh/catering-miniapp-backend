@@ -42,34 +42,39 @@ type JobCreateResponse struct {
 }
 
 type JobUpdateRequest struct {
-	ID                int64          `json:"id" binding:"required"`
-	Positions         *string        `json:"positions"`
-	CompanyName       *string        `json:"company_name"`
-	ContactPersonName *string        `json:"contact_person_name"`
-	Longitude         *float64       `json:"longitude"`
-	Latitude          *float64       `json:"latitude"`
-	Address           *string        `json:"address"`
-	AddressDetail     *string        `json:"address_detail"`
-	Contact           *string        `json:"contact"`
-	Description       *string        `json:"description"`
-	PhotoURLs         []string       `json:"photo_urls"`
-	FirstAreaID       *int           `json:"first_area_id"`
-	SecondAreaID      *int           `json:"second_area_id"`
-	ThirdAreaID       *int           `json:"third_area_id"`
-	FourAreaID        *int           `json:"four_area_id"`
-	FirstAreaDes      *string        `json:"first_area_des"`
-	SecondAreaDes     *string        `json:"second_area_des"`
-	ThirdAreaDes      *string        `json:"third_area_des"`
-	FourAreaDes       *string        `json:"four_area_des"`
-	SalaryMin         *int           `json:"salary_min"`
-	SalaryMax         *int           `json:"salary_max"`
-	BasicProtection   []string       `json:"basic_protection"`
-	SalaryBenefits    []string       `json:"salary_benefits"`
-	AttendanceLeave   []string       `json:"attendance_leave"`
-	EnterpriseID      *int64         `json:"enterprise_id"`
-	RecruitNum        *int           `json:"recruit_num"`
-	WorkContent       *string        `json:"work_content"`
-	RentDetail        *RentDetailDTO `json:"rent_detail"`
+	ID                int64    `json:"id" binding:"required"`
+	Positions         *string  `json:"positions"`
+	CompanyName       *string  `json:"company_name"`
+	ContactPersonName *string  `json:"contact_person_name"`
+	Longitude         *float64 `json:"longitude"`
+	Latitude          *float64 `json:"latitude"`
+	Address           *string  `json:"address"`
+	AddressDetail     *string  `json:"address_detail"`
+	Contact           *string  `json:"contact"`
+	Description       *string  `json:"description"`
+	PhotoURLs         []string `json:"photo_urls"`
+	FirstAreaID       *int     `json:"first_area_id"`
+	SecondAreaID      *int     `json:"second_area_id"`
+	ThirdAreaID       *int     `json:"third_area_id"`
+	FourAreaID        *int     `json:"four_area_id"`
+	FirstAreaDes      *string  `json:"first_area_des"`
+	SecondAreaDes     *string  `json:"second_area_des"`
+	ThirdAreaDes      *string  `json:"third_area_des"`
+	FourAreaDes       *string  `json:"four_area_des"`
+	SalaryMin         *int     `json:"salary_min"`
+	SalaryMax         *int     `json:"salary_max"`
+	BasicProtection   []string `json:"basic_protection"`
+	SalaryBenefits    []string `json:"salary_benefits"`
+	AttendanceLeave   []string `json:"attendance_leave"`
+	EnterpriseID      *int64   `json:"enterprise_id"`
+	RecruitNum        *int     `json:"recruit_num"`
+	WorkContent       *string  `json:"work_content"`
+	// 招租(biz_type=3)扩展字段，与 RentPrePublishRequest 保持同样的扁平结构，均可选（nil=不修改）
+	MonthlyRent       *int    `json:"monthly_rent"`
+	AreaSize          *int    `json:"area_size"`
+	TransferFeeType   *int    `json:"transfer_fee_type" enums:"0,1,2"`
+	TransferFeeAmount *int    `json:"transfer_fee_amount"`
+	TransferDesc      *string `json:"transfer_desc"`
 }
 
 type JobTopRequest struct {
@@ -220,6 +225,7 @@ type JobMyItem struct {
 	LastRefreshTime   string         `json:"last_refresh_time"`
 	ContactPersonName string         `json:"contact_person_name"`
 	Contact           string         `json:"contact"`
+	PhotoURLs         []string       `json:"photo_urls"`
 	Avatar            string         `json:"avatar"`
 	BasicProtection   []string       `json:"basic_protection"`
 	SalaryBenefits    []string       `json:"salary_benefits"`

@@ -23,17 +23,19 @@ type ContactHistoryItem struct {
 	Avatar           string `json:"avatar"` // 被联系方头像
 
 	// 岗位信息
-	JobID         int64  `json:"job_id"`
-	BizType       int    `json:"biz_type"`
-	Positions     string `json:"positions"`
-	Address       string `json:"address"`
-	SalaryMin     int    `json:"salary_min"`
-	SalaryMax     int    `json:"salary_max"`
-	FirstAreaDes  string `json:"first_area_des"`
-	SecondAreaDes string `json:"second_area_des"`
-	ThirdAreaDes  string `json:"third_area_des"`
-	JobStatus     int    `json:"job_status"`
-	CompanyName   string `json:"company_name"`
+	JobID         int64          `json:"job_id"`
+	BizType       int            `json:"biz_type"`
+	Positions     string         `json:"positions"`
+	Address       string         `json:"address"`
+	AddressDetail string         `json:"address_detail"` // 详细地址
+	SalaryMin     int            `json:"salary_min"`
+	SalaryMax     int            `json:"salary_max"`
+	FirstAreaDes  string         `json:"first_area_des"`
+	SecondAreaDes string         `json:"second_area_des"`
+	ThirdAreaDes  string         `json:"third_area_des"`
+	JobStatus     int            `json:"job_status"`
+	CompanyName   string         `json:"company_name"`
+	RentDetail    *RentDetailDTO `json:"rent_detail,omitempty"` // 招租(biz_type=3)扩展字段，与岗位列表/收藏列表结构一致
 }
 
 type ContactHistoryListResponseData struct {

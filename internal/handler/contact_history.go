@@ -59,12 +59,13 @@ func (h *ContactHistoryHandler) ListOut(ctx *gin.Context) {
 		Total: total,
 	}
 	for _, item := range items {
-		resp.List = append(resp.List, v1.ContactHistoryItem{
+		dto := v1.ContactHistoryItem{
 			ID:               item.ID,
 			JobID:            item.JobID,
 			BizType:          item.BizType,
 			Positions:        item.Positions,
 			Address:          item.Address,
+			AddressDetail:    item.AddressDetail,
 			PurposeUserID:    item.PurposeUserID,
 			PurposeUserName:  item.PurposeUserName,
 			PurposeUserPhone: item.PurposeUserPhone,
@@ -81,7 +82,12 @@ func (h *ContactHistoryHandler) ListOut(ctx *gin.Context) {
 			ThirdAreaDes:     item.ThirdAreaDes,
 			JobStatus:        item.JobStatus,
 			CompanyName:      item.CompanyName,
-		})
+		}
+		if item.RentDetail != nil {
+			rentDTO := toRentDetailDTO(item.RentDetail)
+			dto.RentDetail = &rentDTO
+		}
+		resp.List = append(resp.List, dto)
 	}
 	v1.HandleSuccess(ctx, resp)
 }
@@ -118,12 +124,13 @@ func (h *ContactHistoryHandler) ListIn(ctx *gin.Context) {
 		Total: total,
 	}
 	for _, item := range items {
-		resp.List = append(resp.List, v1.ContactHistoryItem{
+		dto := v1.ContactHistoryItem{
 			ID:               item.ID,
 			JobID:            item.JobID,
 			BizType:          item.BizType,
 			Positions:        item.Positions,
 			Address:          item.Address,
+			AddressDetail:    item.AddressDetail,
 			PurposeUserID:    item.PurposeUserID,
 			PurposeUserName:  item.PurposeUserName,
 			PurposeUserPhone: item.PurposeUserPhone,
@@ -140,7 +147,12 @@ func (h *ContactHistoryHandler) ListIn(ctx *gin.Context) {
 			ThirdAreaDes:     item.ThirdAreaDes,
 			JobStatus:        item.JobStatus,
 			CompanyName:      item.CompanyName,
-		})
+		}
+		if item.RentDetail != nil {
+			rentDTO := toRentDetailDTO(item.RentDetail)
+			dto.RentDetail = &rentDTO
+		}
+		resp.List = append(resp.List, dto)
 	}
 	v1.HandleSuccess(ctx, resp)
 }

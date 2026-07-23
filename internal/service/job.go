@@ -147,15 +147,12 @@ type JobUpdateInput struct {
 	EnterpriseID      *int64
 	RecruitNum        *int
 	WorkContent       *string
-	RentDetail        *RentDetailUpdateInput
-}
-
-type RentDetailUpdateInput struct {
-	MonthlyRent       int
-	AreaSize          int
-	TransferFeeType   model.TransferFeeType
-	TransferFeeAmount int
-	TransferDesc      string
+	// 招租(biz_type=3)扩展字段，均可选（nil=不修改，保留数据库原值）
+	MonthlyRent       *int
+	AreaSize          *int
+	TransferFeeType   *int
+	TransferFeeAmount *int
+	TransferDesc      *string
 }
 
 func (s *jobService) Create(ctx context.Context, userID int64, input JobCreateInput) (*model.Job, error) {
@@ -312,22 +309,34 @@ func (s *jobService) Update(ctx context.Context, userID int64, input JobUpdateIn
 		job.WorkContent = *input.WorkContent
 	}
 	var rentDetail *model.RentDetail
-	if input.RentDetail != nil {
+	hasRentUpdate := input.MonthlyRent != nil || input.AreaSize != nil || input.TransferFeeType != nil ||
+		input.TransferFeeAmount != nil || input.TransferDesc != nil
+	if hasRentUpdate {
 		if job.BizType != bizTypeRent {
 			return ErrInvalidRentInput
-		}
-		if err := validateRentDetailInput(input.RentDetail); err != nil {
-			return err
 		}
 		detail, err := s.rentDetailRepository.GetByJobID(ctx, job.ID)
 		if err != nil {
 			return err
 		}
-		detail.MonthlyRent = input.RentDetail.MonthlyRent
-		detail.AreaSize = input.RentDetail.AreaSize
-		detail.TransferFeeType = input.RentDetail.TransferFeeType
-		detail.TransferFeeAmount = input.RentDetail.TransferFeeAmount
-		detail.TransferDesc = input.RentDetail.TransferDesc
+		if input.MonthlyRent != nil {
+			detail.MonthlyRent = *input.MonthlyRent
+		}
+		if input.AreaSize != nil {
+			detail.AreaSize = *input.AreaSize
+		}
+		if input.TransferFeeType != nil {
+			detail.TransferFeeType = model.TransferFeeType(*input.TransferFeeType)
+		}
+		if input.TransferFeeAmount != nil {
+			detail.TransferFeeAmount = *input.TransferFeeAmount
+		}
+		if input.TransferDesc != nil {
+			detail.TransferDesc = *input.TransferDesc
+		}
+		if err := validateRentDetail(detail); err != nil {
+			return err
+		}
 		rentDetail = detail
 	}
 	return s.tm.Transaction(ctx, func(ctx context.Context) error {
@@ -341,17 +350,17 @@ func (s *jobService) Update(ctx context.Context, userID int64, input JobUpdateIn
 	})
 }
 
-func validateRentDetailInput(input *RentDetailUpdateInput) error {
-	if input.MonthlyRent <= 0 || input.AreaSize <= 0 {
+func validateRentDetail(d *model.RentDetail) error {
+	if d.MonthlyRent <= 0 || d.AreaSize <= 0 {
 		return ErrInvalidRentInput
 	}
-	switch input.TransferFeeType {
+	switch d.TransferFeeType {
 	case model.TransferFeeFixed:
-		if input.TransferFeeAmount <= 0 {
+		if d.TransferFeeAmount <= 0 {
 			return ErrInvalidRentInput
 		}
 	case model.TransferFeeNone, model.TransferFeeNegotiable:
-		input.TransferFeeAmount = 0
+		d.TransferFeeAmount = 0
 	default:
 		return ErrInvalidRentInput
 	}

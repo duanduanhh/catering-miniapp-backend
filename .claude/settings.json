@@ -4,6 +4,7 @@
       "Bash(make *)",
       "Bash(make)",
       "Bash(go *)",
+      "Bash(gofmt *)",
       "Bash(cd cmd/server/wire && wire)",
       "Bash(git status *)",
       "Bash(git status)",

@@ -430,7 +430,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "返回当前用户的收藏列表。biz_type: 0=全部 1=招聘（当前仅支持招聘），不传默认全部。",
+                "description": "返回当前用户的收藏列表。biz_type: 0=全部 1=招聘 3=招租，不传默认全部。招租条目附带 rent_detail 字段，与 /jobs/my 返回结构一致。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1855,7 +1855,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。招租(biz_type=3)可传 rent_detail 更新月租、面积、转让费。",
+                "description": "更新岗位字段，所有字段均为可选，传哪个改哪个。photo_urls 最多4张；basic_protection/salary_benefits/attendance_leave 传空数组表示清空。招租(biz_type=3)可传 monthly_rent/area_size/transfer_fee_type/transfer_fee_amount/transfer_desc（与 /jobs/rent/pre_publish 一致的扁平结构）更新月租、面积、转让费。",
                 "consumes": [
                     "application/json"
                 ],
@@ -3069,6 +3069,10 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "address_detail": {
+                    "description": "详细地址",
+                    "type": "string"
+                },
                 "avatar": {
                     "description": "被联系方头像",
                     "type": "string"
@@ -3107,6 +3111,14 @@ const docTemplate = `{
                 },
                 "purpose_user_phone": {
                     "type": "string"
+                },
+                "rent_detail": {
+                    "description": "招租(biz_type=3)扩展字段，与岗位列表/收藏列表结构一致",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.RentDetailDTO"
+                        }
+                    ]
                 },
                 "salary_max": {
                     "type": "integer"
@@ -4292,6 +4304,12 @@ const docTemplate = `{
                 "last_refresh_time": {
                     "type": "string"
                 },
+                "photo_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "positions": {
                     "type": "string"
                 },
@@ -4450,6 +4468,9 @@ const docTemplate = `{
                 "address_detail": {
                     "type": "string"
                 },
+                "area_size": {
+                    "type": "integer"
+                },
                 "attendance_leave": {
                     "type": "array",
                     "items": {
@@ -4498,6 +4519,10 @@ const docTemplate = `{
                 "longitude": {
                     "type": "number"
                 },
+                "monthly_rent": {
+                    "description": "招租(biz_type=3)扩展字段，与 RentPrePublishRequest 保持同样的扁平结构，均可选（nil=不修改）",
+                    "type": "integer"
+                },
                 "photo_urls": {
                     "type": "array",
                     "items": {
@@ -4509,9 +4534,6 @@ const docTemplate = `{
                 },
                 "recruit_num": {
                     "type": "integer"
-                },
-                "rent_detail": {
-                    "$ref": "#/definitions/v1.RentDetailDTO"
                 },
                 "salary_benefits": {
                     "type": "array",
@@ -4536,6 +4558,20 @@ const docTemplate = `{
                 },
                 "third_area_id": {
                     "type": "integer"
+                },
+                "transfer_desc": {
+                    "type": "string"
+                },
+                "transfer_fee_amount": {
+                    "type": "integer"
+                },
+                "transfer_fee_type": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ]
                 },
                 "work_content": {
                     "type": "string"

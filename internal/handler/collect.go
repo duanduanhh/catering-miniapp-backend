@@ -7,21 +7,25 @@ import (
 	"go.uber.org/zap"
 
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
+	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 )
 
 type CollectHandler struct {
 	*Handler
 	collectService service.CollectService
+	jobService     service.JobService
 }
 
 func NewCollectHandler(
 	handler *Handler,
 	collectService service.CollectService,
+	jobService service.JobService,
 ) *CollectHandler {
 	return &CollectHandler{
 		Handler:        handler,
 		collectService: collectService,
+		jobService:     jobService,
 	}
 }
 
@@ -87,7 +91,7 @@ func (h *CollectHandler) Cancel(ctx *gin.Context) {
 
 // My godoc
 // @Summary 我收藏的岗位
-// @Description 返回当前用户的收藏列表。biz_type: 0=全部 1=招聘（当前仅支持招聘），不传默认全部。
+// @Description 返回当前用户的收藏列表。biz_type: 0=全部 1=招聘 3=招租，不传默认全部。招租条目附带 rent_detail 字段，与 /jobs/my 返回结构一致。
 // @Tags 收藏模块
 // @Accept json
 // @Produce json
@@ -112,12 +116,13 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
+	rentMap := h.batchLoadRentDetails(ctx, jobs)
 	resp := v1.CollectMyResponseData{
 		List:  make([]v1.JobMyItem, 0, len(jobs)),
 		Total: total,
 	}
 	for _, job := range jobs {
-		resp.List = append(resp.List, v1.JobMyItem{
+		item := v1.JobMyItem{
 			JobID:             job.ID,
 			BizType:           job.BizType,
 			Positions:         job.Positions,
@@ -135,13 +140,41 @@ func (h *CollectHandler) My(ctx *gin.Context) {
 			LastRefreshTime:   formatOptionalTime(job.RefreshTime),
 			ContactPersonName: job.ContactPersonName,
 			Contact:           job.Contact,
+			PhotoURLs:         splitCSV(job.PhotoURLs),
 			Avatar:            job.Avatar,
 			BasicProtection:   splitCSV(job.BasicProtection),
 			SalaryBenefits:    splitCSV(job.SalaryBenefits),
 			AttendanceLeave:   splitCSV(job.AttendanceLeave),
 			UserID:            job.UserID,
 			Description:       job.Description,
-		})
+			WorkContent:       job.WorkContent,
+		}
+		if job.BizType == v1.BizTypeRent {
+			if d, ok := rentMap[job.ID]; ok && d != nil {
+				dto := toRentDetailDTO(d)
+				item.RentDetail = &dto
+			}
+		}
+		resp.List = append(resp.List, item)
 	}
 	v1.HandleSuccess(ctx, resp)
+}
+
+// batchLoadRentDetails 从 jobs 中筛出招租(biz_type=3)条目，批量读扩展表，与 JobHandler 保持一致。
+func (h *CollectHandler) batchLoadRentDetails(ctx *gin.Context, jobs []*model.Job) map[int64]*model.RentDetail {
+	ids := make([]int64, 0)
+	for _, j := range jobs {
+		if j.BizType == v1.BizTypeRent {
+			ids = append(ids, j.ID)
+		}
+	}
+	if len(ids) == 0 {
+		return map[int64]*model.RentDetail{}
+	}
+	m, err := h.jobService.GetRentDetailsByJobIDs(ctx, ids)
+	if err != nil {
+		h.logger.WithContext(ctx).Warn("jobService.GetRentDetailsByJobIDs error", zap.Error(err))
+		return map[int64]*model.RentDetail{}
+	}
+	return m
 }

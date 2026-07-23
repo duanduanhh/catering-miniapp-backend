@@ -21,12 +21,14 @@ func NewContactHistoryService(
 	contactHistoryRepository repository.ContactHistoryRepository,
 	jobRepository repository.JobRepository,
 	userRepository repository.UserRepository,
+	rentDetailRepository repository.RentDetailRepository,
 ) ContactHistoryService {
 	return &contactHistoryService{
 		Service:                  service,
 		contactHistoryRepository: contactHistoryRepository,
 		jobRepository:            jobRepository,
 		userRepository:           userRepository,
+		rentDetailRepository:     rentDetailRepository,
 	}
 }
 
@@ -35,6 +37,7 @@ type contactHistoryService struct {
 	contactHistoryRepository repository.ContactHistoryRepository
 	jobRepository            repository.JobRepository
 	userRepository           repository.UserRepository
+	rentDetailRepository     repository.RentDetailRepository
 }
 
 type ContactHistoryCreateInput struct {
@@ -52,6 +55,7 @@ type ContactHistoryItem struct {
 	BizType          int
 	Positions        string
 	Address          string
+	AddressDetail    string
 	PurposeUserID    int64
 	PurposeUserName  string
 	PurposeUserPhone string
@@ -69,6 +73,7 @@ type ContactHistoryItem struct {
 	ThirdAreaDes  string
 	JobStatus     int
 	CompanyName   string
+	RentDetail    *model.RentDetail
 }
 
 func (s *contactHistoryService) Create(ctx context.Context, input ContactHistoryCreateInput) (*model.ContactHistory, error) {
@@ -129,6 +134,8 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 		jobMap[job.ID] = job
 	}
 
+	rentDetailMap, _ := s.rentDetailRepository.GetByJobIDs(ctx, jobIDs)
+
 	// 获取用户信息
 	users, _ := s.userRepository.ListByIDs(ctx, userIDs)
 	userMap := make(map[int64]*model.User, len(users))
@@ -151,6 +158,7 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 			item.BizType = job.BizType
 			item.Positions = job.Positions
 			item.Address = job.Address
+			item.AddressDetail = job.AddressDetail
 			item.SalaryMin = job.SalaryMin
 			item.SalaryMax = job.SalaryMax
 			item.FirstAreaDes = job.FirstAreaDes
@@ -158,6 +166,9 @@ func (s *contactHistoryService) buildHistoryItems(ctx context.Context, histories
 			item.ThirdAreaDes = job.ThirdAreaDes
 			item.JobStatus = int(job.Status)
 			item.CompanyName = job.CompanyName
+		}
+		if detail, ok := rentDetailMap[history.PurposeID]; ok {
+			item.RentDetail = detail
 		}
 		if user, ok := userMap[history.PurposeUserID]; ok {
 			item.Avatar = user.Avatar
