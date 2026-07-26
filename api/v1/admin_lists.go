@@ -45,6 +45,58 @@ type AdminUserListResponseData struct {
 	Total int64           `json:"total"`
 }
 
+// ===== 订单列表 =====
+
+type AdminOrderListRequest struct {
+	OrderNo       string `json:"order_no"`
+	UserID        int64  `json:"user_id"`
+	UserKeyword   string `json:"user_keyword"` // 姓名 / 手机号 / 用户编号
+	ProductType   *int   `json:"product_type"`
+	Statuses      []int  `json:"statuses"`
+	CreateAtStart string `json:"create_at_start"`
+	CreateAtEnd   string `json:"create_at_end"`
+	PaidAtStart   string `json:"paid_at_start"`
+	PaidAtEnd     string `json:"paid_at_end"`
+	PageNum       int    `json:"page_num"`
+	PageSize      int    `json:"page_size"`
+}
+
+type AdminOrderItemDetail struct {
+	ID                int64   `json:"id"`
+	ProductType       int     `json:"product_type"`
+	Title             string  `json:"title"`
+	UnitPrice         float64 `json:"unit_price"`
+	TopHour           int     `json:"top_hour"`
+	ContactVoucherNum int     `json:"contact_voucher_num"`
+	TargetType        int     `json:"target_type"`
+	TargetID          int64   `json:"target_id"`
+}
+
+type AdminOrderItem struct {
+	OrderID     int64                  `json:"order_id"`
+	OrderNo     string                 `json:"order_no"`
+	UserID      int64                  `json:"user_id"`
+	UserName    string                 `json:"user_name"`
+	UserPhone   string                 `json:"user_phone"`
+	AmountTotal float64                `json:"amount_total"`
+	AmountPaid  float64                `json:"amount_paid"`
+	Currency    string                 `json:"currency"`
+	Status      int                    `json:"status"`
+	PayChannel  string                 `json:"pay_channel"`
+	PayTradeNo  string                 `json:"pay_trade_no"`
+	PaidAt      string                 `json:"paid_at"`
+	CanceledAt  string                 `json:"canceled_at"`
+	RefundedAt  string                 `json:"refunded_at"`
+	Remark      string                 `json:"remark"`
+	CreateAt    string                 `json:"create_at"`
+	Items       []AdminOrderItemDetail `json:"items"`
+}
+
+type AdminOrderListResponseData struct {
+	List  []AdminOrderItem `json:"list"`
+	Total int64            `json:"total"`
+}
+
 // ===== 企业列表 =====
 
 type AdminEnterpriseListRequest struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 )
@@ -35,6 +36,9 @@ type ReportSubmitInput struct {
 }
 
 func (s *reportService) Submit(ctx context.Context, userID int64, input ReportSubmitInput) error {
+	if !v1.IsValidReportReason(input.BizType, input.Reason) {
+		return v1.ErrBadRequest
+	}
 	report := &model.Report{
 		UserID:      userID,
 		JobID:       input.JobID,

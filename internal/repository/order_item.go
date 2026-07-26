@@ -9,6 +9,7 @@ import (
 type OrderItemRepository interface {
 	Create(ctx context.Context, item *model.OrderItem) error
 	ListByOrderID(ctx context.Context, orderID int64) ([]*model.OrderItem, error)
+	ListByOrderIDs(ctx context.Context, orderIDs []int64) ([]*model.OrderItem, error)
 }
 
 func NewOrderItemRepository(
@@ -30,6 +31,17 @@ func (r *orderItemRepository) Create(ctx context.Context, item *model.OrderItem)
 func (r *orderItemRepository) ListByOrderID(ctx context.Context, orderID int64) ([]*model.OrderItem, error) {
 	var items []*model.OrderItem
 	if err := r.DB(ctx).Where("order_id = ?", orderID).Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r *orderItemRepository) ListByOrderIDs(ctx context.Context, orderIDs []int64) ([]*model.OrderItem, error) {
+	if len(orderIDs) == 0 {
+		return []*model.OrderItem{}, nil
+	}
+	var items []*model.OrderItem
+	if err := r.DB(ctx).Where("order_id IN ?", orderIDs).Order("id ASC").Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil

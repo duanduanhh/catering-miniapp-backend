@@ -325,6 +325,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/orders/list": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台"
+                ],
+                "summary": "管理后台订单列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminOrderListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminOrderListResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/reports/list": {
             "post": {
                 "consumes": [
@@ -2793,6 +2826,150 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.AdminOrderItem": {
+            "type": "object",
+            "properties": {
+                "amount_paid": {
+                    "type": "number"
+                },
+                "amount_total": {
+                    "type": "number"
+                },
+                "canceled_at": {
+                    "type": "string"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminOrderItemDetail"
+                    }
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "pay_channel": {
+                    "type": "string"
+                },
+                "pay_trade_no": {
+                    "type": "string"
+                },
+                "refunded_at": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminOrderItemDetail": {
+            "type": "object",
+            "properties": {
+                "contact_voucher_num": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "product_type": {
+                    "type": "integer"
+                },
+                "target_id": {
+                    "type": "integer"
+                },
+                "target_type": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "top_hour": {
+                    "type": "integer"
+                },
+                "unit_price": {
+                    "type": "number"
+                }
+            }
+        },
+        "v1.AdminOrderListRequest": {
+            "type": "object",
+            "properties": {
+                "create_at_end": {
+                    "type": "string"
+                },
+                "create_at_start": {
+                    "type": "string"
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "paid_at_end": {
+                    "type": "string"
+                },
+                "paid_at_start": {
+                    "type": "string"
+                },
+                "product_type": {
+                    "type": "integer"
+                },
+                "statuses": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_keyword": {
+                    "description": "姓名 / 手机号 / 用户编号",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminOrderListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminOrderItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

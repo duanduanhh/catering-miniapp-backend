@@ -26,9 +26,9 @@ func NewAdminListHandler(
 	}
 }
 
-// reportReasonLabel 把 reason int 转成展示文案
-func reportReasonLabel(reason int) string {
-	for _, r := range v1.ReportReasons {
+// reportReasonLabel 按业务类型把 reason 转成展示文案。
+func reportReasonLabel(bizType, reason int) string {
+	for _, r := range v1.ReportReasonsByBizType(bizType) {
 		if r.Value == reason {
 			return r.Label
 		}
@@ -100,6 +100,78 @@ func (h *AdminListHandler) ListUsers(ctx *gin.Context) {
 			Address:           u.Address,
 			CreateAt:          formatTime(u.CreateAt),
 			UpdateAt:          formatTime(u.UpdateAt),
+		})
+	}
+	v1.HandleSuccess(ctx, resp)
+}
+
+// ListOrders godoc
+// @Summary  管理后台订单列表
+// @Tags     管理后台
+// @Accept   json
+// @Produce  json
+// @Param    request body v1.AdminOrderListRequest true "params"
+// @Success  200 {object} v1.AdminOrderListResponseData
+// @Router   /admin/orders/list [post]
+func (h *AdminListHandler) ListOrders(ctx *gin.Context) {
+	var req v1.AdminOrderListRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	res, err := h.adminListService.Orders(ctx, repository.AdminOrderListQuery{
+		OrderNo:       req.OrderNo,
+		UserID:        req.UserID,
+		UserKeyword:   req.UserKeyword,
+		ProductType:   req.ProductType,
+		Statuses:      req.Statuses,
+		CreateAtStart: req.CreateAtStart,
+		CreateAtEnd:   req.CreateAtEnd,
+		PaidAtStart:   req.PaidAtStart,
+		PaidAtEnd:     req.PaidAtEnd,
+		PageNum:       req.PageNum,
+		PageSize:      req.PageSize,
+	})
+	if err != nil {
+		h.logger.WithContext(ctx).Error("adminListService.Orders error", zap.Error(err))
+		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		return
+	}
+	resp := v1.AdminOrderListResponseData{List: make([]v1.AdminOrderItem, 0, len(res.List)), Total: res.Total}
+	for _, order := range res.List {
+		totalCents, _ := order.AmountTotal.ToCents()
+		paidCents, _ := order.AmountPaid.ToCents()
+		items := make([]v1.AdminOrderItemDetail, 0, len(res.Items[order.ID]))
+		for _, item := range res.Items[order.ID] {
+			items = append(items, v1.AdminOrderItemDetail{
+				ID:                item.ID,
+				ProductType:       int(item.ProductType),
+				Title:             item.TitleSnapshot,
+				UnitPrice:         item.UnitPriceSnapshot,
+				TopHour:           item.TopHour,
+				ContactVoucherNum: item.ContactVoucherNum,
+				TargetType:        int(item.TargetType),
+				TargetID:          item.TargetID,
+			})
+		}
+		resp.List = append(resp.List, v1.AdminOrderItem{
+			OrderID:     order.ID,
+			OrderNo:     order.OrderNo,
+			UserID:      order.UserID,
+			UserName:    order.UserName,
+			UserPhone:   order.UserPhone,
+			AmountTotal: float64(totalCents) / 100,
+			AmountPaid:  float64(paidCents) / 100,
+			Currency:    order.Currency,
+			Status:      int(order.Status),
+			PayChannel:  order.PayChannel,
+			PayTradeNo:  order.PayTradeNo,
+			PaidAt:      formatOptionalTime(order.PaidAt),
+			CanceledAt:  formatOptionalTime(order.CanceledAt),
+			RefundedAt:  formatOptionalTime(order.RefundedAt),
+			Remark:      order.Remark,
+			CreateAt:    formatTime(order.CreateAt),
+			Items:       items,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)
@@ -297,7 +369,7 @@ func (h *AdminListHandler) ListReports(ctx *gin.Context) {
 			JobID:       r.JobID,
 			BizType:     r.BizType,
 			Reason:      r.Reason,
-			ReasonLabel: reportReasonLabel(r.Reason),
+			ReasonLabel: reportReasonLabel(r.BizType, r.Reason),
 			Description: r.Description,
 			Status:      int(r.Status),
 			CreateAt:    formatTime(r.CreateAt),

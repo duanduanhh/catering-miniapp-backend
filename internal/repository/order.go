@@ -12,7 +12,29 @@ type OrderRepository interface {
 	GetByID(ctx context.Context, id int64) (*model.Order, error)
 	GetByOrderNo(ctx context.Context, orderNo string) (*model.Order, error)
 	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
+	AdminList(ctx context.Context, query AdminOrderListQuery) ([]*AdminOrderRow, int64, error)
 	HasPaidOrderByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error)
+}
+
+type AdminOrderListQuery struct {
+	OrderNo       string
+	UserID        int64
+	UserKeyword   string
+	ProductType   *int
+	Statuses      []int
+	CreateAtStart string
+	CreateAtEnd   string
+	PaidAtStart   string
+	PaidAtEnd     string
+	PageNum       int
+	PageSize      int
+}
+
+// AdminOrderRow 订单 + 下单用户信息；商品明细由调用方批量加载。
+type AdminOrderRow struct {
+	model.Order
+	UserName  string `gorm:"column:user_name"`
+	UserPhone string `gorm:"column:user_phone"`
 }
 
 func NewOrderRepository(
@@ -75,6 +97,56 @@ func (r *orderRepository) ListByUser(ctx context.Context, userID int64, pageNum,
 		return nil, 0, err
 	}
 	return list, total, nil
+}
+
+func (r *orderRepository) AdminList(ctx context.Context, query AdminOrderListQuery) ([]*AdminOrderRow, int64, error) {
+	var rows []*AdminOrderRow
+	var total int64
+	db := r.DB(ctx).Table("orders AS o").
+		Select("o.*, u.name AS user_name, u.phone AS user_phone").
+		Joins("LEFT JOIN user u ON o.user_id = u.id")
+	if query.OrderNo != "" {
+		db = db.Where("o.order_no LIKE ?", "%"+query.OrderNo+"%")
+	}
+	if query.UserID != 0 {
+		db = db.Where("o.user_id = ?", query.UserID)
+	}
+	if query.UserKeyword != "" {
+		like := "%" + query.UserKeyword + "%"
+		db = db.Where("u.name LIKE ? OR u.phone LIKE ? OR u.user_code LIKE ?", like, like, like)
+	}
+	if query.ProductType != nil {
+		db = db.Where("EXISTS (SELECT 1 FROM order_item oi WHERE oi.order_id = o.id AND oi.product_type = ?)", *query.ProductType)
+	}
+	if len(query.Statuses) > 0 {
+		db = db.Where("o.status IN ?", query.Statuses)
+	}
+	if query.CreateAtStart != "" {
+		db = db.Where("o.create_at >= ?", query.CreateAtStart)
+	}
+	if query.CreateAtEnd != "" {
+		db = db.Where("o.create_at <= ?", query.CreateAtEnd)
+	}
+	if query.PaidAtStart != "" {
+		db = db.Where("o.paid_at >= ?", query.PaidAtStart)
+	}
+	if query.PaidAtEnd != "" {
+		db = db.Where("o.paid_at <= ?", query.PaidAtEnd)
+	}
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if query.PageNum <= 0 {
+		query.PageNum = 1
+	}
+	if query.PageSize <= 0 {
+		query.PageSize = 20
+	}
+	offset := (query.PageNum - 1) * query.PageSize
+	if err := db.Order("o.create_at DESC").Offset(offset).Limit(query.PageSize).Scan(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
 }
 
 func (r *orderRepository) HasPaidOrderByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error) {

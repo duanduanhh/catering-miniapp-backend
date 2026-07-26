@@ -338,6 +338,101 @@ definitions:
       username:
         type: string
     type: object
+  v1.AdminOrderItem:
+    properties:
+      amount_paid:
+        type: number
+      amount_total:
+        type: number
+      canceled_at:
+        type: string
+      create_at:
+        type: string
+      currency:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/v1.AdminOrderItemDetail'
+        type: array
+      order_id:
+        type: integer
+      order_no:
+        type: string
+      paid_at:
+        type: string
+      pay_channel:
+        type: string
+      pay_trade_no:
+        type: string
+      refunded_at:
+        type: string
+      remark:
+        type: string
+      status:
+        type: integer
+      user_id:
+        type: integer
+      user_name:
+        type: string
+      user_phone:
+        type: string
+    type: object
+  v1.AdminOrderItemDetail:
+    properties:
+      contact_voucher_num:
+        type: integer
+      id:
+        type: integer
+      product_type:
+        type: integer
+      target_id:
+        type: integer
+      target_type:
+        type: integer
+      title:
+        type: string
+      top_hour:
+        type: integer
+      unit_price:
+        type: number
+    type: object
+  v1.AdminOrderListRequest:
+    properties:
+      create_at_end:
+        type: string
+      create_at_start:
+        type: string
+      order_no:
+        type: string
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+      paid_at_end:
+        type: string
+      paid_at_start:
+        type: string
+      product_type:
+        type: integer
+      statuses:
+        items:
+          type: integer
+        type: array
+      user_id:
+        type: integer
+      user_keyword:
+        description: 姓名 / 手机号 / 用户编号
+        type: string
+    type: object
+  v1.AdminOrderListResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.AdminOrderItem'
+        type: array
+      total:
+        type: integer
+    type: object
   v1.AdminReportItem:
     properties:
       biz_type:
@@ -2166,6 +2261,27 @@ paths:
           schema:
             $ref: '#/definitions/v1.AdminLoginResponseData'
       summary: 管理后台登录
+      tags:
+      - 管理后台
+  /admin/orders/list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminOrderListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminOrderListResponseData'
+      summary: 管理后台订单列表
       tags:
       - 管理后台
   /admin/reports/list:

@@ -24,14 +24,20 @@ func NewReportHandler(handler *Handler, reportService service.ReportService) *Re
 
 // Reasons godoc
 // @Summary 获取举报原因选项列表
-// @Description 返回举报表单的原因选项列表，前端用于渲染单选项
+// @Description 返回举报表单的原因选项列表；biz_type=3 时返回招租专用原因，未传时兼容返回岗位举报原因
 // @Tags 举报
 // @Produce json
 // @Success 200 {object} v1.ReportReasonsResponseData
+// @Param biz_type query int false "业务类型：1=招聘 2=求职 3=招租"
 // @Router /report/reasons [get]
 func (h *ReportHandler) Reasons(ctx *gin.Context) {
+	var req v1.ReportReasonsRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
 	v1.HandleSuccess(ctx, v1.ReportReasonsResponseData{
-		Reasons: v1.ReportReasons,
+		Reasons: v1.ReportReasonsByBizType(req.BizType),
 	})
 }
 

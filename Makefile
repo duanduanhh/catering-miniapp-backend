@@ -33,11 +33,7 @@ build-linux:
 SWR_REGISTRY ?= swr.cn-north-1.myhuaweicloud.com
 SWR_ORG      ?= catering-cyxx
 IMAGE_NAME   ?= miniapp-backend
-<<<<<<< HEAD
-IMAGE_TAG    ?= v1-20260723-test
-=======
-IMAGE_TAG    ?= v1-2026072301
->>>>>>> ed249a7 ([chore] 删除压缩逻辑)
+IMAGE_TAG    ?= v1-20260726
 
 docker:
 	make swag

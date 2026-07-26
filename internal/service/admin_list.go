@@ -15,6 +15,7 @@ type AdminListService interface {
 	Feedbacks(ctx context.Context, query repository.AdminFeedbackListQuery) (AdminFeedbackListResult, error)
 	ContactHistories(ctx context.Context, query repository.AdminContactHistoryListQuery) (AdminContactHistoryListResult, error)
 	Reports(ctx context.Context, query repository.AdminReportListQuery) (AdminReportListResult, error)
+	Orders(ctx context.Context, query repository.AdminOrderListQuery) (AdminOrderListResult, error)
 }
 
 func NewAdminListService(
@@ -24,6 +25,8 @@ func NewAdminListService(
 	feedbackRepo repository.FeedbackRepository,
 	contactHistoryRepo repository.ContactHistoryRepository,
 	reportRepo repository.ReportRepository,
+	orderRepo repository.OrderRepository,
+	orderItemRepo repository.OrderItemRepository,
 ) AdminListService {
 	return &adminListService{
 		Service:            service,
@@ -32,6 +35,8 @@ func NewAdminListService(
 		feedbackRepo:       feedbackRepo,
 		contactHistoryRepo: contactHistoryRepo,
 		reportRepo:         reportRepo,
+		orderRepo:          orderRepo,
+		orderItemRepo:      orderItemRepo,
 	}
 }
 
@@ -42,6 +47,8 @@ type adminListService struct {
 	feedbackRepo       repository.FeedbackRepository
 	contactHistoryRepo repository.ContactHistoryRepository
 	reportRepo         repository.ReportRepository
+	orderRepo          repository.OrderRepository
+	orderItemRepo      repository.OrderItemRepository
 }
 
 // 各列表的 service 层结果（model + 必要 JOIN 字段，时间保留 time.Time，由 handler 层格式化）
@@ -68,6 +75,12 @@ type AdminContactHistoryListResult struct {
 
 type AdminReportListResult struct {
 	List  []*repository.AdminReportRow
+	Total int64
+}
+
+type AdminOrderListResult struct {
+	List  []*repository.AdminOrderRow
+	Items map[int64][]*model.OrderItem
 	Total int64
 }
 
@@ -111,4 +124,26 @@ func (s *adminListService) Reports(ctx context.Context, query repository.AdminRe
 		return AdminReportListResult{}, err
 	}
 	return AdminReportListResult{List: list, Total: total}, nil
+}
+
+func (s *adminListService) Orders(ctx context.Context, query repository.AdminOrderListQuery) (AdminOrderListResult, error) {
+	query.OrderNo = strings.TrimSpace(query.OrderNo)
+	query.UserKeyword = strings.TrimSpace(query.UserKeyword)
+	list, total, err := s.orderRepo.AdminList(ctx, query)
+	if err != nil {
+		return AdminOrderListResult{}, err
+	}
+	orderIDs := make([]int64, 0, len(list))
+	for _, order := range list {
+		orderIDs = append(orderIDs, order.ID)
+	}
+	items, err := s.orderItemRepo.ListByOrderIDs(ctx, orderIDs)
+	if err != nil {
+		return AdminOrderListResult{}, err
+	}
+	itemsByOrderID := make(map[int64][]*model.OrderItem, len(list))
+	for _, item := range items {
+		itemsByOrderID[item.OrderID] = append(itemsByOrderID[item.OrderID], item)
+	}
+	return AdminOrderListResult{List: list, Items: itemsByOrderID, Total: total}, nil
 }

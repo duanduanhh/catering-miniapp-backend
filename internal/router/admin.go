@@ -24,6 +24,7 @@ func InitAdminRouter(deps RouterDeps, r *gin.RouterGroup) {
 		jobs.POST("/delete", deps.AdminJobHandler.Delete)
 
 		authed.POST("/users/list", deps.AdminListHandler.ListUsers)
+		authed.POST("/orders/list", deps.AdminListHandler.ListOrders)
 		authed.POST("/enterprises/list", deps.AdminListHandler.ListEnterprises)
 		authed.POST("/feedbacks/list", deps.AdminListHandler.ListFeedbacks)
 		authed.POST("/contact_histories/list", deps.AdminListHandler.ListContactHistories)

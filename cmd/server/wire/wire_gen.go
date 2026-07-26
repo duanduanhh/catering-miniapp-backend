@@ -82,7 +82,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	adminAuthService := service.NewAdminAuthService(viperViper)
 	adminAuthHandler := handler.NewAdminAuthHandler(handlerHandler, adminAuthService)
 	reportRepository := repository.NewReportRepository(repositoryRepository)
-	adminListService := service.NewAdminListService(serviceService, userRepository, enterpriseRepository, feedbackRepository, contactHistoryRepository, reportRepository)
+	adminListService := service.NewAdminListService(serviceService, userRepository, enterpriseRepository, feedbackRepository, contactHistoryRepository, reportRepository, orderRepository, orderItemRepository)
 	adminListHandler := handler.NewAdminListHandler(handlerHandler, adminListService)
 	reportService := service.NewReportService(serviceService, reportRepository)
 	reportHandler := handler.NewReportHandler(handlerHandler, reportService)
