@@ -312,7 +312,8 @@ func (r *jobRepository) AdminList(ctx context.Context, query AdminJobListQuery) 
 		db = db.Where("job.status IN ?", query.Status)
 	}
 	if query.Keyword != "" {
-		db = db.Where("job.positions LIKE ? OR job.company_name LIKE ?", "%"+query.Keyword+"%", "%"+query.Keyword+"%")
+		like := "%" + query.Keyword + "%"
+		db = db.Where("job.positions LIKE ? OR job.company_name LIKE ? OR job.contact_person_name LIKE ? OR job.contact LIKE ? OR job.address LIKE ?", like, like, like, like, like)
 	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -375,6 +376,7 @@ func areaSizeRangeBounds(rangeEnum int) (int, int, bool) {
 	}
 	return 0, 0, false
 }
+
 // WHERE 条件保证幂等：重复回调不会重置 refresh_time；status 已被其他动作修改的记录不受影响。
 func (r *jobRepository) ActivatePendingRent(ctx context.Context, jobID int64) error {
 	now := time.Now()

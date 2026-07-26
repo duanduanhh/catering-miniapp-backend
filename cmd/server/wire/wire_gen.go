@@ -77,7 +77,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	enterpriseRepository := repository.NewEnterpriseRepository(repositoryRepository)
 	enterpriseService := service.NewEnterpriseService(viperViper, logger, transaction, enterpriseRepository)
 	enterpriseHandler := handler.NewEnterpriseHandler(handlerHandler, enterpriseService)
-	adminJobService := service.NewAdminJobService(serviceService, jobRepository)
+	adminJobService := service.NewAdminJobService(serviceService, jobRepository, rentDetailRepository)
 	adminJobHandler := handler.NewAdminJobHandler(handlerHandler, adminJobService)
 	adminAuthService := service.NewAdminAuthService(viperViper)
 	adminAuthHandler := handler.NewAdminAuthHandler(handlerHandler, adminAuthService)

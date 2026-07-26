@@ -60,6 +60,16 @@ func (h *AdminJobHandler) List(ctx *gin.Context) {
 		Total: total,
 	}
 	for _, item := range items {
+		var rentDetail *v1.RentDetailDTO
+		if item.RentDetail != nil {
+			rentDetail = &v1.RentDetailDTO{
+				MonthlyRent:       item.RentDetail.MonthlyRent,
+				AreaSize:          item.RentDetail.AreaSize,
+				TransferFeeType:   int(item.RentDetail.TransferFeeType),
+				TransferFeeAmount: item.RentDetail.TransferFeeAmount,
+				TransferDesc:      item.RentDetail.TransferDesc,
+			}
+		}
 		resp.List = append(resp.List, v1.AdminJobItem{
 			JobID:             item.JobID,
 			BizType:           item.BizType,
@@ -86,6 +96,7 @@ func (h *AdminJobHandler) List(ctx *gin.Context) {
 			PhotoURLs:         splitCSV(item.PhotoURLs),
 			CloseReason:       item.CloseReason,
 			CloseTime:         formatOptionalTime(item.CloseTime),
+			RentDetail:        rentDetail,
 		})
 	}
 	v1.HandleSuccess(ctx, resp)

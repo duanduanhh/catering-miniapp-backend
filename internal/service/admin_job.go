@@ -25,16 +25,19 @@ type AdminJobUpdateInput struct {
 func NewAdminJobService(
 	service *Service,
 	jobRepository repository.JobRepository,
+	rentDetailRepository repository.RentDetailRepository,
 ) AdminJobService {
 	return &adminJobService{
-		Service:       service,
-		jobRepository: jobRepository,
+		Service:              service,
+		jobRepository:        jobRepository,
+		rentDetailRepository: rentDetailRepository,
 	}
 }
 
 type adminJobService struct {
 	*Service
-	jobRepository repository.JobRepository
+	jobRepository        repository.JobRepository
+	rentDetailRepository repository.RentDetailRepository
 }
 
 type AdminJobItem struct {
@@ -63,10 +66,21 @@ type AdminJobItem struct {
 	PhotoURLs         string
 	CloseReason       string
 	CloseTime         *time.Time
+	RentDetail        *model.RentDetail
 }
 
 func (s *adminJobService) List(ctx context.Context, query repository.AdminJobListQuery) ([]AdminJobItem, int64, error) {
 	jobs, total, err := s.jobRepository.AdminList(ctx, query)
+	if err != nil {
+		return nil, 0, err
+	}
+	rentJobIDs := make([]int64, 0)
+	for _, job := range jobs {
+		if job.BizType == 3 {
+			rentJobIDs = append(rentJobIDs, job.ID)
+		}
+	}
+	rentDetails, err := s.rentDetailRepository.GetByJobIDs(ctx, rentJobIDs)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -98,6 +112,7 @@ func (s *adminJobService) List(ctx context.Context, query repository.AdminJobLis
 			PhotoURLs:         job.PhotoURLs,
 			CloseReason:       job.CloseReason,
 			CloseTime:         job.CloseTime,
+			RentDetail:        rentDetails[job.ID],
 		})
 	}
 	return items, total, nil

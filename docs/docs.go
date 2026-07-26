@@ -1983,7 +1983,7 @@ const docTemplate = `{
         },
         "/report/reasons": {
             "get": {
-                "description": "返回举报表单的原因选项列表，前端用于渲染单选项",
+                "description": "返回举报表单的原因选项列表；biz_type=3 时返回招租专用原因，未传时兼容返回岗位举报原因",
                 "produces": [
                     "application/json"
                 ],
@@ -1991,6 +1991,14 @@ const docTemplate = `{
                     "举报"
                 ],
                 "summary": "获取举报原因选项列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "业务类型：1=招聘 2=求职 3=招租",
+                        "name": "biz_type",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2706,6 +2714,9 @@ const docTemplate = `{
                 },
                 "recruit_num": {
                     "type": "integer"
+                },
+                "rent_detail": {
+                    "$ref": "#/definitions/v1.RentDetailDTO"
                 },
                 "salary_max": {
                     "type": "integer"
