@@ -373,7 +373,7 @@ func (h *JobHandler) ShareRefresh(ctx *gin.Context) {
 }
 
 // RefreshPay godoc
-// @Description 创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。price 单位：元。
+// @Description 创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息；price 单位：元。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -398,11 +398,6 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	// 招租(biz_type=3)不支持付费刷新
-	if jobInfo, err := h.jobService.GetByID(ctx, req.JobID); err == nil && jobInfo != nil && jobInfo.BizType == v1.BizTypeRent {
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "rent does not support paid refresh")
-		return
-	}
 	order, _, err := h.orderService.CreateRefreshOrder(ctx, userID, req.JobID, req.Price)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("orderService.CreateRefreshOrder error", zap.Error(err))
@@ -423,7 +418,7 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 	}
 
 	// 调用新的支付服务，获取支付参数
-	params, err := h.payService.BuildPayParams(ctx, order.OrderNo, amountCents, openid, "付费刷新招聘")
+	params, err := h.payService.BuildPayParams(ctx, order.OrderNo, amountCents, openid, "付费刷新信息")
 	if err != nil {
 		h.logger.WithContext(ctx).Error("payService.BuildPayParams error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())

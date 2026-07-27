@@ -19,7 +19,7 @@
 
 **核心约束**
 - 招租(biz_type=3) **必须**走 `/jobs/rent/pre_publish` 付费发布，通用 `/jobs/create` 收到 biz_type=3 直接返回 400
-- 招租 **不支持** 置顶（`/jobs/top`）和付费刷新（`/jobs/refresh/pay`），命中返回 400
+- 招租 **不支持** 置顶（`/jobs/top`），支持付费刷新（`/jobs/refresh/pay`）
 - 招租 job 在支付成功前 `status=5(待支付)`，微信回调后由后端翻转为 `status=1(active)`，前端拉取列表/详情时若命中 status=5 视为"未生效"（列表本身已过滤，仅"我的岗位"会看到）
 
 ---
@@ -307,7 +307,7 @@
 
 ### 4.7 `POST /jobs/top` 岗位置顶、`POST /jobs/refresh/pay` 付费刷新
 
-**变更点：** 当 `job_id` 对应的 job 是招租（biz_type=3）时，返回 400：`rent does not support top` / `rent does not support paid refresh`。前端招租详情/我的岗位卡片 **不要** 展示置顶/付费刷新按钮。
+**变更点：** 当 `job_id` 对应的 job 是招租（biz_type=3）时，置顶接口返回 400：`rent does not support top`。前端招租详情/我的岗位卡片 **不要** 展示置顶按钮，但应展示付费刷新按钮。
 
 ### 4.8 `GET /close_reasons?type=3` 关闭原因（招租）
 

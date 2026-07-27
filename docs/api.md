@@ -484,7 +484,7 @@ Content-Type: application/json
 }
 ```
 
-### 付费刷新招聘信息（商家）
+### 付费刷新信息（商家）
 
 ```json
 // 接口地址：/jobs/refresh/pay
@@ -931,4 +931,3 @@ file(binary)    // 字段类型
     }
 }
 ```
-

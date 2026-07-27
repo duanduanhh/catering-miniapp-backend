@@ -1687,7 +1687,7 @@
                         "Bearer": []
                     }
                 ],
-                "description": "创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。price 单位：元。",
+                "description": "创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息；price 单位：元。",
                 "consumes": [
                     "application/json"
                 ],
