@@ -297,8 +297,7 @@ func (r *jobRepository) AdminList(ctx context.Context, query AdminJobListQuery) 
 	)
 	db := r.DB(ctx).Table("job").
 		Select("job.*, user.name AS user_name, user.phone AS user_phone").
-		Joins("LEFT JOIN user ON job.user_id = user.id").
-		Where("job.status != ?", model.JobStatusDeleted)
+		Joins("LEFT JOIN user ON job.user_id = user.id")
 	if query.JobID != 0 {
 		db = db.Where("job.id = ?", query.JobID)
 	}
