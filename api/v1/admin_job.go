@@ -1,8 +1,9 @@
 package v1
 
 type AdminJobListRequest struct {
-	JobID    int64  `json:"job_id"`
-	UserID   int64  `json:"user_id"`
+	JobID  int64 `json:"job_id"`
+	UserID int64 `json:"user_id"`
+	// 0=普通岗位（仅招聘、求职），1=招聘，2=求职，3=招租
 	BizType  int    `json:"biz_type"`
 	Status   []int  `json:"status"`
 	Keyword  string `json:"keyword"`

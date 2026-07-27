@@ -2754,6 +2754,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "biz_type": {
+                    "description": "0=普通岗位（仅招聘、求职），1=招聘，2=求职，3=招租",
                     "type": "integer"
                 },
                 "job_id": {

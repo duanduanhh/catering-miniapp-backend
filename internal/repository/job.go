@@ -38,8 +38,9 @@ type jobRepository struct {
 }
 
 type AdminJobListQuery struct {
-	JobID    int64
-	UserID   int64
+	JobID  int64
+	UserID int64
+	// BizType: 0=普通岗位（仅招聘、求职），1=招聘，2=求职，3=招租。
 	BizType  int
 	Status   []int
 	Keyword  string
@@ -306,6 +307,9 @@ func (r *jobRepository) AdminList(ctx context.Context, query AdminJobListQuery) 
 	}
 	if query.BizType > 0 {
 		db = db.Where("job.biz_type = ?", query.BizType)
+	} else {
+		// 管理后台的普通岗位列表不混入招租；招租由独立页面显式传 biz_type=3 查询。
+		db = db.Where("job.biz_type IN ?", []int{1, 2})
 	}
 	if len(query.Status) > 0 {
 		db = db.Where("job.status IN ?", query.Status)
