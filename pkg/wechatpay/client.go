@@ -119,6 +119,22 @@ func (c *WechatPayClient) PrepayWithCode(ctx context.Context, req *PreorderReque
 	return prepayID, nil
 }
 
+// CloseOrder 关闭 JSAPI 未支付订单，关闭成功后微信不再允许用户继续付款。
+func (c *WechatPayClient) CloseOrder(ctx context.Context, outTradeNo string) error {
+	if outTradeNo == "" {
+		return errors.New("out_trade_no is required")
+	}
+	svc := (*jsapi.JsapiApiService)(&services.Service{Client: c.client})
+	_, err := svc.CloseOrder(ctx, jsapi.CloseOrderRequest{
+		OutTradeNo: core.String(outTradeNo),
+		Mchid:      core.String(c.mchID),
+	})
+	if err != nil {
+		return fmt.Errorf("close order failed: %w", err)
+	}
+	return nil
+}
+
 // GeneratePayParams 生成支付参数（包括签名）
 func (c *WechatPayClient) GeneratePayParams(ctx context.Context, prepayID string) (*PayParams, error) {
 	payParams := &PayParams{

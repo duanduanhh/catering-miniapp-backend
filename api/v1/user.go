@@ -1,17 +1,19 @@
 package v1
 
 type UserInfoResponseData struct {
-	UserID                int64  `json:"user_id"`
-	Avatar                string `json:"avatar"`
-	Name                  string `json:"name"`
-	Sex                   int    `json:"sex"`
-	Phone                 string `json:"phone"`
-	UserCode              string `json:"user_code"`
-	ContactVoucherNum     int    `json:"contact_voucher_num"`
-	FirstTopStatus        int    `json:"first_top_status"`
-	NewCustomerStatus     int    `json:"new_customer_status"`
-	ProfileCompleteStatus int    `json:"profile_complete_status"`
-	ShareRefreshAvailable int    `json:"share_refresh_available"`
+	UserID                       int64  `json:"user_id"`
+	Avatar                       string `json:"avatar"`
+	Name                         string `json:"name"`
+	Sex                          int    `json:"sex"`
+	Phone                        string `json:"phone"`
+	UserCode                     string `json:"user_code"`
+	ContactVoucherNum            int    `json:"contact_voucher_num"`
+	FirstTopStatus               int    `json:"first_top_status"`
+	NewCustomerStatus            int    `json:"new_customer_status"`
+	ProfileCompleteStatus        int    `json:"profile_complete_status"`
+	ShareRefreshAvailable        int    `json:"share_refresh_available"`
+	ShareRefreshNextAvailableAt  string `json:"share_refresh_next_available_at"`
+	ShareRefreshRemainingSeconds int64  `json:"share_refresh_remaining_seconds"`
 }
 
 type UserInfoResponse struct {

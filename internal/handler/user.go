@@ -25,7 +25,7 @@ func NewUserHandler(handler *Handler, userService service.UserService) *UserHand
 
 // GetInfo godoc
 // @Summary 查询个人信息
-// @Description 返回当前登录用户的基本信息。sex: 0=未设置 1=男 2=女。first_top_status: 0=未享受首次置顶优惠 1=已享受。new_customer_status: 0=未享受新用户优惠 1=已享受。profile_complete_status: 0=未完善 1=已完善（填写手机号）。
+// @Description 返回当前登录用户的基本信息。share_refresh_available=1表示可分享免费刷新；冷却中同时返回下次可用时间和剩余秒数。冷却时长为24小时。
 // @Tags 用户模块
 // @Accept json
 // @Produce json
@@ -45,26 +45,34 @@ func (h *UserHandler) GetInfo(ctx *gin.Context) {
 		return
 	}
 	shareRefreshAvailable := 1
+	shareRefreshNextAvailableAt := ""
+	var shareRefreshRemainingSeconds int64
 	if user.ShareRefreshDate != nil {
 		now := time.Now()
-		ay, am, ad := user.ShareRefreshDate.Date()
-		by, bm, bd := now.Date()
-		if ay == by && am == bm && ad == bd {
+		nextAvailableAt := user.ShareRefreshDate.Add(24 * time.Hour)
+		if now.Before(nextAvailableAt) {
 			shareRefreshAvailable = 0
+			shareRefreshNextAvailableAt = nextAvailableAt.Format("2006-01-02 15:04:05")
+			shareRefreshRemainingSeconds = int64(time.Until(nextAvailableAt).Seconds())
+			if shareRefreshRemainingSeconds < 1 {
+				shareRefreshRemainingSeconds = 1
+			}
 		}
 	}
 	v1.HandleSuccess(ctx, v1.UserInfoResponseData{
-		UserID:                user.ID,
-		Avatar:                user.Avatar,
-		Name:                  user.Name,
-		Sex:                   user.Sex,
-		Phone:                 user.Phone,
-		UserCode:              user.UserCode,
-		ContactVoucherNum:     user.ContactVoucherNum,
-		FirstTopStatus:        user.FirstTopStatus,
-		NewCustomerStatus:     user.NewCustomerStatus,
-		ProfileCompleteStatus: user.ProfileCompleteStatus,
-		ShareRefreshAvailable: shareRefreshAvailable,
+		UserID:                       user.ID,
+		Avatar:                       user.Avatar,
+		Name:                         user.Name,
+		Sex:                          user.Sex,
+		Phone:                        user.Phone,
+		UserCode:                     user.UserCode,
+		ContactVoucherNum:            user.ContactVoucherNum,
+		FirstTopStatus:               user.FirstTopStatus,
+		NewCustomerStatus:            user.NewCustomerStatus,
+		ProfileCompleteStatus:        user.ProfileCompleteStatus,
+		ShareRefreshAvailable:        shareRefreshAvailable,
+		ShareRefreshNextAvailableAt:  shareRefreshNextAvailableAt,
+		ShareRefreshRemainingSeconds: shareRefreshRemainingSeconds,
 	})
 }
 
@@ -154,6 +162,7 @@ func (h *UserHandler) ListInvites(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, resp)
 }
+
 // UpdateInfo godoc
 // @Summary 更新个人信息
 // @Description 更新用户基本信息。所有字段均为可选指针，传哪个改哪个。sex: 1=男 2=女。phone 更新后 profile_complete_status 自动置1。
@@ -188,5 +197,3 @@ func (h *UserHandler) UpdateInfo(ctx *gin.Context) {
 	}
 	v1.HandleSuccess(ctx, nil)
 }
-
-

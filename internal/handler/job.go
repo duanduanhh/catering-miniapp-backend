@@ -45,7 +45,7 @@ func NewJobHandler(
 
 // PrePublishRent godoc
 // @Summary 发布招租（付费预下单）
-// @Description 招租(biz_type=3)专用发布接口。一次事务预建 job(status=待支付) + rent_detail + order，返回微信支付参数。小程序完成支付后，微信回调将 job 翻转为 active 并刷新时间。photo_urls 至少1张、最多4张；transfer_fee_type=1 时 transfer_fee_amount 必填。发布价格从服务端配置 rent.publish_price 读取，客户端不传。
+// @Description 招租(biz_type=3)专用发布接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建 job(status=待支付) + rent_detail + order，支付回调后将信息设为 active。photo_urls 至少1张、最多4张。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -75,6 +75,7 @@ func (h *JobHandler) PrePublishRent(ctx *gin.Context) {
 	}
 	input := service.RentPrePublishInput{
 		Positions:         req.Positions,
+		SKUCode:           req.SKUCode,
 		Address:           req.Address,
 		AddressDetail:     req.AddressDetail,
 		Longitude:         req.Longitude,
@@ -100,7 +101,7 @@ func (h *JobHandler) PrePublishRent(ctx *gin.Context) {
 	result, err := h.jobService.PrePublishRent(ctx, userID, openid, input)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("jobService.PrePublishRent error", zap.Error(err))
-		if err == service.ErrInvalidRentInput {
+		if err == service.ErrInvalidRentInput || isPaymentPackageOrderError(err) {
 			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 			return
 		}
@@ -338,7 +339,7 @@ func (h *JobHandler) Refresh(ctx *gin.Context) {
 
 // ShareRefresh godoc
 // @Summary 分享刷新岗位
-// @Description 每个自然日限使用1次，分享后免费刷新岗位排名（更新 refresh_time）。3001=今日次数已用完，403=非本人岗位。
+// @Description 每次使用后冷却24小时，分享后免费刷新岗位排名（更新 refresh_time）。3001=仍在24小时冷却期，403=非本人岗位。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -373,7 +374,7 @@ func (h *JobHandler) ShareRefresh(ctx *gin.Context) {
 }
 
 // RefreshPay godoc
-// @Description 创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息；price 单位：元。
+// @Description 传入套餐查询接口返回的 sku_code。价格和刷新权益由服务端读取，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -398,14 +399,18 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	order, _, err := h.orderService.CreateRefreshOrder(ctx, userID, req.JobID, req.Price)
+	order, _, err := h.orderService.CreateRefreshOrder(ctx, userID, req.JobID, req.SKUCode)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("orderService.CreateRefreshOrder error", zap.Error(err))
 		if err == service.ErrForbidden {
 			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
 			return
 		}
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		if isPaymentPackageOrderError(err) {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		} else {
+			v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		}
 		return
 	}
 
@@ -427,7 +432,7 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
 		OrderID:   order.ID,
 		OrderNo:   order.OrderNo,
-		Amount:    req.Price,
+		Amount:    float64(amountCents) / 100,
 		PayParams: params,
 	})
 }
@@ -765,7 +770,7 @@ func (h *JobHandler) My(ctx *gin.Context) {
 
 // Top godoc
 // @Summary 岗位置顶（付费）
-// @Description 创建置顶订单并返回微信支付参数，支付成功后后台回调自动写入置顶时间窗口。top_hour 单位：小时，必须>0；price 单位：元，必须>0。仅限岗位所有者操作。
+// @Description 传入套餐查询接口返回的 sku_code。价格、置顶时长和赠送联系券由服务端读取，支付成功后后台回调自动发放权益。仅限岗位所有者操作。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -790,23 +795,23 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	if req.TopHour <= 0 || req.Price <= 0 {
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "top_hour and price must be positive")
-		return
-	}
 	// 招租(biz_type=3)不支持置顶
 	if jobInfo, err := h.jobService.GetByID(ctx, req.JobID); err == nil && jobInfo != nil && jobInfo.BizType == v1.BizTypeRent {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "rent does not support top")
 		return
 	}
-	order, _, err := h.orderService.CreateTopOrder(ctx, userID, req.JobID, req.TopHour, req.Price, req.ContactVoucherNum)
+	order, _, err := h.orderService.CreateTopOrder(ctx, userID, req.JobID, req.SKUCode)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("orderService.CreateTopOrder error", zap.Error(err))
 		if err == service.ErrForbidden {
 			v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
 			return
 		}
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		if isPaymentPackageOrderError(err) {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		} else {
+			v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		}
 		return
 	}
 
@@ -828,7 +833,7 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
 		OrderID:   order.ID,
 		OrderNo:   order.OrderNo,
-		Amount:    req.Price,
+		Amount:    float64(amountCents) / 100,
 		PayParams: params,
 	})
 }

@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -44,6 +43,7 @@ func NewJobService(
 	orderRepository repository.OrderRepository,
 	orderItemRepository repository.OrderItemRepository,
 	payService PayService,
+	paymentPackageService PaymentPackageService,
 	conf *viper.Viper,
 ) JobService {
 	return &jobService{
@@ -55,6 +55,7 @@ func NewJobService(
 		orderRepository:                 orderRepository,
 		orderItemRepository:             orderItemRepository,
 		payService:                      payService,
+		paymentPackageService:           paymentPackageService,
 		conf:                            conf,
 	}
 }
@@ -68,6 +69,7 @@ type jobService struct {
 	orderRepository                 repository.OrderRepository
 	orderItemRepository             repository.OrderItemRepository
 	payService                      PayService
+	paymentPackageService           PaymentPackageService
 	conf                            *viper.Viper
 }
 
@@ -78,8 +80,9 @@ const (
 )
 
 const (
-	jobLimitRecruit = 10
-	jobLimitResume  = 5
+	jobLimitRecruit      = 10
+	jobLimitResume       = 5
+	shareRefreshCooldown = 24 * time.Hour
 )
 
 // 招租发布相关错误
@@ -381,33 +384,30 @@ func (s *jobService) Refresh(ctx context.Context, userID, jobID int64) error {
 }
 
 func (s *jobService) ShareRefresh(ctx context.Context, userID, jobID int64) error {
-	user, err := s.userRepository.GetByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-	now := time.Now()
-	if user.ShareRefreshDate != nil && sameDay(*user.ShareRefreshDate, now) {
-		return ErrShareRefreshLimitExceeded
-	}
-	job, err := s.jobRepository.GetByID(ctx, jobID)
-	if err != nil {
-		return err
-	}
-	if job.UserID != userID {
-		return ErrForbidden
-	}
-	job.RefreshTime = &now
-	if err = s.jobRepository.Update(ctx, job); err != nil {
-		return err
-	}
-	user.ShareRefreshDate = &now
-	return s.userRepository.Update(ctx, user)
-}
-
-func sameDay(a, b time.Time) bool {
-	ay, am, ad := a.Date()
-	by, bm, bd := b.Date()
-	return ay == by && am == bm && ad == bd
+	return s.tm.Transaction(ctx, func(ctx context.Context) error {
+		// 锁定用户行，将冷却校验与写入合并，避免并发请求重复获得免费刷新。
+		user, err := s.userRepository.GetByIDForUpdate(ctx, userID)
+		if err != nil {
+			return err
+		}
+		now := time.Now()
+		if user.ShareRefreshDate != nil && now.Before(user.ShareRefreshDate.Add(shareRefreshCooldown)) {
+			return ErrShareRefreshLimitExceeded
+		}
+		job, err := s.jobRepository.GetByID(ctx, jobID)
+		if err != nil {
+			return err
+		}
+		if job.UserID != userID {
+			return ErrForbidden
+		}
+		job.RefreshTime = &now
+		if err = s.jobRepository.Update(ctx, job); err != nil {
+			return err
+		}
+		user.ShareRefreshDate = &now
+		return s.userRepository.Update(ctx, user)
+	})
 }
 
 func (s *jobService) Close(ctx context.Context, userID, jobID int64, closeReason string) error {
@@ -479,6 +479,7 @@ func (s *jobService) HomeFeed(ctx context.Context, bizType, firstAreaID, secondA
 
 // RentPrePublishInput 招租发布输入：包含通用 job 字段 + rent 扩展字段。
 type RentPrePublishInput struct {
+	SKUCode           string
 	Positions         string // 招租标题
 	Address           string
 	AddressDetail     string
@@ -541,12 +542,6 @@ func (s *jobService) PrePublishRent(ctx context.Context, userID int64, openid st
 		return nil, ErrInvalidRentInput
 	}
 
-	// 读取招租发布定价（元）
-	price := s.conf.GetFloat64("rent.publish_price")
-	if price <= 0 {
-		return nil, errors.New("rent.publish_price is not configured")
-	}
-
 	now := time.Now()
 	job := &model.Job{
 		UserID:            userID,
@@ -579,26 +574,24 @@ func (s *jobService) PrePublishRent(ctx context.Context, userID int64, openid st
 		TransferFeeAmount: input.TransferFeeAmount,
 		TransferDesc:      input.TransferDesc,
 	}
-	order := &model.Order{
-		OrderNo:     fmt.Sprintf("RENT%s%d", now.Format("20060102150405"), userID%1000000),
-		UserID:      userID,
-		AmountTotal: model.NewDecimalFromFloat64(price),
-		AmountPaid:  model.NewDecimalFromFloat64(0),
-		Currency:    "CNY",
-		Status:      model.OrderStatusPending,
-		CreateAt:    now,
-		UpdateAt:    now,
-	}
-	item := &model.OrderItem{
-		ProductType:       model.ProductTypePublishRent,
-		TitleSnapshot:     "发布招租",
-		UnitPriceSnapshot: price,
-		TargetType:        model.OrderTargetJob,
-		CreateAt:          now,
-		UpdateAt:          now,
-	}
+	var order *model.Order
+	var item *model.OrderItem
 
 	err := s.tm.Transaction(ctx, func(ctx context.Context) error {
+		pkg, err := s.paymentPackageService.ResolveForPurchase(
+			ctx, userID, input.SKUCode, model.PaymentProductCodeRentPublish, bizTypeRent,
+		)
+		if err != nil {
+			return err
+		}
+		order, item = buildSKUOrder(
+			generatePaymentOrderNo(s.Service, "RENT"),
+			userID,
+			model.ProductTypePublishRent,
+			pkg,
+		)
+		item.TitleSnapshot = pkg.Package.Name
+		item.TargetType = model.OrderTargetJob
 		if err := s.jobRepository.Create(ctx, job); err != nil {
 			return err
 		}
@@ -616,6 +609,7 @@ func (s *jobService) PrePublishRent(ctx context.Context, userID int64, openid st
 	if err != nil {
 		return nil, err
 	}
+	price := float64(item.PriceCentsSnapshot) / 100
 
 	// 事务外调用微信支付统一下单，失败不影响 job/order（超时清理任务兜底）
 	amountCents, err := order.AmountTotal.ToCents()

@@ -386,7 +386,15 @@ definitions:
         type: integer
       id:
         type: integer
+      product_id:
+        type: integer
       product_type:
+        type: integer
+      sku_code:
+        type: string
+      sku_id:
+        type: integer
+      sku_version:
         type: integer
       target_id:
         type: integer
@@ -435,6 +443,167 @@ definitions:
         type: array
       total:
         type: integer
+    type: object
+  v1.AdminPaymentPackageCreateRequest:
+    properties:
+      badge:
+        type: string
+      benefit_config:
+        $ref: '#/definitions/v1.PaymentBenefitConfig'
+      name:
+        type: string
+      original_price_cents:
+        description: 划线价，单位为分；0 表示不展示。
+        type: integer
+      price_cents:
+        description: 售价，单位为分，必须大于 0。
+        type: integer
+      product_id:
+        description: 收费业务 ID；创建后不可修改。
+        type: integer
+      sale_rule:
+        $ref: '#/definitions/v1.PaymentSaleRule'
+      sku_code:
+        description: SKU 唯一编码；创建后不可修改。
+        type: string
+      sort:
+        type: integer
+      subtitle:
+        type: string
+    required:
+    - benefit_config
+    - name
+    - price_cents
+    - product_id
+    - sku_code
+    type: object
+  v1.AdminPaymentPackageCreateResponseData:
+    properties:
+      id:
+        type: integer
+    type: object
+  v1.AdminPaymentPackageDetailRequest:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  v1.AdminPaymentPackageHistoryItem:
+    properties:
+      action:
+        type: integer
+      after_snapshot:
+        type: string
+      before_snapshot:
+        type: string
+      change_reason:
+        type: string
+      create_at:
+        type: string
+      id:
+        type: integer
+      operator:
+        type: string
+      sku_id:
+        type: integer
+      sku_version:
+        type: integer
+    type: object
+  v1.AdminPaymentPackageHistoryRequest:
+    properties:
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+      sku_id:
+        type: integer
+    required:
+    - sku_id
+    type: object
+  v1.AdminPaymentPackageHistoryResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.AdminPaymentPackageHistoryItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  v1.AdminPaymentPackageIDRequest:
+    properties:
+      id:
+        type: integer
+      reason:
+        type: string
+      version:
+        type: integer
+    required:
+    - id
+    type: object
+  v1.AdminPaymentPackageListRequest:
+    properties:
+      keyword:
+        type: string
+      page_num:
+        type: integer
+      page_size:
+        type: integer
+      product_id:
+        type: integer
+      status:
+        type: integer
+    type: object
+  v1.AdminPaymentPackageListResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.PaymentPackageItem'
+        type: array
+      total:
+        type: integer
+    type: object
+  v1.AdminPaymentPackageUpdateRequest:
+    properties:
+      badge:
+        type: string
+      benefit_config:
+        $ref: '#/definitions/v1.PaymentBenefitConfig'
+      change_reason:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      original_price_cents:
+        description: 划线价，单位为分；0 表示不展示。
+        type: integer
+      price_cents:
+        description: 售价，单位为分，必须大于 0。
+        type: integer
+      sale_rule:
+        $ref: '#/definitions/v1.PaymentSaleRule'
+      sort:
+        type: integer
+      subtitle:
+        type: string
+      version:
+        type: integer
+    required:
+    - benefit_config
+    - id
+    - name
+    - price_cents
+    - version
+    type: object
+  v1.AdminPaymentProductUpdateRequest:
+    properties:
+      id:
+        type: integer
+      purchase_notice:
+        type: string
+    required:
+    - id
     type: object
   v1.AdminReportItem:
     properties:
@@ -692,15 +861,11 @@ definitions:
     type: object
   v1.ContactVoucherBuyRequest:
     properties:
-      contact_voucher_num:
-        type: integer
-      gift_num:
-        type: integer
-      price:
-        type: number
+      sku_code:
+        example: contact_voucher_5
+        type: string
     required:
-    - contact_voucher_num
-    - price
+    - sku_code
     type: object
   v1.ContactVoucherCallbackCostRequest:
     properties:
@@ -1512,11 +1677,12 @@ definitions:
     properties:
       job_id:
         type: integer
-      price:
-        type: number
+      sku_code:
+        example: paid_refresh_1
+        type: string
     required:
     - job_id
-    - price
+    - sku_code
     type: object
   v1.JobRefreshRequest:
     properties:
@@ -1541,19 +1707,14 @@ definitions:
     type: object
   v1.JobTopRequest:
     properties:
-      contact_voucher_num:
-        description: 加赠联系券数量，0=不加赠
-        type: integer
       job_id:
         type: integer
-      price:
-        type: number
-      top_hour:
-        type: integer
+      sku_code:
+        example: job_top_3d
+        type: string
     required:
     - job_id
-    - price
-    - top_hour
+    - sku_code
     type: object
   v1.JobUpdateRequest:
     properties:
@@ -1682,6 +1843,193 @@ definitions:
       timeStamp:
         type: string
     type: object
+  v1.PaymentBenefitConfig:
+    properties:
+      contact_vouchers:
+        type: integer
+      gift_contact_vouchers:
+        type: integer
+      refresh_times:
+        type: integer
+      rent_publish_times:
+        type: integer
+      top_hours:
+        type: integer
+    type: object
+  v1.PaymentPackageItem:
+    properties:
+      badge:
+        example: ""
+        type: string
+      benefit_config:
+        $ref: '#/definitions/v1.PaymentBenefitConfig'
+      create_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: integer
+      name:
+        example: 标准刷新
+        type: string
+      original_price_cents:
+        description: 划线价，单位为分；0表示不展示划线价。
+        example: 0
+        type: integer
+      price_cents:
+        description: 售价，单位为分；例如199表示1.99元。
+        example: 199
+        type: integer
+      product_code:
+        enum:
+        - job_top
+        - contact_voucher
+        - paid_refresh
+        - rent_publish
+        example: paid_refresh
+        type: string
+      product_id:
+        type: integer
+      product_name:
+        example: 付费刷新
+        type: string
+      sale_rule:
+        allOf:
+        - $ref: '#/definitions/v1.PaymentSaleRule'
+        description: 仅管理后台返回及配置。小程序端已根据此规则筛选可购买 SKU，不返回该字段。
+      selection_mode:
+        description: 规格模式：1=单规格，2=多规格。
+        enum:
+        - 1
+        - 2
+        example: 1
+        type: integer
+      sku_code:
+        description: SKU 唯一编码；创建支付订单时应传此字段，不得传客户端价格。
+        example: paid_refresh_standard
+        type: string
+      sort:
+        type: integer
+      status:
+        type: integer
+      subtitle:
+        example: 立即刷新信息排名
+        type: string
+      update_at:
+        type: string
+      updated_by:
+        type: string
+      version:
+        type: integer
+    type: object
+  v1.PaymentPackageListRequest:
+    properties:
+      biz_type:
+        description: 当前业务类型：0=不限，1=招聘，2=求职，3=招租。岗位置顶传1或2；联系券传0；付费刷新传当前信息类型；招租发布传3。
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 3
+        type: integer
+      product_code:
+        description: 产品编码，前端应优先使用该字段：job_top=岗位置顶，contact_voucher=联系券，paid_refresh=付费刷新，rent_publish=招租发布。
+        enum:
+        - job_top
+        - contact_voucher
+        - paid_refresh
+        - rent_publish
+        example: paid_refresh
+        type: string
+    type: object
+  v1.PaymentPackageListResponseData:
+    properties:
+      product_code:
+        enum:
+        - job_top
+        - contact_voucher
+        - paid_refresh
+        - rent_publish
+        example: paid_refresh
+        type: string
+      product_name:
+        example: 付费刷新
+        type: string
+      purchase_notice:
+        example: 虚拟商品购买后自动到账
+        type: string
+      selection_mode:
+        description: 规格模式：1=单规格，前端直接使用 skus[0]；2=多规格，前端展示 SKU 供用户选择。
+        enum:
+        - 1
+        - 2
+        example: 1
+        type: integer
+      skus:
+        description: 当前已上架、适用于 biz_type 且符合当前用户购买资格的 SKU；空数组表示暂无可购买 SKU。
+        items:
+          $ref: '#/definitions/v1.PaymentSKU'
+        type: array
+    type: object
+  v1.PaymentProductItem:
+    properties:
+      create_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      package_count:
+        type: integer
+      product_code:
+        type: string
+      purchase_notice:
+        type: string
+      selection_mode:
+        type: integer
+      update_at:
+        type: string
+    type: object
+  v1.PaymentProductListResponseData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/v1.PaymentProductItem'
+        type: array
+    type: object
+  v1.PaymentSKU:
+    properties:
+      badge:
+        example: 推荐
+        type: string
+      benefit_config:
+        $ref: '#/definitions/v1.PaymentBenefitConfig'
+      name:
+        example: 刷新1次
+        type: string
+      original_price_cents:
+        example: 400
+        type: integer
+      price_cents:
+        example: 200
+        type: integer
+      sku_code:
+        example: paid_refresh_1
+        type: string
+      subtitle:
+        example: 立即刷新，提升曝光
+        type: string
+    type: object
+  v1.PaymentSaleRule:
+    properties:
+      audience:
+        example: all
+        type: string
+      max_purchase_per_user:
+        example: 0
+        type: integer
+    type: object
   v1.PositionCategory:
     properties:
       category_name:
@@ -1776,6 +2124,9 @@ definitions:
         type: string
       second_area_id:
         type: integer
+      sku_code:
+        example: rent_publish_1
+        type: string
       third_area_des:
         type: string
       third_area_id:
@@ -1804,6 +2155,7 @@ definitions:
     - photo_urls
     - positions
     - second_area_des
+    - sku_code
     type: object
   v1.RentPrePublishResponse:
     properties:
@@ -1934,6 +2286,10 @@ definitions:
         type: integer
       share_refresh_available:
         type: integer
+      share_refresh_next_available_at:
+        type: string
+      share_refresh_remaining_seconds:
+        type: integer
       user_code:
         type: string
       user_id:
@@ -1995,11 +2351,12 @@ definitions:
       paid_at:
         type: string
       product_type:
-        description: '商品类型: 1=置顶 2=联系券 3=刷新'
+        description: '商品类型: 1=置顶 2=联系券 3=刷新 4=招租发布'
         enum:
         - 1
         - 2
         - 3
+        - 4
         example: 1
         type: integer
       title:
@@ -2287,6 +2644,215 @@ paths:
       summary: 管理后台订单列表
       tags:
       - 管理后台
+  /admin/payment-packages/create:
+    post:
+      consumes:
+      - application/json
+      description: 新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。sale_rule.audience
+        支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminPaymentPackageCreateResponseData'
+      summary: 新增付费套餐
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-packages/delete:
+    post:
+      consumes:
+      - application/json
+      description: 仅未上架套餐可删除，执行软删除并保留变更记录。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 删除付费套餐
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-packages/detail:
+    post:
+      consumes:
+      - application/json
+      description: 返回 SKU 的完整管理配置，包括权益、营销人群和累计限购规则；sale_rule.audience：all=全部用户，platform_new=平台新用户，product_new=当前产品首购用户。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.PaymentPackageItem'
+      summary: 管理后台套餐详情
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-packages/history:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageHistoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminPaymentPackageHistoryResponseData'
+      summary: 查询套餐变更记录
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-packages/list:
+    post:
+      consumes:
+      - application/json
+      description: 查询全部未删除 SKU，支持按收费业务、状态和关键词筛选。响应中的 price_cents、original_price_cents
+        单位为分；sale_rule 用于管理端编辑回显。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AdminPaymentPackageListResponseData'
+      summary: 管理后台套餐列表
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-packages/publish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 上架付费套餐
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-packages/unpublish:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageIDRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 下架付费套餐
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-packages/update:
+    post:
+      consumes:
+      - application/json
+      description: 仅草稿或已下架 SKU 可编辑，version 用于防止多人覆盖修改。金额字段单位为分；营销规则会随本次编辑整体更新。
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentPackageUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 编辑付费套餐
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-products/list:
+    post:
+      description: 返回收费业务、单/多规格模式、购买须知及当前未删除 SKU 数量。selection_mode：1=单规格，2=多规格。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.PaymentProductListResponseData'
+      summary: 管理后台付费产品列表
+      tags:
+      - 管理后台-付费套餐
+  /admin/payment-products/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AdminPaymentProductUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: 编辑付费产品购买须知
+      tags:
+      - 管理后台-付费套餐
   /admin/reports/list:
     post:
       consumes:
@@ -2518,8 +3084,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 创建联系券购买订单并返回微信支付参数，支付成功后后台回调自动增加券数量。price 单位：元；contact_voucher_num
-        为本次购买张数。
+      description: 传入套餐查询接口返回的 sku_code。价格、联系券数量和赠送数量均由服务端读取，支付成功后自动到账。
       parameters:
       - description: params
         in: body
@@ -3134,7 +3699,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息；price 单位：元。
+      description: 传入套餐查询接口返回的 sku_code。价格和刷新权益由服务端读取，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息。
       parameters:
       - description: params
         in: body
@@ -3157,7 +3722,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 每个自然日限使用1次，分享后免费刷新岗位排名（更新 refresh_time）。3001=今日次数已用完，403=非本人岗位。
+      description: 每次使用后冷却24小时，分享后免费刷新岗位排名（更新 refresh_time）。3001=仍在24小时冷却期，403=非本人岗位。
       parameters:
       - description: params
         in: body
@@ -3181,9 +3746,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: 招租(biz_type=3)专用发布接口。一次事务预建 job(status=待支付) + rent_detail + order，返回微信支付参数。小程序完成支付后，微信回调将
-        job 翻转为 active 并刷新时间。photo_urls 至少1张、最多4张；transfer_fee_type=1 时 transfer_fee_amount
-        必填。发布价格从服务端配置 rent.publish_price 读取，客户端不传。
+      description: 招租(biz_type=3)专用发布接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建
+        job(status=待支付) + rent_detail + order，支付回调后将信息设为 active。photo_urls 至少1张、最多4张。
       parameters:
       - description: params
         in: body
@@ -3231,7 +3795,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 创建置顶订单并返回微信支付参数，支付成功后后台回调自动写入置顶时间窗口。top_hour 单位：小时，必须>0；price 单位：元，必须>0。仅限岗位所有者操作。
+      description: 传入套餐查询接口返回的 sku_code。价格、置顶时长和赠送联系券由服务端读取，支付成功后后台回调自动发放权益。仅限岗位所有者操作。
       parameters:
       - description: params
         in: body
@@ -3302,6 +3866,58 @@ paths:
       summary: 查询订单支付状态
       tags:
       - 订单
+  /payment-packages/list:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        小程序登录接口。按产品返回已上架、适用于当前 biz_type 且符合当前用户购买资格的 SKU。
+        product_code：job_top=岗位置顶，contact_voucher=联系券，paid_refresh=付费刷新，rent_publish=招租发布。
+        biz_type：0=不限，1=招聘，2=求职，3=招租。岗位置顶传1或2；联系券传0；付费刷新传当前信息类型；招租发布传3。
+        selection_mode：1=单规格，正常情况下 skus 只有一条，前端直接使用 skus[0]；2=多规格，前端展示 skus 供用户选择。
+        price_cents 和 original_price_cents 的单位均为分，例如199表示1.99元。skus 为空表示当前没有可购买 SKU。
+        benefit_config 包含联系券、刷新次数、置顶小时数、招租发布次数和赠送联系券；仅返回当前产品适用的字段。营销规则由服务端完成资格判断，不返回 sale_rule。
+        创建支付订单时只传服务端返回的 sku_code 和业务目标，不能传客户端价格。
+      parameters:
+      - description: 产品编码及当前业务类型
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.PaymentPackageListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.PaymentPackageListResponseData'
+              type: object
+        "400":
+          description: 参数错误，例如 biz_type 超出0～3
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "401":
+          description: 未登录或登录态已失效
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "404":
+          description: product_code 对应的产品不存在
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 查询可购买套餐
+      tags:
+      - 付费套餐
   /positions/all:
     get:
       consumes:
@@ -3362,9 +3978,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: '返回当前登录用户的基本信息。sex: 0=未设置 1=男 2=女。first_top_status: 0=未享受首次置顶优惠
-        1=已享受。new_customer_status: 0=未享受新用户优惠 1=已享受。profile_complete_status: 0=未完善
-        1=已完善（填写手机号）。'
+      description: 返回当前登录用户的基本信息。share_refresh_available=1表示可分享免费刷新；冷却中同时返回下次可用时间和剩余秒数。冷却时长为24小时。
       produces:
       - application/json
       responses:
@@ -3405,7 +4019,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: '返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新。amount
+      description: '返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新 4=招租发布。amount
         单位：元。'
       parameters:
       - description: params

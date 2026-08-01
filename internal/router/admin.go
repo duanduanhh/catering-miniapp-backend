@@ -29,5 +29,17 @@ func InitAdminRouter(deps RouterDeps, r *gin.RouterGroup) {
 		authed.POST("/feedbacks/list", deps.AdminListHandler.ListFeedbacks)
 		authed.POST("/contact_histories/list", deps.AdminListHandler.ListContactHistories)
 		authed.POST("/reports/list", deps.AdminListHandler.ListReports)
+		authed.POST("/payment-products/list", deps.PaymentPackageHandler.AdminProducts)
+		authed.POST("/payment-products/update", deps.PaymentPackageHandler.AdminUpdateProduct)
+
+		packages := authed.Group("/payment-packages")
+		packages.POST("/list", deps.PaymentPackageHandler.AdminList)
+		packages.POST("/detail", deps.PaymentPackageHandler.AdminDetail)
+		packages.POST("/create", deps.PaymentPackageHandler.AdminCreate)
+		packages.POST("/update", deps.PaymentPackageHandler.AdminUpdate)
+		packages.POST("/delete", deps.PaymentPackageHandler.AdminDelete)
+		packages.POST("/publish", deps.PaymentPackageHandler.AdminPublish)
+		packages.POST("/unpublish", deps.PaymentPackageHandler.AdminUnpublish)
+		packages.POST("/history", deps.PaymentPackageHandler.AdminHistory)
 	}
 }

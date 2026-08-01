@@ -15,6 +15,18 @@ import (
 type PayService interface {
 	// BuildPayParams 构建支付参数（包括调用统一下单接口）
 	BuildPayParams(ctx context.Context, orderNo string, amount int64, userOpenid string, description string) (v1.PayParams, error)
+	CloseOrder(ctx context.Context, orderNo string) error
+}
+
+// CloseOrder 关闭微信侧未支付订单，防止超时后继续付款。
+func (s *payService) CloseOrder(ctx context.Context, orderNo string) error {
+	if orderNo == "" {
+		return errors.New("order_no is required")
+	}
+	if err := s.wechatPayClient.CloseOrder(ctx, orderNo); err != nil {
+		return fmt.Errorf("close wechat order: %w", err)
+	}
+	return nil
 }
 
 type payService struct {

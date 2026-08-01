@@ -1,5 +1,12 @@
 # 数据表设计
 
+## 付费 SKU 配置（新建）
+
+付费商品、SKU 与变更记录的正式 MySQL 8 建表语句维护在 [../scripts/schema_payment_sku.sql](../scripts/schema_payment_sku.sql)。
+
+该脚本只创建表和索引，不写入套餐数据；测试环境初始化 SKU 请另行执行
+[../scripts/seed_payment_packages.sql](../scripts/seed_payment_packages.sql)。种子数据默认是草稿，需在管理后台上架后才会向小程序端返回。
+
 ## 用户表（改造）
 
 ```mysql

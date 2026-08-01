@@ -8,9 +8,7 @@ type WechatPayNotifyRequest struct {
 }
 
 type ContactVoucherBuyRequest struct {
-	Price             float64 `json:"price" binding:"required"`
-	ContactVoucherNum int     `json:"contact_voucher_num" binding:"required"`
-	GiftNum           int     `json:"gift_num"`
+	SKUCode string `json:"sku_code" binding:"required" example:"contact_voucher_5"`
 }
 
 type PayParams struct {
@@ -29,8 +27,8 @@ type PayOrderResponseData struct {
 }
 
 type JobRefreshPayRequest struct {
-	JobID int64   `json:"job_id" binding:"required"`
-	Price float64 `json:"price" binding:"required"`
+	JobID   int64  `json:"job_id" binding:"required"`
+	SKUCode string `json:"sku_code" binding:"required" example:"paid_refresh_1"`
 }
 
 type ContactVoucherCostRequest struct {
@@ -86,10 +84,10 @@ type UserOrderListRequest struct {
 }
 
 type UserOrderListItem struct {
-	OrderID     int64   `json:"order_id"`
-	OrderNo     string  `json:"order_no"`
-	// 商品类型: 1=置顶 2=联系券 3=刷新
-	ProductType int     `json:"product_type" enums:"1,2,3" example:"1"`
+	OrderID int64  `json:"order_id"`
+	OrderNo string `json:"order_no"`
+	// 商品类型: 1=置顶 2=联系券 3=刷新 4=招租发布
+	ProductType int     `json:"product_type" enums:"1,2,3,4" example:"1"`
 	Title       string  `json:"title"`
 	Amount      float64 `json:"amount"`
 	PaidAt      string  `json:"paid_at"`

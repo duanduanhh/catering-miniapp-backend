@@ -60,7 +60,7 @@ func (h *OrderHandler) QueryOrderStatus(ctx *gin.Context) {
 
 // ListOrders godoc
 // @Summary 消费记录
-// @Description 返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新。amount 单位：元。
+// @Description 返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新 4=招租发布。amount 单位：元。
 // @Tags 个人中心
 // @Accept json
 // @Produce json

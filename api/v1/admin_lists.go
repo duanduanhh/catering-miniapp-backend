@@ -64,6 +64,10 @@ type AdminOrderListRequest struct {
 type AdminOrderItemDetail struct {
 	ID                int64   `json:"id"`
 	ProductType       int     `json:"product_type"`
+	ProductID         int64   `json:"product_id"`
+	SKUID             int64   `json:"sku_id"`
+	SKUCode           string  `json:"sku_code"`
+	SKUVersion        int     `json:"sku_version"`
 	Title             string  `json:"title"`
 	UnitPrice         float64 `json:"unit_price"`
 	TopHour           int     `json:"top_hour"`

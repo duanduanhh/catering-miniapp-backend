@@ -8,3 +8,5 @@ bin
 config/*
 .baidu-cc/
 server
+!internal/server/
+!internal/server/payment_product_migration_test.go

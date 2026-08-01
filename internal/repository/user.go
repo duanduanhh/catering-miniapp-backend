@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
@@ -14,6 +15,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *model.User) error
 	Update(ctx context.Context, user *model.User) error
 	GetByID(ctx context.Context, id int64) (*model.User, error)
+	GetByIDForUpdate(ctx context.Context, id int64) (*model.User, error)
 	GetByIDAndOpenID(ctx context.Context, id int64, openID string) (*model.User, error)
 	GetByPhone(ctx context.Context, phone string) (*model.User, error)
 	GetByOpenID(ctx context.Context, openID string) (*model.User, error)
@@ -64,6 +66,18 @@ func (r *userRepository) Update(ctx context.Context, user *model.User) error {
 func (r *userRepository) GetByID(ctx context.Context, userId int64) (*model.User, error) {
 	var user model.User
 	if err := r.DB(ctx).Where("id = ?", userId).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, v1.ErrNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *userRepository) GetByIDForUpdate(ctx context.Context, userID int64) (*model.User, error) {
+	var user model.User
+	if err := r.DB(ctx).Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("id = ?", userID).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, v1.ErrNotFound
 		}

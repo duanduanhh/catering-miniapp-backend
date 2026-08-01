@@ -44,7 +44,7 @@ func (h *ContactVoucherHistoryHandler) GetContactVoucherHistory(ctx *gin.Context
 
 // Buy godoc
 // @Summary 联系券充值
-// @Description 创建联系券购买订单并返回微信支付参数，支付成功后后台回调自动增加券数量。price 单位：元；contact_voucher_num 为本次购买张数。
+// @Description 传入套餐查询接口返回的 sku_code。价格、联系券数量和赠送数量均由服务端读取，支付成功后自动到账。
 // @Tags 联系券模块
 // @Accept json
 // @Produce json
@@ -69,10 +69,14 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 		return
 	}
-	order, _, err := h.orderService.CreateContactVoucherOrder(ctx, userID, req.Price, req.ContactVoucherNum, req.GiftNum)
+	order, _, err := h.orderService.CreateContactVoucherOrder(ctx, userID, req.SKUCode)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("orderService.CreateContactVoucherOrder error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		if isPaymentPackageOrderError(err) {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		} else {
+			v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
+		}
 		return
 	}
 
@@ -94,7 +98,7 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
 		OrderID:   order.ID,
 		OrderNo:   order.OrderNo,
-		Amount:    req.Price,
+		Amount:    float64(amountCents) / 100,
 		PayParams: params,
 	})
 }
