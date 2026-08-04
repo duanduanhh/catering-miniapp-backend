@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `payment_sku` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
   `product_id` bigint NOT NULL COMMENT '所属收费业务 ID',
   `sku_code` varchar(64) NOT NULL COMMENT 'SKU 唯一编码',
+  `virtual_product_id` varchar(128) NOT NULL DEFAULT '' COMMENT '微信虚拟支付后台道具 ID',
   `name` varchar(100) NOT NULL COMMENT 'SKU 名称',
   `subtitle` varchar(200) NOT NULL DEFAULT '' COMMENT '副标题',
   `badge` varchar(50) NOT NULL DEFAULT '' COMMENT '角标',
@@ -63,5 +64,6 @@ CREATE TABLE IF NOT EXISTS `payment_sku_change_log` (
 --   ADD COLUMN `sku_id` bigint NOT NULL DEFAULT 0,
 --   ADD COLUMN `sku_code` varchar(64) NOT NULL DEFAULT '',
 --   ADD COLUMN `sku_version` int NOT NULL DEFAULT 0,
+--   ADD COLUMN `virtual_product_id_snapshot` varchar(128) NOT NULL DEFAULT '',
 --   ADD COLUMN `price_cents_snapshot` bigint NOT NULL DEFAULT 0,
 --   ADD COLUMN `benefit_snapshot` json DEFAULT NULL;

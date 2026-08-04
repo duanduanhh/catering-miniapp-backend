@@ -308,13 +308,14 @@ func TestPaymentPackageServiceEvaluatesNewCustomerAndPurchaseLimit(t *testing.T)
 		orderRepository,
 	)
 	packageID, err := paymentService.Create(context.Background(), PaymentPackageCreateInput{
-		ProductID:     product.ID,
-		SKUCode:       "contact_voucher_2_new",
-		Name:          "2张联系券",
-		PriceCents:    150,
-		BenefitConfig: model.PaymentBenefitConfig{ContactVouchers: 2},
-		SaleRule:      model.PaymentSaleRule{Audience: "platform_new", MaxPurchasePerUser: 1},
-		Operator:      "test",
+		ProductID:        product.ID,
+		SKUCode:          "contact_voucher_2_new",
+		Name:             "2张联系券",
+		PriceCents:       150,
+		VirtualProductID: "contact_voucher_2_new",
+		BenefitConfig:    model.PaymentBenefitConfig{ContactVouchers: 2},
+		SaleRule:         model.PaymentSaleRule{Audience: "platform_new", MaxPurchasePerUser: 1},
+		Operator:         "test",
 	})
 	if err != nil {
 		t.Fatalf("create package: %v", err)
@@ -369,5 +370,66 @@ func TestPaymentPackageServiceEvaluatesNewCustomerAndPurchaseLimit(t *testing.T)
 	); !errors.Is(err, ErrPaymentPackageUnavailable) &&
 		!errors.Is(err, ErrPaymentPackageLimitReached) {
 		t.Fatalf("expected package to be unavailable after purchase, got %v", err)
+	}
+}
+
+func TestPaymentPackagePublishRequiresUniqueVirtualProductID(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("open database: %v", err)
+	}
+	if err := db.AutoMigrate(&model.PaymentProduct{}, &model.PaymentPackage{}, &model.PaymentPackageChangeLog{}); err != nil {
+		t.Fatalf("auto migrate: %v", err)
+	}
+	now := time.Now()
+	product := &model.PaymentProduct{
+		ProductCode:   model.PaymentProductCodeContactVoucher,
+		Name:          "联系券",
+		SelectionMode: model.PaymentSelectionModeMultiple,
+		CreateAt:      now,
+		UpdateAt:      now,
+	}
+	if err := db.Create(product).Error; err != nil {
+		t.Fatalf("create product: %v", err)
+	}
+	baseRepository := repository.NewRepository(nil, db)
+	paymentService := NewPaymentPackageService(
+		&Service{tm: repository.NewTransaction(baseRepository)},
+		repository.NewPaymentPackageRepository(baseRepository),
+		repository.NewPaymentProductRepository(baseRepository),
+		nil,
+		nil,
+	)
+	create := func(skuCode, virtualProductID string) int64 {
+		id, err := paymentService.Create(context.Background(), PaymentPackageCreateInput{
+			ProductID:        product.ID,
+			SKUCode:          skuCode,
+			VirtualProductID: virtualProductID,
+			Name:             skuCode,
+			PriceCents:       100,
+			BenefitConfig:    model.PaymentBenefitConfig{ContactVouchers: 1},
+			Operator:         "test",
+		})
+		if err != nil {
+			t.Fatalf("create package %s: %v", skuCode, err)
+		}
+		return id
+	}
+	publish := func(id int64) error {
+		item, err := paymentService.GetByID(context.Background(), id)
+		if err != nil {
+			t.Fatalf("get package %d: %v", id, err)
+		}
+		return paymentService.Publish(context.Background(), id, item.Package.Version, "test")
+	}
+
+	if err := publish(create("contact_voucher_without_tool", "")); !errors.Is(err, ErrVirtualPaymentUnavailable) {
+		t.Fatalf("publish without virtual product ID = %v, want %v", err, ErrVirtualPaymentUnavailable)
+	}
+	if err := publish(create("contact_voucher_first", "wechat_tool_1")); err != nil {
+		t.Fatalf("publish first package: %v", err)
+	}
+	if err := publish(create("contact_voucher_duplicate", "wechat_tool_1")); !errors.Is(err, ErrPaymentPackageInvalid) {
+		t.Fatalf("publish duplicate virtual product ID = %v, want %v", err, ErrPaymentPackageInvalid)
 	}
 }

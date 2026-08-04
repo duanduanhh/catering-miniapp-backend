@@ -470,6 +470,8 @@ definitions:
         type: integer
       subtitle:
         type: string
+      virtual_product_id:
+        type: string
     required:
     - benefit_config
     - name
@@ -589,6 +591,8 @@ definitions:
         type: string
       version:
         type: integer
+      virtual_product_id:
+        type: string
     required:
     - benefit_config
     - id
@@ -1819,30 +1823,6 @@ definitions:
         example: 2
         type: integer
     type: object
-  v1.PayOrderResponseData:
-    properties:
-      amount:
-        type: number
-      order_id:
-        type: integer
-      order_no:
-        type: string
-      pay_params:
-        $ref: '#/definitions/v1.PayParams'
-    type: object
-  v1.PayParams:
-    properties:
-      nonceStr:
-        type: string
-      package:
-        type: string
-      paySign:
-        type: string
-      signType:
-        type: string
-      timeStamp:
-        type: string
-    type: object
   v1.PaymentBenefitConfig:
     properties:
       contact_vouchers:
@@ -1855,6 +1835,16 @@ definitions:
         type: integer
       top_hours:
         type: integer
+    type: object
+  v1.PaymentOrderResponseData:
+    properties:
+      amount_cents:
+        example: 1800
+        type: integer
+      order_id:
+        type: integer
+      order_no:
+        type: string
     type: object
   v1.PaymentPackageItem:
     properties:
@@ -1921,6 +1911,10 @@ definitions:
         type: string
       version:
         type: integer
+      virtual_product_id:
+        description: 微信虚拟支付后台已发布的道具 ID；仅管理后台使用，不向小程序购买页返回。
+        example: wx_paid_refresh_1
+        type: string
     type: object
   v1.PaymentPackageListRequest:
     properties:
@@ -2170,16 +2164,15 @@ definitions:
     type: object
   v1.RentPrePublishResponseData:
     properties:
-      amount:
-        type: number
+      amount_cents:
+        example: 1800
+        type: integer
       job_id:
         type: integer
       order_id:
         type: integer
       order_no:
         type: string
-      pay_params:
-        $ref: '#/definitions/v1.PayParams'
     type: object
   v1.ReportReasonsResponseData:
     properties:
@@ -2378,6 +2371,39 @@ definitions:
       total:
         type: integer
     type: object
+  v1.VirtualPaymentParams:
+    properties:
+      mode:
+        example: short_series_goods
+        type: string
+      paySig:
+        type: string
+      signData:
+        type: string
+      signature:
+        type: string
+    type: object
+  v1.VirtualPaymentPrepareRequest:
+    properties:
+      login_code:
+        type: string
+      order_no:
+        example: TOP202608010001
+        type: string
+    required:
+    - login_code
+    - order_no
+    type: object
+  v1.VirtualPaymentPrepareResponseData:
+    properties:
+      amount_cents:
+        example: 390
+        type: integer
+      order_no:
+        type: string
+      virtual_payment:
+        $ref: '#/definitions/v1.VirtualPaymentParams'
+    type: object
   v1.WechatLoginRequest:
     properties:
       login_code:
@@ -2400,8 +2426,6 @@ definitions:
         type: integer
       user_code:
         type: string
-    type: object
-  v1.WechatPayNotifyRequest:
     type: object
   v1.WechatRegisterRequest:
     properties:
@@ -2648,8 +2672,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: 新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。sale_rule.audience
-        支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。
+      description: 新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的
+        virtual_product_id，且一个道具 ID 只能绑定一个 SKU。sale_rule.audience 支持 all、platform_new、product_new，max_purchase_per_user
+        为 0 表示不限购。
       parameters:
       - description: params
         in: body
@@ -2759,6 +2784,7 @@ paths:
     post:
       consumes:
       - application/json
+      description: 上架前校验套餐权益、价格以及微信虚拟支付道具 ID；未填写道具 ID 或与其他未删除 SKU 重复时不能上架。
       parameters:
       - description: params
         in: body
@@ -3084,7 +3110,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: 传入套餐查询接口返回的 sku_code。价格、联系券数量和赠送数量均由服务端读取，支付成功后自动到账。
+      description: 创建联系券待支付订单。传入套餐查询接口返回的 sku_code，价格、联系券数量和赠送数量均由服务端读取；随后使用返回的 order_no
+        调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动到账。
       parameters:
       - description: params
         in: body
@@ -3098,7 +3125,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.PayOrderResponseData'
+            $ref: '#/definitions/v1.PaymentOrderResponseData'
       security:
       - Bearer: []
       summary: 联系券充值
@@ -3699,7 +3726,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: 传入套餐查询接口返回的 sku_code。价格和刷新权益由服务端读取，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息。
+      description: 创建付费刷新待支付订单。传入套餐查询接口返回的 sku_code，价格和刷新权益由服务端读取；随后使用返回的 order_no
+        调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动完成刷新。适用于招聘、求职和招租信息。
       parameters:
       - description: params
         in: body
@@ -3713,7 +3741,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.PayOrderResponseData'
+            $ref: '#/definitions/v1.PaymentOrderResponseData'
       security:
       - Bearer: []
       tags:
@@ -3746,8 +3774,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: 招租(biz_type=3)专用发布接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建
-        job(status=待支付) + rent_detail + order，支付回调后将信息设为 active。photo_urls 至少1张、最多4张。
+      description: 招租(biz_type=3)专用下单接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建
+        job(status=待支付) + rent_detail + order；随后使用返回的 order_no 调用 /payment/virtual/prepare
+        并发起 wx.requestVirtualPayment。道具发货推送成功后信息自动发布。photo_urls 至少1张、最多4张。
       parameters:
       - description: params
         in: body
@@ -3795,7 +3824,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: 传入套餐查询接口返回的 sku_code。价格、置顶时长和赠送联系券由服务端读取，支付成功后后台回调自动发放权益。仅限岗位所有者操作。
+      description: 创建岗位置顶待支付订单。传入套餐查询接口返回的 sku_code，价格、置顶时长和赠送联系券由服务端读取；随后使用返回的 order_no
+        调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动发放权益。仅限岗位所有者操作。
       parameters:
       - description: params
         in: body
@@ -3809,7 +3839,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.PayOrderResponseData'
+            $ref: '#/definitions/v1.PaymentOrderResponseData'
       security:
       - Bearer: []
       summary: 岗位置顶（付费）
@@ -3918,6 +3948,45 @@ paths:
       summary: 查询可购买套餐
       tags:
       - 付费套餐
+  /payment/virtual/prepare:
+    post:
+      consumes:
+      - application/json
+      description: 为当前用户的待支付单生成 wx.requestVirtualPayment 所需的 signData、paySig、signature。login_code
+        必须在本次支付前由 wx.login() 新获取；后端校验其所属用户与订单归属。小程序必须原样传入 virtual_payment，不能修改或重新序列化
+        signData。
+      parameters:
+      - description: 订单号和本次 wx.login code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.VirtualPaymentPrepareRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 签名生成成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/v1.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/v1.VirtualPaymentPrepareResponseData'
+              type: object
+        "400":
+          description: 订单不可支付、SKU 未配置微信道具 ID 或虚拟支付未配置
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "401":
+          description: 未登录或 login_code 不属于当前用户
+          schema:
+            $ref: '#/definitions/v1.Response'
+      security:
+      - Bearer: []
+      summary: 准备微信虚拟支付
+      tags:
+      - 支付模块
   /positions/all:
     get:
       consumes:
@@ -4089,28 +4158,6 @@ paths:
       summary: 更新个人信息
       tags:
       - 用户模块
-  /wechat/pay/notify:
-    post:
-      consumes:
-      - application/json
-      description: 微信支付结果异步通知接口，由微信服务器主动调用，前端无需关注。收到回调后解密验签，金额一致则更新订单状态并执行对应业务逻辑（置顶/券充值/刷新）。
-      parameters:
-      - description: params
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/v1.WechatPayNotifyRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.Response'
-      summary: 微信支付回调（仅供微信服务器调用）
-      tags:
-      - 支付模块
   /wechat/user/login:
     post:
       consumes:
@@ -4157,6 +4204,68 @@ paths:
       summary: 微信注册
       tags:
       - 用户模块
+  /wechat/virtual-payment/notify:
+    get:
+      description: 在微信虚拟支付后台保存发货推送地址时调用。接口校验 message_token 签名；若后台选择安全模式，同时解密 echostr。
+      parameters:
+      - description: 明文模式微信签名
+        in: query
+        name: signature
+        type: string
+      - description: 安全模式微信签名
+        in: query
+        name: msg_signature
+        type: string
+      - description: 时间戳
+        in: query
+        name: timestamp
+        required: true
+        type: string
+      - description: 随机数
+        in: query
+        name: nonce
+        required: true
+        type: string
+      - description: 微信回显内容
+        in: query
+        name: echostr
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: 微信回显内容
+          schema:
+            type: string
+      summary: 验证虚拟支付消息推送地址（仅供微信服务器调用）
+      tags:
+      - 支付模块
+    post:
+      consumes:
+      - text/xml
+      description: 接收 xpay_goods_deliver_notify。服务端校验微信消息签名（安全模式下解密 XML），原子更新订单为已支付，并幂等发放订单权益；招租订单会自动发布对应招租信息。返回
+        {"ErrCode":0} 表示发货完成。
+      parameters:
+      - description: 明文模式微信签名
+        in: query
+        name: signature
+        type: string
+      - description: 安全模式微信签名
+        in: query
+        name: msg_signature
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发货成功
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 微信虚拟支付道具发货推送（仅供微信服务器调用）
+      tags:
+      - 支付模块
 securityDefinitions:
   Bearer:
     in: header

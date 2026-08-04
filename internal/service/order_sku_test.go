@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -60,12 +61,13 @@ func TestCreateContactVoucherOrderUsesServerSKUPriceAndBenefits(t *testing.T) {
 		orderRepository,
 	)
 	packageID, err := packageService.Create(context.Background(), PaymentPackageCreateInput{
-		ProductID:  product.ID,
-		SKUCode:    "contact_voucher_2_new",
-		Name:       "2张联系券",
-		PriceCents: 150,
-		BenefitConfig: model.PaymentBenefitConfig{ContactVouchers: 2},
-		Operator: "test",
+		ProductID:        product.ID,
+		SKUCode:          "contact_voucher_2_new",
+		Name:             "2张联系券",
+		PriceCents:       150,
+		VirtualProductID: "contact_voucher_2_new",
+		BenefitConfig:    model.PaymentBenefitConfig{ContactVouchers: 2},
+		Operator:         "test",
 	})
 	if err != nil {
 		t.Fatalf("create package: %v", err)
@@ -105,5 +107,18 @@ func TestCreateContactVoucherOrderUsesServerSKUPriceAndBenefits(t *testing.T) {
 	if item.SKUID != packageID || item.SKUCode != "contact_voucher_2_new" ||
 		item.PriceCentsSnapshot != 150 || item.BenefitSnapshot == "" {
 		t.Fatalf("missing SKU snapshot: %+v", item)
+	}
+	if err := db.Model(&model.Order{}).Where("id = ?", order.ID).Update("status", model.OrderStatusCanceled).Error; err != nil {
+		t.Fatalf("cancel order: %v", err)
+	}
+	if _, err := orderService.CompleteVirtualPaymentOrder(context.Background(), VirtualPaymentGoodsDelivery{
+		OutTradeNo:       order.OrderNo,
+		OpenID:           user.WechatOpenID,
+		TransactionID:    "wx-transaction-1",
+		ProductID:        item.VirtualProductIDSnapshot,
+		Quantity:         1,
+		ActualPriceCents: 150,
+	}); !errors.Is(err, ErrVirtualPaymentOrderClosed) {
+		t.Fatalf("closed order notification = %v, want %v", err, ErrVirtualPaymentOrderClosed)
 	}
 }

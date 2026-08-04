@@ -58,11 +58,10 @@ type RentPrePublishRequest struct {
 
 // RentPrePublishResponseData 招租预发布响应
 type RentPrePublishResponseData struct {
-	JobID     int64     `json:"job_id"`
-	OrderID   int64     `json:"order_id"`
-	OrderNo   string    `json:"order_no"`
-	Amount    float64   `json:"amount"`
-	PayParams PayParams `json:"pay_params"`
+	JobID       int64  `json:"job_id"`
+	OrderID     int64  `json:"order_id"`
+	OrderNo     string `json:"order_no"`
+	AmountCents int64  `json:"amount_cents" example:"1800"`
 }
 
 type RentPrePublishResponse struct {

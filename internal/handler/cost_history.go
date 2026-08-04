@@ -19,7 +19,6 @@ type ContactVoucherHistoryHandler struct {
 	orderService                 service.OrderService
 	contactHistoryService        service.ContactHistoryService
 	callbackHistoryService       service.CallbackHistoryService
-	payService                   service.PayService
 }
 
 func NewContactVoucherHistoryHandler(
@@ -28,7 +27,6 @@ func NewContactVoucherHistoryHandler(
 	orderService service.OrderService,
 	contactHistoryService service.ContactHistoryService,
 	callbackHistoryService service.CallbackHistoryService,
-	payService service.PayService,
 ) *ContactVoucherHistoryHandler {
 	return &ContactVoucherHistoryHandler{
 		Handler:                      handler,
@@ -36,7 +34,6 @@ func NewContactVoucherHistoryHandler(
 		orderService:                 orderService,
 		contactHistoryService:        contactHistoryService,
 		callbackHistoryService:       callbackHistoryService,
-		payService:                   payService,
 	}
 }
 
@@ -44,13 +41,13 @@ func (h *ContactVoucherHistoryHandler) GetContactVoucherHistory(ctx *gin.Context
 
 // Buy godoc
 // @Summary 联系券充值
-// @Description 传入套餐查询接口返回的 sku_code。价格、联系券数量和赠送数量均由服务端读取，支付成功后自动到账。
+// @Description 创建联系券待支付订单。传入套餐查询接口返回的 sku_code，价格、联系券数量和赠送数量均由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动到账。
 // @Tags 联系券模块
 // @Accept json
 // @Produce json
 // @Security Bearer
 // @Param request body v1.ContactVoucherBuyRequest true "params"
-// @Success 200 {object} v1.PayOrderResponseData
+// @Success 200 {object} v1.PaymentOrderResponseData
 // @Router /contact_voucher/buy [post]
 func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
@@ -58,12 +55,6 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
 		return
 	}
-	openid := GetOpenidFromCtx(ctx)
-	if openid == "" {
-		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "openid not found in token")
-		return
-	}
-
 	var req v1.ContactVoucherBuyRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
@@ -80,26 +71,16 @@ func (h *ContactVoucherHistoryHandler) Buy(ctx *gin.Context) {
 		return
 	}
 
-	// 获取金额（分）
 	amountCents, err := order.AmountTotal.ToCents()
 	if err != nil {
 		h.logger.WithContext(ctx).Error("order.AmountTotal.ToCents error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-
-	// 调用新的支付服务，获取支付参数
-	params, err := h.payService.BuildPayParams(ctx, order.OrderNo, amountCents, openid, "购买联系券")
-	if err != nil {
-		h.logger.WithContext(ctx).Error("payService.BuildPayParams error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
-		return
-	}
-	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
-		OrderID:   order.ID,
-		OrderNo:   order.OrderNo,
-		Amount:    float64(amountCents) / 100,
-		PayParams: params,
+	v1.HandleSuccess(ctx, v1.PaymentOrderResponseData{
+		OrderID:     order.ID,
+		OrderNo:     order.OrderNo,
+		AmountCents: amountCents,
 	})
 }
 

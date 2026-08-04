@@ -5,8 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 )
@@ -24,8 +22,8 @@ type JobService interface {
 	ListByUser(ctx context.Context, userID int64, bizType int, status []int, pageNum, pageSize int) ([]*model.Job, int64, error)
 	HomeTop(ctx context.Context, bizType, firstAreaID, secondAreaID, limit int) ([]*model.Job, error)
 	HomeFeed(ctx context.Context, bizType, firstAreaID, secondAreaID, pageNum, pageSize int) ([]*model.Job, int64, error)
-	// PrePublishRent 招租发布（付费）：预建 job(status=待支付) + rent_detail + order，返回支付参数。
-	PrePublishRent(ctx context.Context, userID int64, openid string, input RentPrePublishInput) (*RentPrePublishResult, error)
+	// PrePublishRent 招租发布（付费）：预建 job(status=待支付) + rent_detail + order。
+	PrePublishRent(ctx context.Context, userID int64, input RentPrePublishInput) (*RentPrePublishResult, error)
 	// GetRentDetailByJobID 招租详情：读取扩展表。
 	GetRentDetailByJobID(ctx context.Context, jobID int64) (*model.RentDetail, error)
 	// GetRentDetailsByJobIDs 招租列表：按 job_id 批量读扩展表。
@@ -42,9 +40,7 @@ func NewJobService(
 	rentDetailRepository repository.RentDetailRepository,
 	orderRepository repository.OrderRepository,
 	orderItemRepository repository.OrderItemRepository,
-	payService PayService,
 	paymentPackageService PaymentPackageService,
-	conf *viper.Viper,
 ) JobService {
 	return &jobService{
 		Service:                         service,
@@ -54,9 +50,7 @@ func NewJobService(
 		rentDetailRepository:            rentDetailRepository,
 		orderRepository:                 orderRepository,
 		orderItemRepository:             orderItemRepository,
-		payService:                      payService,
 		paymentPackageService:           paymentPackageService,
-		conf:                            conf,
 	}
 }
 
@@ -68,9 +62,7 @@ type jobService struct {
 	rentDetailRepository            repository.RentDetailRepository
 	orderRepository                 repository.OrderRepository
 	orderItemRepository             repository.OrderItemRepository
-	payService                      PayService
 	paymentPackageService           PaymentPackageService
-	conf                            *viper.Viper
 }
 
 const (
@@ -505,21 +497,17 @@ type RentPrePublishInput struct {
 	TransferDesc      string                // 转让说明
 }
 
-// RentPrePublishResult 招租预发布结果：返回 job/order/支付参数。
+// RentPrePublishResult 招租预发布结果：返回 job/order，支付签名由统一接口生成。
 type RentPrePublishResult struct {
-	JobID     int64
-	OrderID   int64
-	OrderNo   string
-	Amount    float64
-	PayParams interface{} // v1.PayParams（避免 service 层依赖 api 包，此处用 interface{}）
+	JobID       int64
+	OrderID     int64
+	OrderNo     string
+	AmountCents int64
 }
 
 // PrePublishRent 招租发布（付费）：一次事务预建 job(status=待支付) + rent_detail + order + order_item。
-// 支付成功后通过微信回调 → order.HandlePayNotify → jobRepository.ActivatePendingRent 翻转为 Active。
-func (s *jobService) PrePublishRent(ctx context.Context, userID int64, openid string, input RentPrePublishInput) (*RentPrePublishResult, error) {
-	if openid == "" {
-		return nil, errors.New("openid required for rent publish")
-	}
+// 支付成功后通过虚拟支付发货推送 → orderService.CompleteVirtualPaymentOrder → jobRepository.ActivatePendingRent 翻转为 Active。
+func (s *jobService) PrePublishRent(ctx context.Context, userID int64, input RentPrePublishInput) (*RentPrePublishResult, error) {
 	// 基础参数校验
 	if input.Positions == "" || input.Address == "" || input.Longitude == 0 || input.Latitude == 0 {
 		return nil, ErrInvalidRentInput
@@ -609,23 +597,11 @@ func (s *jobService) PrePublishRent(ctx context.Context, userID int64, openid st
 	if err != nil {
 		return nil, err
 	}
-	price := float64(item.PriceCentsSnapshot) / 100
-
-	// 事务外调用微信支付统一下单，失败不影响 job/order（超时清理任务兜底）
-	amountCents, err := order.AmountTotal.ToCents()
-	if err != nil {
-		return nil, err
-	}
-	payParams, err := s.payService.BuildPayParams(ctx, order.OrderNo, amountCents, openid, "发布招租")
-	if err != nil {
-		return nil, err
-	}
 	return &RentPrePublishResult{
-		JobID:     job.ID,
-		OrderID:   order.ID,
-		OrderNo:   order.OrderNo,
-		Amount:    price,
-		PayParams: payParams,
+		JobID:       job.ID,
+		OrderID:     order.ID,
+		OrderNo:     order.OrderNo,
+		AmountCents: item.PriceCentsSnapshot,
 	}, nil
 }
 

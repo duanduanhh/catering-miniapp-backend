@@ -14,10 +14,17 @@ type OrderService interface {
 	CreateTopOrder(ctx context.Context, userID, jobID int64, skuCode string) (*model.Order, *model.OrderItem, error)
 	CreateContactVoucherOrder(ctx context.Context, userID int64, skuCode string) (*model.Order, *model.OrderItem, error)
 	CreateRefreshOrder(ctx context.Context, userID, jobID int64, skuCode string) (*model.Order, *model.OrderItem, error)
-	PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
-	PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
 	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
 	GetByOrderNo(ctx context.Context, userID int64, orderNo string) (*model.Order, error)
+	GetVirtualPaymentOrder(ctx context.Context, userID int64, orderNo string) (*VirtualPaymentOrder, error)
+	CompleteVirtualPaymentOrder(ctx context.Context, notification VirtualPaymentGoodsDelivery) (*model.Order, error)
+}
+
+// VirtualPaymentOrder 是虚拟支付签名所需的、已由服务端确认的订单快照。
+type VirtualPaymentOrder struct {
+	OrderNo          string
+	AmountCents      int64
+	VirtualProductID string
 }
 
 func NewOrderService(
@@ -179,75 +186,113 @@ func buildSKUOrder(
 		UpdateAt:    now,
 	}
 	item := &model.OrderItem{
-		ProductType:        productType,
-		ProductID:          pkg.Product.ID,
-		SKUID:              pkg.Package.ID,
-		SKUCode:            pkg.Package.SKUCode,
-		SKUVersion:         pkg.Package.Version,
-		TitleSnapshot:      pkg.Package.Name,
-		UnitPriceSnapshot:  price,
-		PriceCentsSnapshot: pkg.Package.PriceCents,
-		BenefitSnapshot:    string(benefitSnapshot),
-		CreateAt:           now,
-		UpdateAt:           now,
+		ProductType:              productType,
+		ProductID:                pkg.Product.ID,
+		SKUID:                    pkg.Package.ID,
+		SKUCode:                  pkg.Package.SKUCode,
+		SKUVersion:               pkg.Package.Version,
+		VirtualProductIDSnapshot: pkg.Package.VirtualProductID,
+		TitleSnapshot:            pkg.Package.Name,
+		UnitPriceSnapshot:        price,
+		PriceCentsSnapshot:       pkg.Package.PriceCents,
+		BenefitSnapshot:          string(benefitSnapshot),
+		CreateAt:                 now,
+		UpdateAt:                 now,
 	}
 	return order, item
 }
 
-func (s *orderService) PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
-	var order *model.Order
-	var err error
-	if orderID > 0 {
-		order, err = s.orderRepository.GetByID(ctx, orderID)
-	} else {
-		order, err = s.orderRepository.GetByOrderNo(ctx, orderNo)
-	}
+func (s *orderService) GetVirtualPaymentOrder(ctx context.Context, userID int64, orderNo string) (*VirtualPaymentOrder, error) {
+	order, err := s.GetByOrderNo(ctx, userID, orderNo)
 	if err != nil {
 		return nil, err
 	}
-	if order.UserID != userID {
-		return nil, ErrForbidden
-	}
-	return s.payOrderWithItems(ctx, order, amount, payChannel, payTradeNo)
-}
-
-func (s *orderService) PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
-	order, err := s.orderRepository.GetByOrderNo(ctx, orderNo)
-	if err != nil {
-		return nil, err
-	}
-	return s.payOrderWithItems(ctx, order, amount, payChannel, payTradeNo)
-}
-
-func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
 	if order.Status != model.OrderStatusPending {
+		return nil, ErrVirtualPaymentOrderInvalid
+	}
+	items, err := s.orderItemRepository.ListByOrderID(ctx, order.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) != 1 || items[0].SKUID <= 0 {
+		return nil, ErrVirtualPaymentOrderInvalid
+	}
+	if items[0].VirtualProductIDSnapshot == "" {
+		return nil, ErrVirtualPaymentUnavailable
+	}
+	amountCents, err := order.AmountTotal.ToCents()
+	if err != nil {
+		return nil, err
+	}
+	return &VirtualPaymentOrder{
+		OrderNo:          order.OrderNo,
+		AmountCents:      amountCents,
+		VirtualProductID: items[0].VirtualProductIDSnapshot,
+	}, nil
+}
+
+// CompleteVirtualPaymentOrder 仅在微信虚拟支付的道具发货推送通过验签后调用。
+// 在执行权益前，使用订单创建时固化的价格、道具 ID 和用户 OpenID 再次校验通知内容。
+func (s *orderService) CompleteVirtualPaymentOrder(ctx context.Context, notification VirtualPaymentGoodsDelivery) (*model.Order, error) {
+	order, err := s.orderRepository.GetByOrderNo(ctx, notification.OutTradeNo)
+	if err != nil {
+		return nil, err
+	}
+	user, err := s.userRepository.GetByID(ctx, order.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if notification.OpenID == "" || notification.OpenID != user.WechatOpenID {
+		return nil, ErrVirtualPaymentNotifyMismatch
+	}
+	items, err := s.orderItemRepository.ListByOrderID(ctx, order.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) != 1 || items[0].VirtualProductIDSnapshot == "" ||
+		items[0].VirtualProductIDSnapshot != notification.ProductID ||
+		notification.Quantity != 1 {
+		return nil, ErrVirtualPaymentNotifyMismatch
+	}
+	expectedCents, err := order.AmountTotal.ToCents()
+	if err != nil {
+		return nil, err
+	}
+	if expectedCents != notification.ActualPriceCents {
+		return nil, ErrVirtualPaymentNotifyMismatch
+	}
+	return s.completeOrder(ctx, order, "virtual_payment", notification.TransactionID)
+}
+
+func (s *orderService) completeOrder(ctx context.Context, order *model.Order, payChannel, payTradeNo string) (*model.Order, error) {
+	if order.Status == model.OrderStatusPaid {
 		return order, nil
 	}
-	if amount > 0 {
-		expected, err := order.AmountTotal.ToCents()
-		if err != nil {
-			return nil, err
-		}
-		given := int64(amount*100 + 0.5)
-		if expected != given {
-			return nil, ErrAmountMismatch
-		}
+	if order.Status != model.OrderStatusPending {
+		// 已取消或已退款的订单绝不能向微信确认“发货成功”。否则用户已付款时，
+		// 平台不会继续重试，而本地权益又不会到账，后续只能人工排查。
+		return nil, ErrVirtualPaymentOrderClosed
 	}
 	items, err := s.orderItemRepository.ListByOrderID(ctx, order.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	paid := false
 	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
-		order.Status = model.OrderStatusPaid
 		order.AmountPaid = order.AmountTotal
 		order.PayChannel = payChannel
 		order.PayTradeNo = payTradeNo
 		paidAt := time.Now()
 		order.PaidAt = &paidAt
 		order.UpdateAt = time.Now()
-		if err := s.orderRepository.Update(ctx, order); err != nil {
+		var err error
+		paid, err = s.orderRepository.MarkPaidIfPending(ctx, order)
+		if err != nil {
 			return err
+		}
+		if !paid {
+			return nil
 		}
 		for _, item := range items {
 			switch item.ProductType {
@@ -288,6 +333,10 @@ func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order
 	if err != nil {
 		return nil, err
 	}
+	if !paid {
+		return s.orderRepository.GetByID(ctx, order.ID)
+	}
+	order.Status = model.OrderStatusPaid
 	return order, nil
 }
 

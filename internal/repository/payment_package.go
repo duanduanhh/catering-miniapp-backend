@@ -23,6 +23,7 @@ type PaymentPackageRepository interface {
 	GetByID(ctx context.Context, id int64) (*model.PaymentPackage, error)
 	GetBySKU(ctx context.Context, skuCode string) (*model.PaymentPackage, error)
 	ExistsBySKU(ctx context.Context, skuCode string) (bool, error)
+	ExistsByVirtualProductID(ctx context.Context, virtualProductID string, excludeID int64) (bool, error)
 	CountByProductID(ctx context.Context, productID int64) (int64, error)
 	List(ctx context.Context, query PaymentPackageListQuery) ([]*model.PaymentPackage, int64, error)
 	ListAvailable(ctx context.Context, productID int64) ([]*model.PaymentPackage, error)
@@ -72,6 +73,19 @@ func (r *paymentPackageRepository) GetBySKU(ctx context.Context, skuCode string)
 func (r *paymentPackageRepository) ExistsBySKU(ctx context.Context, skuCode string) (bool, error) {
 	var total int64
 	err := r.DB(ctx).Model(&model.PaymentPackage{}).Where("sku_code = ?", skuCode).Count(&total).Error
+	return total > 0, err
+}
+
+// ExistsByVirtualProductID 判断微信道具是否已被另一个未删除 SKU 占用。
+// 同一道具只能对应一个本地 SKU，避免支付回调的商品、金额和权益出现歧义。
+func (r *paymentPackageRepository) ExistsByVirtualProductID(ctx context.Context, virtualProductID string, excludeID int64) (bool, error) {
+	var total int64
+	db := r.DB(ctx).Model(&model.PaymentPackage{}).
+		Where("virtual_product_id = ? AND deleted_at IS NULL", virtualProductID)
+	if excludeID > 0 {
+		db = db.Where("id != ?", excludeID)
+	}
+	err := db.Count(&total).Error
 	return total > 0, err
 }
 
@@ -129,6 +143,7 @@ func (r *paymentPackageRepository) Update(ctx context.Context, pkg *model.Paymen
 			"name":                 pkg.Name,
 			"subtitle":             pkg.Subtitle,
 			"badge":                pkg.Badge,
+			"virtual_product_id":   pkg.VirtualProductID,
 			"price_cents":          pkg.PriceCents,
 			"original_price_cents": pkg.OriginalPriceCents,
 			"benefit_config":       pkg.BenefitConfigJSON,

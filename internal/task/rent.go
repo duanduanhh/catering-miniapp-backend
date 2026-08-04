@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/spf13/viper"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
-	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 )
 
 // RentTask 招租相关定时任务。
@@ -24,26 +24,25 @@ func NewRentTask(
 	jobRepo repository.JobRepository,
 	rentRepo repository.RentDetailRepository,
 	orderRepo repository.OrderRepository,
-	payService service.PayService,
 ) RentTask {
 	return &rentTask{
-		Task:       task,
-		conf:       conf,
-		jobRepo:    jobRepo,
-		rentRepo:   rentRepo,
-		orderRepo:  orderRepo,
-		payService: payService,
+		Task:      task,
+		conf:      conf,
+		jobRepo:   jobRepo,
+		rentRepo:  rentRepo,
+		orderRepo: orderRepo,
 	}
 }
 
 type rentTask struct {
 	*Task
-	conf       *viper.Viper
-	jobRepo    repository.JobRepository
-	rentRepo   repository.RentDetailRepository
-	orderRepo  repository.OrderRepository
-	payService service.PayService
+	conf      *viper.Viper
+	jobRepo   repository.JobRepository
+	rentRepo  repository.RentDetailRepository
+	orderRepo repository.OrderRepository
 }
+
+var errPendingRentOrderChanged = errors.New("pending rent order state changed")
 
 func (t *rentTask) CleanupPending(ctx context.Context) error {
 	ttlMin := t.conf.GetInt("rent.pending_ttl_minutes")
@@ -71,22 +70,15 @@ func (t *rentTask) CleanupPending(ctx context.Context) error {
 			t.logger.Warn("skip pending rent cleanup because no pending order was found", zap.Int64("job_id", j.ID))
 			continue
 		}
-		// 先关闭微信订单；关闭失败（例如订单已支付）时绝不清理岗位，等待支付回调发放权益。
-		closed := true
-		for _, orderNo := range orderNos {
-			if err := t.payService.CloseOrder(ctx, orderNo); err != nil {
-				t.logger.Warn("close pending rent wechat order failed", zap.Int64("job_id", j.ID), zap.String("order_no", orderNo), zap.Error(err))
-				closed = false
-				break
-			}
-		}
-		if !closed {
-			continue
-		}
 		err = t.tm.Transaction(ctx, func(ctx context.Context) error {
 			for _, orderNo := range orderNos {
-				if _, err := t.orderRepo.CancelPendingOrder(ctx, orderNo, "招租支付超时已关闭"); err != nil {
+				canceled, err := t.orderRepo.CancelPendingOrder(ctx, orderNo, "招租支付超时已关闭")
+				if err != nil {
 					return err
+				}
+				// 支付推送先到时，订单状态已被原子更新为已支付；本次清理必须整体回滚。
+				if !canceled {
+					return errPendingRentOrderChanged
 				}
 			}
 			j.Status = model.JobStatusDeleted
@@ -96,6 +88,9 @@ func (t *rentTask) CleanupPending(ctx context.Context) error {
 			return t.rentRepo.DeleteByJobID(ctx, j.ID)
 		})
 		if err != nil {
+			if errors.Is(err, errPendingRentOrderChanged) {
+				continue
+			}
 			t.logger.Warn("cleanup pending rent failed", zap.Int64("job_id", j.ID), zap.Error(err))
 			continue
 		}

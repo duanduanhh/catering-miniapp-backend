@@ -20,7 +20,6 @@ type JobHandler struct {
 	*Handler
 	jobService               service.JobService
 	orderService             service.OrderService
-	payService               service.PayService
 	collectRepository        repository.CollectRepository
 	contactHistoryRepository repository.ContactHistoryRepository
 }
@@ -29,7 +28,6 @@ func NewJobHandler(
 	handler *Handler,
 	jobService service.JobService,
 	orderService service.OrderService,
-	payService service.PayService,
 	collectRepository repository.CollectRepository,
 	contactHistoryRepository repository.ContactHistoryRepository,
 ) *JobHandler {
@@ -37,7 +35,6 @@ func NewJobHandler(
 		Handler:                  handler,
 		jobService:               jobService,
 		orderService:             orderService,
-		payService:               payService,
 		collectRepository:        collectRepository,
 		contactHistoryRepository: contactHistoryRepository,
 	}
@@ -45,7 +42,7 @@ func NewJobHandler(
 
 // PrePublishRent godoc
 // @Summary 发布招租（付费预下单）
-// @Description 招租(biz_type=3)专用发布接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建 job(status=待支付) + rent_detail + order，支付回调后将信息设为 active。photo_urls 至少1张、最多4张。
+// @Description 招租(biz_type=3)专用下单接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建 job(status=待支付) + rent_detail + order；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后信息自动发布。photo_urls 至少1张、最多4张。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
@@ -57,11 +54,6 @@ func (h *JobHandler) PrePublishRent(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
 	if userID == 0 {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
-		return
-	}
-	openid := GetOpenidFromCtx(ctx)
-	if openid == "" {
-		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "openid not found in token")
 		return
 	}
 	var req v1.RentPrePublishRequest
@@ -98,7 +90,7 @@ func (h *JobHandler) PrePublishRent(ctx *gin.Context) {
 		TransferFeeAmount: req.TransferFeeAmount,
 		TransferDesc:      req.TransferDesc,
 	}
-	result, err := h.jobService.PrePublishRent(ctx, userID, openid, input)
+	result, err := h.jobService.PrePublishRent(ctx, userID, input)
 	if err != nil {
 		h.logger.WithContext(ctx).Error("jobService.PrePublishRent error", zap.Error(err))
 		if err == service.ErrInvalidRentInput || isPaymentPackageOrderError(err) {
@@ -108,13 +100,11 @@ func (h *JobHandler) PrePublishRent(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-	params, _ := result.PayParams.(v1.PayParams)
 	v1.HandleSuccess(ctx, v1.RentPrePublishResponseData{
-		JobID:     result.JobID,
-		OrderID:   result.OrderID,
-		OrderNo:   result.OrderNo,
-		Amount:    result.Amount,
-		PayParams: params,
+		JobID:       result.JobID,
+		OrderID:     result.OrderID,
+		OrderNo:     result.OrderNo,
+		AmountCents: result.AmountCents,
 	})
 }
 
@@ -374,13 +364,13 @@ func (h *JobHandler) ShareRefresh(ctx *gin.Context) {
 }
 
 // RefreshPay godoc
-// @Description 传入套餐查询接口返回的 sku_code。价格和刷新权益由服务端读取，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息。
+// @Description 创建付费刷新待支付订单。传入套餐查询接口返回的 sku_code，价格和刷新权益由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动完成刷新。适用于招聘、求职和招租信息。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
 // @Param request body v1.JobRefreshPayRequest true "params"
-// @Success 200 {object} v1.PayOrderResponseData
+// @Success 200 {object} v1.PaymentOrderResponseData
 // @Router /jobs/refresh/pay [post]
 func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
@@ -388,12 +378,6 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
 		return
 	}
-	openid := GetOpenidFromCtx(ctx)
-	if openid == "" {
-		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "openid not found in token")
-		return
-	}
-
 	var req v1.JobRefreshPayRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
@@ -414,27 +398,7 @@ func (h *JobHandler) RefreshPay(ctx *gin.Context) {
 		return
 	}
 
-	// 获取金额（分）
-	amountCents, err := order.AmountTotal.ToCents()
-	if err != nil {
-		h.logger.WithContext(ctx).Error("order.AmountTotal.ToCents error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
-		return
-	}
-
-	// 调用新的支付服务，获取支付参数
-	params, err := h.payService.BuildPayParams(ctx, order.OrderNo, amountCents, openid, "付费刷新信息")
-	if err != nil {
-		h.logger.WithContext(ctx).Error("payService.BuildPayParams error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
-		return
-	}
-	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
-		OrderID:   order.ID,
-		OrderNo:   order.OrderNo,
-		Amount:    float64(amountCents) / 100,
-		PayParams: params,
-	})
+	h.handlePaymentOrderCreated(ctx, order)
 }
 
 // Close godoc
@@ -770,13 +734,13 @@ func (h *JobHandler) My(ctx *gin.Context) {
 
 // Top godoc
 // @Summary 岗位置顶（付费）
-// @Description 传入套餐查询接口返回的 sku_code。价格、置顶时长和赠送联系券由服务端读取，支付成功后后台回调自动发放权益。仅限岗位所有者操作。
+// @Description 创建岗位置顶待支付订单。传入套餐查询接口返回的 sku_code，价格、置顶时长和赠送联系券由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动发放权益。仅限岗位所有者操作。
 // @Tags 岗位模块
 // @Accept json
 // @Produce json
 // @Security Bearer
 // @Param request body v1.JobTopRequest true "params"
-// @Success 200 {object} v1.PayOrderResponseData
+// @Success 200 {object} v1.PaymentOrderResponseData
 // @Router /jobs/top [post]
 func (h *JobHandler) Top(ctx *gin.Context) {
 	userID := GetUserIdFromCtx(ctx)
@@ -784,12 +748,6 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
 		return
 	}
-	openid := GetOpenidFromCtx(ctx)
-	if openid == "" {
-		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, "openid not found in token")
-		return
-	}
-
 	var req v1.JobTopRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
@@ -815,26 +773,20 @@ func (h *JobHandler) Top(ctx *gin.Context) {
 		return
 	}
 
-	// 获取金额（分）
+	h.handlePaymentOrderCreated(ctx, order)
+}
+
+func (h *JobHandler) handlePaymentOrderCreated(ctx *gin.Context, order *model.Order) {
 	amountCents, err := order.AmountTotal.ToCents()
 	if err != nil {
 		h.logger.WithContext(ctx).Error("order.AmountTotal.ToCents error", zap.Error(err))
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}
-
-	// 调用新的支付服务，获取支付参数
-	params, err := h.payService.BuildPayParams(ctx, order.OrderNo, amountCents, openid, "置顶招聘信息")
-	if err != nil {
-		h.logger.WithContext(ctx).Error("payService.BuildPayParams error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
-		return
-	}
-	v1.HandleSuccess(ctx, v1.PayOrderResponseData{
-		OrderID:   order.ID,
-		OrderNo:   order.OrderNo,
-		Amount:    float64(amountCents) / 100,
-		PayParams: params,
+	v1.HandleSuccess(ctx, v1.PaymentOrderResponseData{
+		OrderID:     order.ID,
+		OrderNo:     order.OrderNo,
+		AmountCents: amountCents,
 	})
 }
 

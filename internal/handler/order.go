@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,17 +13,82 @@ import (
 
 type OrderHandler struct {
 	*Handler
-	orderService service.OrderService
+	orderService          service.OrderService
+	virtualPaymentService service.VirtualPaymentService
+	wechatService         service.WechatService
 }
 
 func NewOrderHandler(
 	handler *Handler,
 	orderService service.OrderService,
+	virtualPaymentService service.VirtualPaymentService,
+	wechatService service.WechatService,
 ) *OrderHandler {
 	return &OrderHandler{
-		Handler:      handler,
-		orderService: orderService,
+		Handler:               handler,
+		orderService:          orderService,
+		virtualPaymentService: virtualPaymentService,
+		wechatService:         wechatService,
 	}
+}
+
+// PrepareVirtualPayment godoc
+// @Summary 准备微信虚拟支付
+// @Description 为当前用户的待支付单生成 wx.requestVirtualPayment 所需的 signData、paySig、signature。login_code 必须在本次支付前由 wx.login() 新获取；后端校验其所属用户与订单归属。小程序必须原样传入 virtual_payment，不能修改或重新序列化 signData。
+// @Tags 支付模块
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body v1.VirtualPaymentPrepareRequest true "订单号和本次 wx.login code"
+// @Success 200 {object} v1.Response{data=v1.VirtualPaymentPrepareResponseData} "签名生成成功"
+// @Failure 400 {object} v1.Response "订单不可支付、SKU 未配置微信道具 ID 或虚拟支付未配置"
+// @Failure 401 {object} v1.Response "未登录或 login_code 不属于当前用户"
+// @Router /payment/virtual/prepare [post]
+func (h *OrderHandler) PrepareVirtualPayment(ctx *gin.Context) {
+	userID := GetUserIdFromCtx(ctx)
+	openID := GetOpenidFromCtx(ctx)
+	if userID == 0 || openID == "" {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, v1.ErrUnauthorized.Error())
+		return
+	}
+	var req v1.VirtualPaymentPrepareRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	order, err := h.orderService.GetVirtualPaymentOrder(ctx, userID, req.OrderNo)
+	if err != nil {
+		h.handleVirtualPaymentError(ctx, err)
+		return
+	}
+	sessionKey, err := h.wechatService.SessionKeyForPayment(ctx, req.LoginCode, openID)
+	if err != nil {
+		v1.HandleError(ctx, http.StatusUnauthorized, v1.ErrUnauthorized, err.Error())
+		return
+	}
+	params, err := h.virtualPaymentService.Prepare(ctx, order, sessionKey)
+	if err != nil {
+		h.handleVirtualPaymentError(ctx, err)
+		return
+	}
+	v1.HandleSuccess(ctx, v1.VirtualPaymentPrepareResponseData{
+		OrderNo:        order.OrderNo,
+		AmountCents:    order.AmountCents,
+		VirtualPayment: params,
+	})
+}
+
+func (h *OrderHandler) handleVirtualPaymentError(ctx *gin.Context, err error) {
+	h.logger.WithContext(ctx).Error("virtual payment prepare error", zap.Error(err))
+	if errors.Is(err, service.ErrForbidden) {
+		v1.HandleError(ctx, http.StatusForbidden, v1.ErrForbidden, err.Error())
+		return
+	}
+	if errors.Is(err, service.ErrVirtualPaymentUnavailable) || errors.Is(err, service.ErrVirtualPaymentOrderInvalid) || errors.Is(err, service.ErrVirtualPaymentOrderClosed) || errors.Is(err, service.ErrPaymentPackageNotFound) {
+		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+		return
+	}
+	v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 }
 
 // QueryOrderStatus godoc

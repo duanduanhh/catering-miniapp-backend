@@ -360,7 +360,7 @@ const docTemplate = `{
         },
         "/admin/payment-packages/create": {
             "post": {
-                "description": "新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。sale_rule.audience 支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。",
+                "description": "新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的 virtual_product_id，且一个道具 ID 只能绑定一个 SKU。sale_rule.audience 支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。",
                 "consumes": [
                     "application/json"
                 ],
@@ -529,6 +529,7 @@ const docTemplate = `{
         },
         "/admin/payment-packages/publish": {
             "post": {
+                "description": "上架前校验套餐权益、价格以及微信虚拟支付道具 ID；未填写道具 ID 或与其他未删除 SKU 重复时不能上架。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1044,7 +1045,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "传入套餐查询接口返回的 sku_code。价格、联系券数量和赠送数量均由服务端读取，支付成功后自动到账。",
+                "description": "创建联系券待支付订单。传入套餐查询接口返回的 sku_code，价格、联系券数量和赠送数量均由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动到账。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1070,7 +1071,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.PayOrderResponseData"
+                            "$ref": "#/definitions/v1.PaymentOrderResponseData"
                         }
                     }
                 }
@@ -2016,7 +2017,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "传入套餐查询接口返回的 sku_code。价格和刷新权益由服务端读取，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息。",
+                "description": "创建付费刷新待支付订单。传入套餐查询接口返回的 sku_code，价格和刷新权益由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动完成刷新。适用于招聘、求职和招租信息。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2041,7 +2042,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.PayOrderResponseData"
+                            "$ref": "#/definitions/v1.PaymentOrderResponseData"
                         }
                     }
                 }
@@ -2093,7 +2094,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "招租(biz_type=3)专用发布接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建 job(status=待支付) + rent_detail + order，支付回调后将信息设为 active。photo_urls 至少1张、最多4张。",
+                "description": "招租(biz_type=3)专用下单接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建 job(status=待支付) + rent_detail + order；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后信息自动发布。photo_urls 至少1张、最多4张。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2171,7 +2172,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "传入套餐查询接口返回的 sku_code。价格、置顶时长和赠送联系券由服务端读取，支付成功后后台回调自动发放权益。仅限岗位所有者操作。",
+                "description": "创建岗位置顶待支付订单。传入套餐查询接口返回的 sku_code，价格、置顶时长和赠送联系券由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动发放权益。仅限岗位所有者操作。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2197,7 +2198,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.PayOrderResponseData"
+                            "$ref": "#/definitions/v1.PaymentOrderResponseData"
                         }
                     }
                 }
@@ -2349,6 +2350,69 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment/virtual/prepare": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "为当前用户的待支付单生成 wx.requestVirtualPayment 所需的 signData、paySig、signature。login_code 必须在本次支付前由 wx.login() 新获取；后端校验其所属用户与订单归属。小程序必须原样传入 virtual_payment，不能修改或重新序列化 signData。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "准备微信虚拟支付",
+                "parameters": [
+                    {
+                        "description": "订单号和本次 wx.login code",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.VirtualPaymentPrepareRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "签名生成成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.VirtualPaymentPrepareResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "订单不可支付、SKU 未配置微信道具 ID 或虚拟支付未配置",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录或 login_code 不属于当前用户",
                         "schema": {
                             "$ref": "#/definitions/v1.Response"
                         }
@@ -2629,40 +2693,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/wechat/pay/notify": {
-            "post": {
-                "description": "微信支付结果异步通知接口，由微信服务器主动调用，前端无需关注。收到回调后解密验签，金额一致则更新订单状态并执行对应业务逻辑（置顶/券充值/刷新）。",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "支付模块"
-                ],
-                "summary": "微信支付回调（仅供微信服务器调用）",
-                "parameters": [
-                    {
-                        "description": "params",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.WechatPayNotifyRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/wechat/user/login": {
             "post": {
                 "description": "通过微信小程序 login code 换取 JWT token。用户不存在时返回 404，需先调用 /register。token 放在后续请求的 ` + "`" + `token` + "`" + ` header 中（小写，非 Authorization）。",
@@ -2726,6 +2756,97 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.WechatLoginResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/wechat/virtual-payment/notify": {
+            "get": {
+                "description": "在微信虚拟支付后台保存发货推送地址时调用。接口校验 message_token 签名；若后台选择安全模式，同时解密 echostr。",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "验证虚拟支付消息推送地址（仅供微信服务器调用）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "明文模式微信签名",
+                        "name": "signature",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "安全模式微信签名",
+                        "name": "msg_signature",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "timestamp",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "随机数",
+                        "name": "nonce",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "微信回显内容",
+                        "name": "echostr",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "微信回显内容",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "接收 xpay_goods_deliver_notify。服务端校验微信消息签名（安全模式下解密 XML），原子更新订单为已支付，并幂等发放订单权益；招租订单会自动发布对应招租信息。返回 {\"ErrCode\":0} 表示发货完成。",
+                "consumes": [
+                    "text/xml"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "微信虚拟支付道具发货推送（仅供微信服务器调用）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "明文模式微信签名",
+                        "name": "signature",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "安全模式微信签名",
+                        "name": "msg_signature",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发货成功",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -3437,6 +3558,9 @@ const docTemplate = `{
                 },
                 "subtitle": {
                     "type": "string"
+                },
+                "virtual_product_id": {
+                    "type": "string"
                 }
             }
         },
@@ -3617,6 +3741,9 @@ const docTemplate = `{
                 },
                 "version": {
                     "type": "integer"
+                },
+                "virtual_product_id": {
+                    "type": "string"
                 }
             }
         },
@@ -5434,43 +5561,6 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.PayOrderResponseData": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "order_id": {
-                    "type": "integer"
-                },
-                "order_no": {
-                    "type": "string"
-                },
-                "pay_params": {
-                    "$ref": "#/definitions/v1.PayParams"
-                }
-            }
-        },
-        "v1.PayParams": {
-            "type": "object",
-            "properties": {
-                "nonceStr": {
-                    "type": "string"
-                },
-                "package": {
-                    "type": "string"
-                },
-                "paySign": {
-                    "type": "string"
-                },
-                "signType": {
-                    "type": "string"
-                },
-                "timeStamp": {
-                    "type": "string"
-                }
-            }
-        },
         "v1.PaymentBenefitConfig": {
             "type": "object",
             "properties": {
@@ -5488,6 +5578,21 @@ const docTemplate = `{
                 },
                 "top_hours": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.PaymentOrderResponseData": {
+            "type": "object",
+            "properties": {
+                "amount_cents": {
+                    "type": "integer",
+                    "example": 1800
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "order_no": {
+                    "type": "string"
                 }
             }
         },
@@ -5581,6 +5686,11 @@ const docTemplate = `{
                 },
                 "version": {
                     "type": "integer"
+                },
+                "virtual_product_id": {
+                    "description": "微信虚拟支付后台已发布的道具 ID；仅管理后台使用，不向小程序购买页返回。",
+                    "type": "string",
+                    "example": "wx_paid_refresh_1"
                 }
             }
         },
@@ -5934,8 +6044,9 @@ const docTemplate = `{
         "v1.RentPrePublishResponseData": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
+                "amount_cents": {
+                    "type": "integer",
+                    "example": 1800
                 },
                 "job_id": {
                     "type": "integer"
@@ -5945,9 +6056,6 @@ const docTemplate = `{
                 },
                 "order_no": {
                     "type": "string"
-                },
-                "pay_params": {
-                    "$ref": "#/definitions/v1.PayParams"
                 }
             }
         },
@@ -6247,6 +6355,55 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.VirtualPaymentParams": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "example": "short_series_goods"
+                },
+                "paySig": {
+                    "type": "string"
+                },
+                "signData": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.VirtualPaymentPrepareRequest": {
+            "type": "object",
+            "required": [
+                "login_code",
+                "order_no"
+            ],
+            "properties": {
+                "login_code": {
+                    "type": "string"
+                },
+                "order_no": {
+                    "type": "string",
+                    "example": "TOP202608010001"
+                }
+            }
+        },
+        "v1.VirtualPaymentPrepareResponseData": {
+            "type": "object",
+            "properties": {
+                "amount_cents": {
+                    "type": "integer",
+                    "example": 390
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "virtual_payment": {
+                    "$ref": "#/definitions/v1.VirtualPaymentParams"
+                }
+            }
+        },
         "v1.WechatLoginRequest": {
             "type": "object",
             "required": [
@@ -6282,9 +6439,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "v1.WechatPayNotifyRequest": {
-            "type": "object"
         },
         "v1.WechatRegisterRequest": {
             "type": "object",

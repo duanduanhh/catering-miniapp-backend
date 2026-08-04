@@ -32,6 +32,8 @@ type PaymentPackageItem struct {
 	ProductName string `json:"product_name" example:"付费刷新"`
 	// SKU 唯一编码；创建支付订单时应传此字段，不得传客户端价格。
 	SKUCode string `json:"sku_code" example:"paid_refresh_standard"`
+	// 微信虚拟支付后台已发布的道具 ID；仅管理后台使用，不向小程序购买页返回。
+	VirtualProductID string `json:"virtual_product_id" example:"wx_paid_refresh_1"`
 	// 规格模式：1=单规格，2=多规格。
 	SelectionMode int    `json:"selection_mode" enums:"1,2" example:"1"`
 	Name          string `json:"name" example:"标准刷新"`
@@ -72,10 +74,11 @@ type AdminPaymentPackageCreateRequest struct {
 	// 收费业务 ID；创建后不可修改。
 	ProductID int64 `json:"product_id" binding:"required"`
 	// SKU 唯一编码；创建后不可修改。
-	SKUCode  string `json:"sku_code" binding:"required"`
-	Name     string `json:"name" binding:"required"`
-	Subtitle string `json:"subtitle"`
-	Badge    string `json:"badge"`
+	SKUCode          string `json:"sku_code" binding:"required"`
+	VirtualProductID string `json:"virtual_product_id"`
+	Name             string `json:"name" binding:"required"`
+	Subtitle         string `json:"subtitle"`
+	Badge            string `json:"badge"`
 	// 售价，单位为分，必须大于 0。
 	PriceCents int64 `json:"price_cents" binding:"required"`
 	// 划线价，单位为分；0 表示不展示。
@@ -86,11 +89,12 @@ type AdminPaymentPackageCreateRequest struct {
 }
 
 type AdminPaymentPackageUpdateRequest struct {
-	ID       int64  `json:"id" binding:"required"`
-	Version  int    `json:"version" binding:"required"`
-	Name     string `json:"name" binding:"required"`
-	Subtitle string `json:"subtitle"`
-	Badge    string `json:"badge"`
+	ID               int64  `json:"id" binding:"required"`
+	Version          int    `json:"version" binding:"required"`
+	Name             string `json:"name" binding:"required"`
+	Subtitle         string `json:"subtitle"`
+	Badge            string `json:"badge"`
+	VirtualProductID string `json:"virtual_product_id"`
 	// 售价，单位为分，必须大于 0。
 	PriceCents int64 `json:"price_cents" binding:"required"`
 	// 划线价，单位为分；0 表示不展示。

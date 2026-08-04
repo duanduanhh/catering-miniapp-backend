@@ -41,6 +41,7 @@ type PaymentPackage struct {
 	ID                 int64                `gorm:"primaryKey;column:id"`
 	ProductID          int64                `gorm:"column:product_id;not null;default:0;index:idx_payment_sku_product_id"`
 	SKUCode            string               `gorm:"column:sku_code;size:64;uniqueIndex:uk_payment_sku_code"`
+	VirtualProductID   string               `gorm:"column:virtual_product_id;size:128"`
 	Name               string               `gorm:"column:name;size:100"`
 	Subtitle           string               `gorm:"column:subtitle;size:200"`
 	Badge              string               `gorm:"column:badge;size:50"`

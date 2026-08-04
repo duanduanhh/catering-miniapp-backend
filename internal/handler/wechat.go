@@ -9,22 +9,26 @@ import (
 
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 	"github.com/go-nunu/nunu-layout-advanced/internal/service"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/wechatpay"
 )
 
 type WechatHandler struct {
 	*Handler
-	orderService    service.OrderService
-	wechatService   service.WechatService
-	wechatPayClient *wechatpay.WechatPayClient
+	orderService                service.OrderService
+	wechatService               service.WechatService
+	virtualPaymentNotifyService service.VirtualPaymentNotifyService
 }
 
-func NewWechatHandler(handler *Handler, orderService service.OrderService, wechatService service.WechatService, wechatPayClient *wechatpay.WechatPayClient) *WechatHandler {
+func NewWechatHandler(
+	handler *Handler,
+	orderService service.OrderService,
+	wechatService service.WechatService,
+	virtualPaymentNotifyService service.VirtualPaymentNotifyService,
+) *WechatHandler {
 	return &WechatHandler{
-		Handler:         handler,
-		orderService:    orderService,
-		wechatService:   wechatService,
-		wechatPayClient: wechatPayClient,
+		Handler:                     handler,
+		orderService:                orderService,
+		wechatService:               wechatService,
+		virtualPaymentNotifyService: virtualPaymentNotifyService,
 	}
 }
 
@@ -91,60 +95,78 @@ func (h *WechatHandler) Login(ctx *gin.Context) {
 	})
 }
 
-// PayNotify godoc
-// @Summary 微信支付回调（仅供微信服务器调用）
-// @Description 微信支付结果异步通知接口，由微信服务器主动调用，前端无需关注。收到回调后解密验签，金额一致则更新订单状态并执行对应业务逻辑（置顶/券充值/刷新）。
+// VerifyVirtualPaymentNotify godoc
+// @Summary 验证虚拟支付消息推送地址（仅供微信服务器调用）
+// @Description 在微信虚拟支付后台保存发货推送地址时调用。接口校验 message_token 签名；若后台选择安全模式，同时解密 echostr。
 // @Tags 支付模块
-// @Accept json
+// @Produce text/plain
+// @Param signature query string false "明文模式微信签名"
+// @Param msg_signature query string false "安全模式微信签名"
+// @Param timestamp query string true "时间戳"
+// @Param nonce query string true "随机数"
+// @Param echostr query string true "微信回显内容"
+// @Success 200 {string} string "微信回显内容"
+// @Router /wechat/virtual-payment/notify [get]
+func (h *WechatHandler) VerifyVirtualPaymentNotify(ctx *gin.Context) {
+	echo, err := h.virtualPaymentNotifyService.VerifyURL(
+		virtualPaymentCallbackSignature(ctx), ctx.Query("timestamp"), ctx.Query("nonce"), ctx.Query("echostr"),
+	)
+	if err != nil {
+		h.logger.WithContext(ctx).Warn("verify virtual payment callback failed", zap.Error(err))
+		ctx.Status(http.StatusForbidden)
+		return
+	}
+	ctx.String(http.StatusOK, echo)
+}
+
+// VirtualPaymentNotify godoc
+// @Summary 微信虚拟支付道具发货推送（仅供微信服务器调用）
+// @Description 接收 xpay_goods_deliver_notify。服务端校验微信消息签名（安全模式下解密 XML），原子更新订单为已支付，并幂等发放订单权益；招租订单会自动发布对应招租信息。返回 {"ErrCode":0} 表示发货完成。
+// @Tags 支付模块
+// @Accept xml
 // @Produce json
-// @Param request body v1.WechatPayNotifyRequest true "params"
-// @Success 200 {object} v1.Response
-// @Router /wechat/pay/notify [post]
-func (h *WechatHandler) PayNotify(ctx *gin.Context) {
-	// 读取原始请求体
+// @Param signature query string false "明文模式微信签名"
+// @Param msg_signature query string false "安全模式微信签名"
+// @Success 200 {object} map[string]interface{} "发货成功"
+// @Router /wechat/virtual-payment/notify [post]
+func (h *WechatHandler) VirtualPaymentNotify(ctx *gin.Context) {
 	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
-		h.logger.WithContext(ctx).Error("read request body error", zap.Error(err))
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, "invalid request body")
+		virtualPaymentNotifyError(ctx, http.StatusBadRequest, "invalid request body")
 		return
 	}
-
-	// 解密通知数据
-	decryptedData, err := h.wechatPayClient.DecryptPaymentNotify(body)
+	notice, err := h.virtualPaymentNotifyService.Parse(
+		virtualPaymentCallbackSignature(ctx), ctx.Query("timestamp"), ctx.Query("nonce"), body,
+	)
 	if err != nil {
-		h.logger.WithContext(ctx).Error("DecryptPaymentNotify error", zap.Error(err), zap.ByteString("body", body))
-		v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
-		return
-	}
-
-	// 验证交易状态
-	if decryptedData.TradeState != "SUCCESS" {
-		h.logger.WithContext(ctx).Info("trade state not success", zap.String("trade_state", decryptedData.TradeState), zap.String("out_trade_no", decryptedData.OutTradeNo))
-		// 返回成功以免微信重复回调
-		v1.HandleSuccess(ctx, nil)
-		return
-	}
-
-	// 金额单位转换：分 -> 元（数据库存储为 float64）
-	var amount float64
-	if decryptedData.Amount != nil {
-		amount = float64(decryptedData.Amount.Total) / 100.0
-	}
-
-	// 调用 service 处理订单支付
-	_, err = h.orderService.PayOrderByNotify(ctx, decryptedData.OutTradeNo, amount, "wechat", decryptedData.TransactionId)
-	if err != nil {
-		h.logger.WithContext(ctx).Error("orderService.PayOrderByNotify error", zap.Error(err), zap.String("order_no", decryptedData.OutTradeNo))
-		if err == service.ErrAmountMismatch {
-			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrAmountMismatch, err.Error())
+		h.logger.WithContext(ctx).Warn("parse virtual payment notification failed", zap.Error(err))
+		if err == service.ErrVirtualPaymentNotifySignature || err == service.ErrVirtualPaymentNotifyUnavailable {
+			virtualPaymentNotifyError(ctx, http.StatusForbidden, "invalid notification")
 			return
 		}
-		// 即使处理失败也返回成功，避免微信重复回调
-		v1.HandleSuccess(ctx, nil)
+		virtualPaymentNotifyError(ctx, http.StatusBadRequest, "invalid notification")
 		return
 	}
 
-	h.logger.WithContext(ctx).Info("pay notify success", zap.String("order_no", decryptedData.OutTradeNo), zap.Int64("amount", decryptedData.Amount.Total))
+	if _, err = h.orderService.CompleteVirtualPaymentOrder(ctx, *notice); err != nil {
+		h.logger.WithContext(ctx).Error("process virtual payment notification failed", zap.Error(err), zap.String("order_no", notice.OutTradeNo))
+		// 非 2xx 会触发微信重试，直到订单成功处理或达到平台重试上限。
+		virtualPaymentNotifyError(ctx, http.StatusInternalServerError, "delivery failed")
+		return
+	}
+	h.logger.WithContext(ctx).Info("virtual payment delivery completed", zap.String("order_no", notice.OutTradeNo), zap.String("transaction_id", notice.TransactionID))
+	ctx.JSON(http.StatusOK, gin.H{"ErrCode": 0, "ErrMsg": "success"})
+}
 
-	v1.HandleSuccess(ctx, nil)
+// virtualPaymentCallbackSignature 兼容微信两种消息推送模式：
+// 明文模式使用 signature，安全模式使用 msg_signature。
+func virtualPaymentCallbackSignature(ctx *gin.Context) string {
+	if signature := ctx.Query("msg_signature"); signature != "" {
+		return signature
+	}
+	return ctx.Query("signature")
+}
+
+func virtualPaymentNotifyError(ctx *gin.Context, status int, message string) {
+	ctx.JSON(status, gin.H{"ErrCode": -1, "ErrMsg": message})
 }

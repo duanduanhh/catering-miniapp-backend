@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目简介
 
-餐饮行业招聘小程序后端服务。功能：岗位发布/筛选/置顶（付费）、联系凭证购买、微信登录与支付（JSAPI）、企业认证（营业执照 OCR）。
+餐饮行业招聘小程序后端服务。功能：岗位发布/筛选/置顶（付费）、联系券购买、微信登录与小程序虚拟支付、企业认证（营业执照 OCR）。
 
 ## 技术栈
 
@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ORM：GORM v1.31（MySQL，也支持 Postgres/SQLite）
 - 依赖注入：Google Wire v0.7
 - 配置：Viper；认证：JWT HS256，放在 `token` header（非 Authorization Bearer）
-- ID：Sonyflake；微信支付：wechatpay-apiv3 JSAPI；OSS/OCR：阿里云 SDK（懒初始化）
+- ID：Sonyflake；虚拟支付：微信小程序 `wx.requestVirtualPayment`；OSS/OCR：阿里云 SDK（懒初始化）
 - 日志：zap + lumberjack；API 文档：swaggo/swag
 - 管理后台前端：同级独立项目 `../catering-miniapp-admin-frontend/`，Vue 3 + Vite + Element Plus
 
@@ -78,11 +78,7 @@ handler → service → repository → model
 
 ### Wire 依赖注入
 
-`cmd/server/wire/wire.go` 中有 `repositorySet / serviceSet / handlerSet / wechatPaySet / jobSet / serverSet`。`wire_gen.go` 自动生成，**不要手动编辑**。
-
-两个特殊 Provider（构造函数返回 error，不能直接放 `wire.NewSet`）：
-- `PayService` → `NewPayServiceProvider`
-- `WechatPayClient` → `NewWechatPayClientProvider`（在 `wechatPaySet`）
+`cmd/server/wire/wire.go` 中有 `repositorySet / serviceSet / handlerSet / jobSet / serverSet`。`wire_gen.go` 自动生成，**不要手动编辑**。
 
 `EnterpriseService` 不依赖 repository，直接接受 `*viper.Viper` 和 `*log.Logger`。
 
@@ -177,16 +173,17 @@ if req.PhotoURLs != nil {
 
 HTTP 方法约定：**POST** 写操作+复杂查询；**GET** 简单无副作用查询；**DELETE** 软删除。
 
-## 微信支付流程
+## 小程序虚拟支付流程
 
-1. 客户端调付款接口 → 后端创建 `orders` + `order_item`（status=pending）
-2. 后端调 `payService.BuildPayParams()` → JSAPI prepay → 返回签名参数
-3. 小程序调 `wx.requestPayment()`
-4. 微信回调 `POST /wechat/pay/notify` → AES-GCM 解密 → 校验金额 → 更新订单 → 执行业务
+1. 业务下单接口创建 `orders` + `order_item`（status=pending），返回 `order_no` 和 `amount_cents`
+2. 小程序调用 `POST /payment/virtual/prepare` 获取签名
+3. 小程序原样传入参数调用 `wx.requestVirtualPayment()`
+4. 微信道具发货推送 `POST /wechat/virtual-payment/notify`，服务端验签、校验订单快照后幂等发放权益
+5. 小程序调用 `POST /order/status` 确认最终状态
 
-新增付费产品类型时，在 `order_item.product_type` 枚举和 `service/order.go` 的 `HandlePayNotify` switch 中同步添加。
+新增付费产品类型时，在 `order_item.product_type` 枚举和 `service/order.go` 的权益发放 switch 中同步添加。
 
-付费产品类型：`1`=岗位置顶，`2`=联系凭证，`3`=付费刷新
+付费产品类型：`1`=岗位置顶，`2`=联系券，`3`=付费刷新，`4`=招租发布
 
 ## 路由概览
 
@@ -195,7 +192,7 @@ HTTP 方法约定：**POST** 写操作+复杂查询；**GET** 简单无副作用
 |------|------|------|
 | POST | /wechat/user/register | 小程序注册 |
 | POST | /wechat/user/login | 小程序登录 |
-| POST | /wechat/pay/notify | 微信支付回调 |
+| GET/POST | /wechat/virtual-payment/notify | 虚拟支付推送验证与道具发货回调 |
 | POST | /jobs/list | 岗位列表（过滤+分页）|
 | POST | /home/top | 首页置顶区 |
 | POST | /home/feed | 首页信息流 |

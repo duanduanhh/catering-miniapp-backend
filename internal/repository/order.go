@@ -10,6 +10,7 @@ import (
 type OrderRepository interface {
 	Create(ctx context.Context, order *model.Order) error
 	Update(ctx context.Context, order *model.Order) error
+	MarkPaidIfPending(ctx context.Context, order *model.Order) (bool, error)
 	GetByID(ctx context.Context, id int64) (*model.Order, error)
 	GetByOrderNo(ctx context.Context, orderNo string) (*model.Order, error)
 	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
@@ -60,6 +61,25 @@ func (r *orderRepository) Create(ctx context.Context, order *model.Order) error 
 
 func (r *orderRepository) Update(ctx context.Context, order *model.Order) error {
 	return r.DB(ctx).Save(order).Error
+}
+
+// MarkPaidIfPending 以状态条件原子地将订单置为已支付。
+// 返回 false 表示订单已被其他回调处理，调用方不得重复发放权益。
+func (r *orderRepository) MarkPaidIfPending(ctx context.Context, order *model.Order) (bool, error) {
+	result := r.DB(ctx).Model(&model.Order{}).
+		Where("id = ? AND status = ?", order.ID, model.OrderStatusPending).
+		Updates(map[string]interface{}{
+			"status":       model.OrderStatusPaid,
+			"amount_paid":  order.AmountTotal,
+			"pay_channel":  order.PayChannel,
+			"pay_trade_no": order.PayTradeNo,
+			"paid_at":      order.PaidAt,
+			"update_at":    order.UpdateAt,
+		})
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return result.RowsAffected == 1, nil
 }
 
 func (r *orderRepository) GetByID(ctx context.Context, id int64) (*model.Order, error) {

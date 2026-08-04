@@ -18,7 +18,6 @@ import (
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/server/http"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/sid"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/wechatpay"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
 )
@@ -41,25 +40,17 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	userHandler := handler.NewUserHandler(handlerHandler, userService)
 	rentDetailRepository := repository.NewRentDetailRepository(repositoryRepository)
 	orderItemRepository := repository.NewOrderItemRepository(repositoryRepository)
-	paymentProductRepository := repository.NewPaymentProductRepository(repositoryRepository)
 	paymentPackageRepository := repository.NewPaymentPackageRepository(repositoryRepository)
-	paymentPackageService := service.NewPaymentPackageService(
-		serviceService,
-		paymentPackageRepository,
-		paymentProductRepository,
-		userRepository,
-		orderRepository,
-	)
-	payService, err := NewPayServiceProvider(viperViper, logger)
-	if err != nil {
-		return nil, nil, err
-	}
-	jobService := service.NewJobService(serviceService, jobRepository, userRepository, contactVoucherHistoryRepository, rentDetailRepository, orderRepository, orderItemRepository, payService, paymentPackageService, viperViper)
+	paymentProductRepository := repository.NewPaymentProductRepository(repositoryRepository)
+	paymentPackageService := service.NewPaymentPackageService(serviceService, paymentPackageRepository, paymentProductRepository, userRepository, orderRepository)
+	jobService := service.NewJobService(serviceService, jobRepository, userRepository, contactVoucherHistoryRepository, rentDetailRepository, orderRepository, orderItemRepository, paymentPackageService)
 	orderService := service.NewOrderService(serviceService, orderRepository, orderItemRepository, jobRepository, userRepository, contactVoucherHistoryRepository, paymentPackageService)
 	collectRepository := repository.NewCollectRepository(repositoryRepository)
 	contactHistoryRepository := repository.NewContactHistoryRepository(repositoryRepository)
-	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService, payService, collectRepository, contactHistoryRepository)
-	orderHandler := handler.NewOrderHandler(handlerHandler, orderService)
+	jobHandler := handler.NewJobHandler(handlerHandler, jobService, orderService, collectRepository, contactHistoryRepository)
+	virtualPaymentService := service.NewVirtualPaymentService(viperViper)
+	wechatService := service.NewWechatService(logger, viperViper, jwtJWT, userRepository, contactVoucherHistoryRepository)
+	orderHandler := handler.NewOrderHandler(handlerHandler, orderService, virtualPaymentService, wechatService)
 	collectService := service.NewCollectService(serviceService, collectRepository, jobRepository)
 	collectHandler := handler.NewCollectHandler(handlerHandler, collectService, jobService)
 	contactHistoryService := service.NewContactHistoryService(serviceService, contactHistoryRepository, jobRepository, userRepository, rentDetailRepository)
@@ -67,13 +58,9 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	contactVoucherHistoryService := service.NewContactVoucherHistoryService(serviceService, contactVoucherHistoryRepository, userRepository)
 	callbackHistoryRepository := repository.NewCallbackHistoryRepository(repositoryRepository)
 	callbackHistoryService := service.NewCallbackHistoryService(serviceService, callbackHistoryRepository)
-	contactVoucherHistoryHandler := handler.NewContactVoucherHistoryHandler(handlerHandler, contactVoucherHistoryService, orderService, contactHistoryService, callbackHistoryService, payService)
-	wechatService := service.NewWechatService(logger, viperViper, jwtJWT, userRepository, contactVoucherHistoryRepository)
-	wechatPayClient, err := NewWechatPayClientProvider(viperViper)
-	if err != nil {
-		return nil, nil, err
-	}
-	wechatHandler := handler.NewWechatHandler(handlerHandler, orderService, wechatService, wechatPayClient)
+	contactVoucherHistoryHandler := handler.NewContactVoucherHistoryHandler(handlerHandler, contactVoucherHistoryService, orderService, contactHistoryService, callbackHistoryService)
+	virtualPaymentNotifyService := service.NewVirtualPaymentNotifyService(viperViper)
+	wechatHandler := handler.NewWechatHandler(handlerHandler, orderService, wechatService, virtualPaymentNotifyService)
 	imageSecurityService := service.NewImageSecurityService(viperViper, logger)
 	uploadService := service.NewUploadService(viperViper, imageSecurityService)
 	uploadHandler := handler.NewUploadHandler(handlerHandler, uploadService)
@@ -135,27 +122,13 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewCollectRepository, repository.NewContactHistoryRepository, repository.NewOrderRepository, repository.NewOrderItemRepository, repository.NewContactVoucherHistoryRepository, repository.NewPositionCategoryRepository, repository.NewFeedbackRepository, repository.NewEnterpriseRepository, repository.NewReportRepository, repository.NewContactFeedbackRepository, repository.NewCallbackHistoryRepository, repository.NewRentDetailRepository, repository.NewPaymentProductRepository, repository.NewPaymentPackageRepository)
 
-var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewUploadService, service.NewImageSecurityService, NewPayServiceProvider, service.NewPositionCategoryService, service.NewFeedbackService, service.NewEnterpriseService, service.NewAdminJobService, service.NewAdminAuthService, service.NewAdminListService, service.NewReportService, service.NewContactFeedbackService, service.NewCallbackHistoryService, service.NewPaymentPackageService)
+var serviceSet = wire.NewSet(service.NewService, service.NewUserService, service.NewJobService, service.NewCollectService, service.NewContactHistoryService, service.NewOrderService, service.NewOrderItemService, service.NewContactVoucherHistoryService, service.NewWechatService, service.NewVirtualPaymentService, service.NewVirtualPaymentNotifyService, service.NewUploadService, service.NewImageSecurityService, service.NewPositionCategoryService, service.NewFeedbackService, service.NewEnterpriseService, service.NewAdminJobService, service.NewAdminAuthService, service.NewAdminListService, service.NewReportService, service.NewContactFeedbackService, service.NewCallbackHistoryService, service.NewPaymentPackageService)
 
 var handlerSet = wire.NewSet(handler.NewHandler, handler.NewUserHandler, handler.NewJobHandler, handler.NewOrderHandler, handler.NewCollectHandler, handler.NewContactHistoryHandler, handler.NewContactVoucherHistoryHandler, handler.NewWechatHandler, handler.NewUploadHandler, handler.NewPositionCategoryHandler, handler.NewFeedbackHandler, handler.NewEnterpriseHandler, handler.NewAdminJobHandler, handler.NewAdminAuthHandler, handler.NewAdminListHandler, handler.NewReportHandler, handler.NewContactFeedbackHandler, handler.NewPaymentPackageHandler)
-
-var wechatPaySet = wire.NewSet(
-	NewWechatPayClientProvider,
-)
 
 var jobSet = wire.NewSet(job.NewJob, job.NewUserJob)
 
 var serverSet = wire.NewSet(server.NewHTTPServer, server.NewJobServer)
-
-// NewPayServiceProvider 提供 PayService
-func NewPayServiceProvider(config *viper.Viper, logger *log.Logger) (service.PayService, error) {
-	return service.NewPayService(config, logger.Logger)
-}
-
-// NewWechatPayClientProvider 提供 WechatPayClient
-func NewWechatPayClientProvider(config *viper.Viper) (*wechatpay.WechatPayClient, error) {
-	return wechatpay.NewWechatPayClient(config)
-}
 
 // build App
 func newApp(

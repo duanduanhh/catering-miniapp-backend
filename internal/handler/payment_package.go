@@ -138,7 +138,7 @@ func (h *PaymentPackageHandler) AdminDetail(ctx *gin.Context) {
 
 // AdminCreate godoc
 // @Summary 新增付费套餐
-// @Description 新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。sale_rule.audience 支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。
+// @Description 新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的 virtual_product_id，且一个道具 ID 只能绑定一个 SKU。sale_rule.audience 支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。
 // @Tags 管理后台-付费套餐
 // @Accept json
 // @Produce json
@@ -154,6 +154,7 @@ func (h *PaymentPackageHandler) AdminCreate(ctx *gin.Context) {
 	id, err := h.service.Create(ctx, service.PaymentPackageCreateInput{
 		ProductID:          req.ProductID,
 		SKUCode:            req.SKUCode,
+		VirtualProductID:   req.VirtualProductID,
 		Name:               req.Name,
 		Subtitle:           req.Subtitle,
 		Badge:              req.Badge,
@@ -192,6 +193,7 @@ func (h *PaymentPackageHandler) AdminUpdate(ctx *gin.Context) {
 		Name:               req.Name,
 		Subtitle:           req.Subtitle,
 		Badge:              req.Badge,
+		VirtualProductID:   req.VirtualProductID,
 		PriceCents:         req.PriceCents,
 		OriginalPriceCents: req.OriginalPriceCents,
 		Sort:               req.Sort,
@@ -232,6 +234,7 @@ func (h *PaymentPackageHandler) AdminDelete(ctx *gin.Context) {
 
 // AdminPublish godoc
 // @Summary 上架付费套餐
+// @Description 上架前校验套餐权益、价格以及微信虚拟支付道具 ID；未填写道具 ID 或与其他未删除 SKU 重复时不能上架。
 // @Tags 管理后台-付费套餐
 // @Accept json
 // @Produce json
@@ -399,6 +402,7 @@ func toPaymentPackageItem(value service.PaymentPackageAggregate, admin bool) v1.
 		ProductCode:        value.Product.ProductCode,
 		ProductName:        value.Product.Name,
 		SKUCode:            pkg.SKUCode,
+		VirtualProductID:   pkg.VirtualProductID,
 		SelectionMode:      int(value.Product.SelectionMode),
 		Name:               pkg.Name,
 		Subtitle:           pkg.Subtitle,

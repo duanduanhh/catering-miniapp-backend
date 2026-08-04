@@ -9,14 +9,12 @@ package wire
 import (
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 	"github.com/go-nunu/nunu-layout-advanced/internal/server"
-	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 	"github.com/go-nunu/nunu-layout-advanced/internal/task"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/app"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/sid"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 // Injectors from wire.go:
@@ -32,12 +30,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	jobRepository := repository.NewJobRepository(repositoryRepository)
 	rentDetailRepository := repository.NewRentDetailRepository(repositoryRepository)
 	orderRepository := repository.NewOrderRepository(repositoryRepository)
-	zapLogger := provideZapLogger(logger)
-	payService, err := service.NewPayService(viperViper, zapLogger)
-	if err != nil {
-		return nil, nil, err
-	}
-	rentTask := task.NewRentTask(taskTask, viperViper, jobRepository, rentDetailRepository, orderRepository, payService)
+	rentTask := task.NewRentTask(taskTask, viperViper, jobRepository, rentDetailRepository, orderRepository)
 	taskServer := server.NewTaskServer(logger, userTask, rentTask)
 	appApp := newApp(taskServer)
 	return appApp, func() {
@@ -48,7 +41,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewRentDetailRepository, repository.NewOrderRepository)
 
-var taskSet = wire.NewSet(task.NewTask, task.NewUserTask, task.NewRentTask, service.NewPayService, provideZapLogger)
+var taskSet = wire.NewSet(task.NewTask, task.NewUserTask, task.NewRentTask)
 
 var serverSet = wire.NewSet(server.NewTaskServer)
 
@@ -56,8 +49,4 @@ var serverSet = wire.NewSet(server.NewTaskServer)
 func newApp(task2 *server.TaskServer,
 ) *app.App {
 	return app.NewApp(app.WithServer(task2), app.WithName("demo-task"))
-}
-
-func provideZapLogger(logger *log.Logger) *zap.Logger {
-	return logger.Logger
 }

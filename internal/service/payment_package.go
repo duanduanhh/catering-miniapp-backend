@@ -16,6 +16,7 @@ var paymentPackageSKURegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{1,63}$`)
 type PaymentPackageCreateInput struct {
 	ProductID          int64
 	SKUCode            string
+	VirtualProductID   string
 	Name               string
 	Subtitle           string
 	Badge              string
@@ -33,6 +34,7 @@ type PaymentPackageUpdateInput struct {
 	Name               string
 	Subtitle           string
 	Badge              string
+	VirtualProductID   string
 	PriceCents         int64
 	OriginalPriceCents int64
 	Sort               int
@@ -204,6 +206,7 @@ func (s *paymentPackageService) Create(ctx context.Context, input PaymentPackage
 		pkg = &model.PaymentPackage{
 			ProductID:          product.ID,
 			SKUCode:            input.SKUCode,
+			VirtualProductID:   strings.TrimSpace(input.VirtualProductID),
 			Name:               strings.TrimSpace(input.Name),
 			Subtitle:           strings.TrimSpace(input.Subtitle),
 			Badge:              strings.TrimSpace(input.Badge),
@@ -269,6 +272,7 @@ func (s *paymentPackageService) Update(ctx context.Context, input PaymentPackage
 	updated.Name = strings.TrimSpace(input.Name)
 	updated.Subtitle = strings.TrimSpace(input.Subtitle)
 	updated.Badge = strings.TrimSpace(input.Badge)
+	updated.VirtualProductID = strings.TrimSpace(input.VirtualProductID)
 	updated.PriceCents = input.PriceCents
 	updated.OriginalPriceCents = input.OriginalPriceCents
 	updated.BenefitConfigJSON = string(benefitConfigJSON)
@@ -363,6 +367,17 @@ func (s *paymentPackageService) Publish(ctx context.Context, id int64, version i
 	); err != nil {
 		return err
 	}
+	virtualProductID := strings.TrimSpace(current.Package.VirtualProductID)
+	if virtualProductID == "" {
+		return ErrVirtualPaymentUnavailable
+	}
+	exists, err := s.repository.ExistsByVirtualProductID(ctx, virtualProductID, current.Package.ID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return ErrPaymentPackageInvalid
+	}
 	return s.changeStatus(ctx, current, model.PaymentPackageStatusPublished, model.PaymentPackageActionPublish, "", operator)
 }
 
@@ -417,6 +432,10 @@ func (s *paymentPackageService) ListAvailable(
 	}
 	available := make([]PaymentPackageAggregate, 0, len(result))
 	for _, item := range result {
+		// 小程序仅展示已绑定微信道具的 SKU，避免用户选中后无法发起虚拟支付。
+		if strings.TrimSpace(item.Package.VirtualProductID) == "" {
+			continue
+		}
 		purchasable, reason, err := s.evaluatePurchaseRule(ctx, userID, item, false)
 		if err != nil {
 			return nil, nil, err
@@ -461,6 +480,10 @@ func (s *paymentPackageService) ResolveForPurchase(
 	}
 	if !supportsBizType(productCode, bizType) {
 		return nil, ErrPaymentPackageInvalid
+	}
+	// 所有收费业务已统一使用虚拟支付；未绑定微信道具的 SKU 不允许创建待支付订单。
+	if strings.TrimSpace(aggregate.Package.VirtualProductID) == "" {
+		return nil, ErrVirtualPaymentUnavailable
 	}
 	purchasable, reason, err := s.evaluatePurchaseRule(ctx, userID, *aggregate, true)
 	if err != nil {
