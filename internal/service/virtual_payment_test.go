@@ -33,7 +33,7 @@ func TestVirtualPaymentPrepare(t *testing.T) {
 	if signData.OfferID != "offer_test" || signData.ProductID != "wx_job_top_1d" || signData.GoodsPrice != 390 || signData.OutTradeNo != "TOP202608010001" || signData.Env != 1 {
 		t.Fatalf("unexpected signData: %+v", signData)
 	}
-	if params.PaySig != hmacSHA256Hex("app_key_test", virtualPaymentModeGoods+"&"+params.SignData) {
+	if params.PaySig != hmacSHA256Hex("app_key_test", virtualPaymentPaySigURI+"&"+params.SignData) {
 		t.Fatal("paySig does not match the official virtual payment signing payload")
 	}
 	if params.Signature != hmacSHA256Hex("session_key_test", params.SignData) {

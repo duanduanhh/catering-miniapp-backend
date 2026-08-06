@@ -14,7 +14,12 @@ import (
 	v1 "github.com/go-nunu/nunu-layout-advanced/api/v1"
 )
 
-const virtualPaymentModeGoods = "short_series_goods"
+const (
+	virtualPaymentModeGoods = "short_series_goods"
+	// virtualPaymentPaySigURI 是微信虚拟支付协议规定的固定签名 URI，
+	// 不能使用支付模式 short_series_goods 替代。
+	virtualPaymentPaySigURI = "requestVirtualPayment"
+)
 
 type VirtualPaymentService interface {
 	Prepare(ctx context.Context, order *VirtualPaymentOrder, sessionKey string) (v1.VirtualPaymentParams, error)
@@ -69,7 +74,7 @@ func (s *virtualPaymentService) Prepare(_ context.Context, order *VirtualPayment
 	raw := string(signData)
 	return v1.VirtualPaymentParams{
 		SignData:  raw,
-		PaySig:    hmacSHA256Hex(appKey, virtualPaymentModeGoods+"&"+raw),
+		PaySig:    hmacSHA256Hex(appKey, virtualPaymentPaySigURI+"&"+raw),
 		Signature: hmacSHA256Hex(sessionKey, raw),
 		Mode:      virtualPaymentModeGoods,
 	}, nil
