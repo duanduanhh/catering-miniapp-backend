@@ -33,7 +33,7 @@ build-linux:
 SWR_REGISTRY ?= swr.cn-north-1.myhuaweicloud.com
 SWR_ORG      ?= catering-cyxx
 IMAGE_NAME   ?= miniapp-backend
-IMAGE_TAG    ?= v1-20260806-virtualpay
+IMAGE_TAG    ?= v1-202608012-virtualpay
 
 docker:
 	make swag

@@ -328,7 +328,7 @@ func (r *jobRepository) AdminList(ctx context.Context, query AdminJobListQuery) 
 		query.PageSize = 20
 	}
 	offset := (query.PageNum - 1) * query.PageSize
-	if err := db.Order("job.create_at DESC").Offset(offset).Limit(query.PageSize).Find(&jobs).Error; err != nil {
+	if err := db.Order("job.id DESC").Offset(offset).Limit(query.PageSize).Find(&jobs).Error; err != nil {
 		return nil, 0, err
 	}
 	return jobs, total, nil

@@ -32,6 +32,54 @@ func TestVirtualPaymentNotifyParsesPlainMessage(t *testing.T) {
 	}
 }
 
+func TestVirtualPaymentNotifyVerifiesPlainURLWithEncodingKey(t *testing.T) {
+	config := viper.New()
+	config.Set("virtual_payment.message_token", "notify-token")
+	// The WeChat console requires this field even when its message mode is
+	// plaintext. URL verification must still use the plaintext signature.
+	config.Set("virtual_payment.encoding_aes_key", "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG")
+	service := NewVirtualPaymentNotifyService(config)
+
+	const (
+		timestamp = "1720000000"
+		nonce     = "nonce"
+		echo      = "plain-echo"
+	)
+	verified, err := service.VerifyURL(testNotifySignature("notify-token", timestamp, nonce), timestamp, nonce, echo)
+	if err != nil {
+		t.Fatalf("VerifyURL() error = %v", err)
+	}
+	if verified != echo {
+		t.Fatalf("VerifyURL() = %q, want %q", verified, echo)
+	}
+}
+
+func TestVirtualPaymentNotifyVerifiesSafeURL(t *testing.T) {
+	const (
+		token = "notify-token"
+		appID = "wx-test"
+		key   = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG"
+	)
+	config := viper.New()
+	config.Set("virtual_payment.message_token", token)
+	config.Set("virtual_payment.encoding_aes_key", key)
+	config.Set("wechat.app_id", appID)
+	service := NewVirtualPaymentNotifyService(config)
+
+	const (
+		timestamp = "1720000000"
+		nonce     = "nonce"
+	)
+	encryptedEcho := encryptTestWechatMessage(t, key, appID, "safe-echo")
+	verified, err := service.VerifyURL(testNotifySignature(token, timestamp, nonce, encryptedEcho), timestamp, nonce, encryptedEcho)
+	if err != nil {
+		t.Fatalf("VerifyURL() error = %v", err)
+	}
+	if verified != "safe-echo" {
+		t.Fatalf("VerifyURL() = %q, want %q", verified, "safe-echo")
+	}
+}
+
 func TestVirtualPaymentNotifyRejectsWrongEnvironment(t *testing.T) {
 	config := viper.New()
 	config.Set("virtual_payment.message_token", "notify-token")

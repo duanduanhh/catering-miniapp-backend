@@ -62,13 +62,19 @@ func (s *virtualPaymentNotifyService) VerifyURL(signature, timestamp, nonce, ech
 	if s.token == "" {
 		return "", ErrVirtualPaymentNotifyUnavailable
 	}
-	if !validSignature(s.token, signature, timestamp, nonce, echo) {
-		return "", ErrVirtualPaymentNotifySignature
-	}
-	if s.encodingAESKey == "" {
+	// In plaintext mode WeChat signs token, timestamp and nonce only. The
+	// console still requires an EncodingAESKey to be configured, so its presence
+	// alone must not make this validation take the encrypted-message path.
+	if validSignature(s.token, signature, timestamp, nonce) {
 		return echo, nil
 	}
-	return s.decrypt(echo)
+
+	// In safe mode echostr is encrypted and participates in the message
+	// signature. Only decrypt it after that signature has been verified.
+	if s.encodingAESKey != "" && validSignature(s.token, signature, timestamp, nonce, echo) {
+		return s.decrypt(echo)
+	}
+	return "", ErrVirtualPaymentNotifySignature
 }
 
 func (s *virtualPaymentNotifyService) Parse(signature, timestamp, nonce string, body []byte) (*VirtualPaymentGoodsDelivery, error) {
