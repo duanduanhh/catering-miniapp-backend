@@ -67,7 +67,6 @@ func (h *UserHandler) GetInfo(ctx *gin.Context) {
 		Phone:                        user.Phone,
 		UserCode:                     user.UserCode,
 		ContactVoucherNum:            user.ContactVoucherNum,
-		FirstTopStatus:               user.FirstTopStatus,
 		NewCustomerStatus:            user.NewCustomerStatus,
 		ProfileCompleteStatus:        user.ProfileCompleteStatus,
 		ShareRefreshAvailable:        shareRefreshAvailable,

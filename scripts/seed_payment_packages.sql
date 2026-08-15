@@ -32,25 +32,26 @@ CREATE TEMPORARY TABLE payment_sku_seed (
   original_price_cents BIGINT NOT NULL,
   benefit_config JSON NOT NULL,
   sale_rule JSON NOT NULL,
+  promotion_config JSON NULL,
   sort INT NOT NULL,
   PRIMARY KEY (sku_code)
 );
 
 INSERT INTO payment_sku_seed VALUES
-  ('job_top', 'job_top_1d_new', '置顶1天', '新用户专享', '首单特惠', 390, 500, JSON_OBJECT('top_hours', 24), JSON_OBJECT('audience', 'product_new', 'max_purchase_per_user', 1), 320),
-  ('job_top', 'job_top_3d', '置顶3天', '每天仅需3.33元', '推荐', 1000, 0, JSON_OBJECT('top_hours', 72, 'gift_contact_vouchers', 2), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 310),
-  ('job_top', 'job_top_7d', '置顶7天', '每天仅需2.86元', '', 2000, 0, JSON_OBJECT('top_hours', 168, 'gift_contact_vouchers', 5), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 300),
-  ('contact_voucher', 'contact_voucher_2_new', '2张联系券', '限购1次', '新客专享', 150, 0, JSON_OBJECT('contact_vouchers', 2), JSON_OBJECT('audience', 'platform_new', 'max_purchase_per_user', 1), 260),
-  ('contact_voucher', 'contact_voucher_5', '5张联系券', '购买最多', '最畅销', 500, 0, JSON_OBJECT('contact_vouchers', 5), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 250),
-  ('contact_voucher', 'contact_voucher_10', '10张联系券', '每张0.8元', '8折', 800, 1000, JSON_OBJECT('contact_vouchers', 10), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 240),
-  ('contact_voucher', 'contact_voucher_20', '20张联系券', '每张0.7元', '7折', 1400, 2000, JSON_OBJECT('contact_vouchers', 20), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 230),
-  ('contact_voucher', 'contact_voucher_50', '50张联系券', '每张0.6元', '6折', 3000, 5000, JSON_OBJECT('contact_vouchers', 50), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 220),
-  ('contact_voucher', 'contact_voucher_100', '100张联系券', '每张0.5元', '5折', 5000, 10000, JSON_OBJECT('contact_vouchers', 100), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 210),
-  ('paid_refresh', 'paid_refresh_1', '刷新1次', '立即刷新，提升曝光', '惊爆价', 200, 400, JSON_OBJECT('refresh_times', 1), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 200),
-  ('rent_publish', 'rent_publish_1', '发布招租信息', '发布1条招租信息', '', 1800, 0, JSON_OBJECT('rent_publish_times', 1), JSON_OBJECT('audience', 'all', 'max_purchase_per_user', 0), 100);
+  ('job_top', 'job_top_1d', '置顶1天', '置顶1天，提升曝光', '', 500, 0, JSON_OBJECT('top_hours', 24), JSON_OBJECT('max_purchase_per_user', 0), JSON_OBJECT('first_purchase_price_cents', 390, 'first_purchase_scope', 'product', 'subtitle', '新用户专享', 'badge', '首单特惠', 'virtual_product_id', 'job_top_1d_first'), 320),
+  ('job_top', 'job_top_3d', '置顶3天', '每天仅需3.33元', '推荐', 1000, 0, JSON_OBJECT('top_hours', 72, 'gift_contact_vouchers', 2), JSON_OBJECT('max_purchase_per_user', 0), NULL, 310),
+  ('job_top', 'job_top_7d', '置顶7天', '每天仅需2.86元', '', 2000, 0, JSON_OBJECT('top_hours', 168, 'gift_contact_vouchers', 5), JSON_OBJECT('max_purchase_per_user', 0), NULL, 300),
+  ('contact_voucher', 'contact_voucher_2', '2张联系券', '限购1次', '', 150, 0, JSON_OBJECT('contact_vouchers', 2), JSON_OBJECT('max_purchase_per_user', 1), NULL, 260),
+  ('contact_voucher', 'contact_voucher_5', '5张联系券', '购买最多', '最畅销', 500, 0, JSON_OBJECT('contact_vouchers', 5), JSON_OBJECT('max_purchase_per_user', 0), NULL, 250),
+  ('contact_voucher', 'contact_voucher_10', '10张联系券', '每张0.8元', '8折', 800, 1000, JSON_OBJECT('contact_vouchers', 10), JSON_OBJECT('max_purchase_per_user', 0), NULL, 240),
+  ('contact_voucher', 'contact_voucher_20', '20张联系券', '每张0.7元', '7折', 1400, 2000, JSON_OBJECT('contact_vouchers', 20), JSON_OBJECT('max_purchase_per_user', 0), NULL, 230),
+  ('contact_voucher', 'contact_voucher_50', '50张联系券', '每张0.6元', '6折', 3000, 5000, JSON_OBJECT('contact_vouchers', 50), JSON_OBJECT('max_purchase_per_user', 0), NULL, 220),
+  ('contact_voucher', 'contact_voucher_100', '100张联系券', '每张0.5元', '5折', 5000, 10000, JSON_OBJECT('contact_vouchers', 100), JSON_OBJECT('max_purchase_per_user', 0), NULL, 210),
+  ('paid_refresh', 'paid_refresh_1', '刷新1次', '立即刷新，提升曝光', '惊爆价', 200, 400, JSON_OBJECT('refresh_times', 1), JSON_OBJECT('max_purchase_per_user', 0), NULL, 200),
+  ('rent_publish', 'rent_publish_1', '发布招租信息', '发布1条招租信息', '', 1800, 0, JSON_OBJECT('rent_publish_times', 1), JSON_OBJECT('max_purchase_per_user', 0), NULL, 100);
 
-INSERT INTO payment_sku (product_id, sku_code, name, subtitle, badge, price_cents, original_price_cents, benefit_config, sale_rule, status, sort, version, created_by, updated_by, create_at, update_at)
-SELECT product.id, seed.sku_code, seed.name, seed.subtitle, seed.badge, seed.price_cents, seed.original_price_cents, seed.benefit_config, seed.sale_rule, 1, seed.sort, 1, @operator, @operator, @created_at, @created_at
+INSERT INTO payment_sku (product_id, sku_code, name, subtitle, badge, price_cents, original_price_cents, benefit_config, sale_rule, promotion_config, status, sort, version, created_by, updated_by, create_at, update_at)
+SELECT product.id, seed.sku_code, seed.name, seed.subtitle, seed.badge, seed.price_cents, seed.original_price_cents, seed.benefit_config, seed.sale_rule, seed.promotion_config, 1, seed.sort, 1, @operator, @operator, @created_at, @created_at
 FROM payment_sku_seed seed
 JOIN payment_product product ON product.product_code = seed.product_code;
 

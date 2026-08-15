@@ -8,7 +8,6 @@ type UserInfoResponseData struct {
 	Phone                        string `json:"phone"`
 	UserCode                     string `json:"user_code"`
 	ContactVoucherNum            int    `json:"contact_voucher_num"`
-	FirstTopStatus               int    `json:"first_top_status"`
 	NewCustomerStatus            int    `json:"new_customer_status"`
 	ProfileCompleteStatus        int    `json:"profile_complete_status"`
 	ShareRefreshAvailable        int    `json:"share_refresh_available"`

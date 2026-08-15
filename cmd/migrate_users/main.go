@@ -132,7 +132,7 @@ func main() {
 			   first_area_id, second_area_id, third_area_id, address,
 			   longitude, latitude, integral, collect_num, buy_num,
 			   invite_num, first_recharge, total_recharge, device_model, ip,
-			   contact_voucher_num, first_top_status, new_customer_status, profile_complete_status, old_user_status,
+			   contact_voucher_num, new_customer_status, profile_complete_status, old_user_status,
 			   create_at)
 			VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
 		if err != nil {
@@ -151,7 +151,7 @@ func main() {
 				u.Integral, u.CollectNum, u.BuyNum,
 				u.InviteNum, u.FirstRecharge, u.TotalRecharge,
 				u.DeviceModel, u.IP,
-				0, 0, 0, 0, 1, // old_user_status=1
+				0, 0, 0, 1, // old_user_status=1
 				u.CreateAt,
 			)
 			if err != nil {

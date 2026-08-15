@@ -360,7 +360,7 @@ const docTemplate = `{
         },
         "/admin/payment-packages/create": {
             "post": {
-                "description": "新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的 virtual_product_id，且一个道具 ID 只能绑定一个 SKU。sale_rule.audience 支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。",
+                "description": "新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的 virtual_product_id，且一个道具 ID 只能绑定一个 SKU。promotion_config.first_purchase_price_cents 可为同一 SKU 配置首购特惠价，必须低于 price_cents；first_purchase_scope：platform=平台首购，product=当前产品首购；首购价与常规价不同，必须配置 promotion_config.virtual_product_id。",
                 "consumes": [
                     "application/json"
                 ],
@@ -428,7 +428,7 @@ const docTemplate = `{
         },
         "/admin/payment-packages/detail": {
             "post": {
-                "description": "返回 SKU 的完整管理配置，包括权益、营销人群和累计限购规则；sale_rule.audience：all=全部用户，platform_new=平台新用户，product_new=当前产品首购用户。",
+                "description": "返回 SKU 的完整管理配置，包括权益、累计限购和首购特惠配置；promotion_config.first_purchase_price_cents 为同一 SKU 的首购成交价（分），first_purchase_scope：platform=平台首购，product=当前产品首购。",
                 "consumes": [
                     "application/json"
                 ],
@@ -495,7 +495,7 @@ const docTemplate = `{
         },
         "/admin/payment-packages/list": {
             "post": {
-                "description": "查询全部未删除 SKU，支持按收费业务、状态和关键词筛选。响应中的 price_cents、original_price_cents 单位为分；sale_rule 用于管理端编辑回显。",
+                "description": "查询全部未删除 SKU，支持按收费业务、状态和关键词筛选。响应中的 price_cents、original_price_cents 单位为分；sale_rule、promotion_config 用于管理端编辑回显。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2289,7 +2289,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "小程序登录接口。按产品返回已上架、适用于当前 biz_type 且符合当前用户购买资格的 SKU。\nproduct_code：job_top=岗位置顶，contact_voucher=联系券，paid_refresh=付费刷新，rent_publish=招租发布。\nbiz_type：0=不限，1=招聘，2=求职，3=招租。岗位置顶传1或2；联系券传0；付费刷新传当前信息类型；招租发布传3。\nselection_mode：1=单规格，正常情况下 skus 只有一条，前端直接使用 skus[0]；2=多规格，前端展示 skus 供用户选择。\nprice_cents 和 original_price_cents 的单位均为分，例如199表示1.99元。skus 为空表示当前没有可购买 SKU。\nbenefit_config 包含联系券、刷新次数、置顶小时数、招租发布次数和赠送联系券；仅返回当前产品适用的字段。营销规则由服务端完成资格判断，不返回 sale_rule。\n创建支付订单时只传服务端返回的 sku_code 和业务目标，不能传客户端价格。",
+                "description": "小程序登录接口。按产品返回已上架、适用于当前 biz_type 且符合当前用户购买资格的 SKU。\nproduct_code：job_top=岗位置顶，contact_voucher=联系券，paid_refresh=付费刷新，rent_publish=招租发布。\nbiz_type：0=不限，1=招聘，2=求职，3=招租。岗位置顶传1或2；联系券传0；付费刷新传当前信息类型；招租发布传3。\nselection_mode：1=单规格，正常情况下 skus 只有一条，前端直接使用 skus[0]；2=多规格，前端展示 skus 供用户选择。\nprice_cents 和 original_price_cents 的单位均为分，例如199表示1.99元。命中首购特惠时，同一 sku_code 返回特惠成交价 price_cents，original_price_cents 返回常规售价。skus 为空表示当前没有可购买 SKU。\nbenefit_config 包含联系券、刷新次数、置顶小时数、招租发布次数和赠送联系券；仅返回当前产品适用的字段。营销规则由服务端完成资格判断，不返回 sale_rule。\n创建支付订单时只传服务端返回的 sku_code 和业务目标，不能传客户端价格。",
                 "consumes": [
                     "application/json"
                 ],
@@ -3546,6 +3546,9 @@ const docTemplate = `{
                     "description": "收费业务 ID；创建后不可修改。",
                     "type": "integer"
                 },
+                "promotion_config": {
+                    "$ref": "#/definitions/v1.PaymentPromotionConfig"
+                },
                 "sale_rule": {
                     "$ref": "#/definitions/v1.PaymentSaleRule"
                 },
@@ -3729,6 +3732,9 @@ const docTemplate = `{
                 "price_cents": {
                     "description": "售价，单位为分，必须大于 0。",
                     "type": "integer"
+                },
+                "promotion_config": {
+                    "$ref": "#/definitions/v1.PaymentPromotionConfig"
                 },
                 "sale_rule": {
                     "$ref": "#/definitions/v1.PaymentSaleRule"
@@ -5620,12 +5626,12 @@ const docTemplate = `{
                     "example": "标准刷新"
                 },
                 "original_price_cents": {
-                    "description": "划线价，单位为分；0表示不展示划线价。",
+                    "description": "划线价，单位为分；0 表示不展示。",
                     "type": "integer",
                     "example": 0
                 },
                 "price_cents": {
-                    "description": "售价，单位为分；例如199表示1.99元。",
+                    "description": "SKU 常规售价，单位为分。首购特惠价配置在 promotion_config 中。",
                     "type": "integer",
                     "example": 199
                 },
@@ -5645,6 +5651,9 @@ const docTemplate = `{
                 "product_name": {
                     "type": "string",
                     "example": "付费刷新"
+                },
+                "promotion_config": {
+                    "$ref": "#/definitions/v1.PaymentPromotionConfig"
                 },
                 "sale_rule": {
                     "description": "仅管理后台返回及配置。小程序端已根据此规则筛选可购买 SKU，不返回该字段。",
@@ -5800,6 +5809,35 @@ const docTemplate = `{
                 }
             }
         },
+        "v1.PaymentPromotionConfig": {
+            "type": "object",
+            "properties": {
+                "badge": {
+                    "type": "string",
+                    "example": "首单特惠"
+                },
+                "first_purchase_price_cents": {
+                    "type": "integer",
+                    "example": 390
+                },
+                "first_purchase_scope": {
+                    "type": "string",
+                    "enum": [
+                        "platform",
+                        "product"
+                    ],
+                    "example": "product"
+                },
+                "subtitle": {
+                    "type": "string",
+                    "example": "新用户专享"
+                },
+                "virtual_product_id": {
+                    "type": "string",
+                    "example": "top_1_first"
+                }
+            }
+        },
         "v1.PaymentSKU": {
             "type": "object",
             "properties": {
@@ -5815,12 +5853,19 @@ const docTemplate = `{
                     "example": "刷新1次"
                 },
                 "original_price_cents": {
+                    "description": "划线价，单位为分；首购特惠命中时为 SKU 常规售价。",
                     "type": "integer",
                     "example": 400
                 },
                 "price_cents": {
+                    "description": "当前用户的实际成交价，单位为分；首购特惠命中时低于常规售价。",
                     "type": "integer",
                     "example": 200
+                },
+                "promotion_type": {
+                    "description": "当前用户命中的促销类型；空字符串表示按 SKU 普通配置展示。",
+                    "type": "string",
+                    "example": "first_purchase"
                 },
                 "sku_code": {
                     "type": "string",
@@ -5835,10 +5880,6 @@ const docTemplate = `{
         "v1.PaymentSaleRule": {
             "type": "object",
             "properties": {
-                "audience": {
-                    "type": "string",
-                    "example": "all"
-                },
                 "max_purchase_per_user": {
                     "type": "integer",
                     "example": 0
@@ -6193,9 +6234,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "contact_voucher_num": {
-                    "type": "integer"
-                },
-                "first_top_status": {
                     "type": "integer"
                 },
                 "name": {

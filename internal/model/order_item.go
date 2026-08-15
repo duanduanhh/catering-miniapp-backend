@@ -30,6 +30,7 @@ type OrderItem struct {
 	UnitPriceSnapshot        float64         `gorm:"column:unit_price_snapshot"`
 	PriceCentsSnapshot       int64           `gorm:"column:price_cents_snapshot"`
 	BenefitSnapshot          string          `gorm:"column:benefit_snapshot;type:json"`
+	PromotionSnapshot        string          `gorm:"column:promotion_snapshot;type:json"`
 	TopHour                  int             `gorm:"column:top_hour"`
 	ContactVoucherNum        int             `gorm:"column:contact_voucher_num"`
 	TargetType               OrderTargetType `gorm:"column:target_type"`

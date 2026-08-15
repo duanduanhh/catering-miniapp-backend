@@ -67,7 +67,12 @@ func TestCreateContactVoucherOrderUsesServerSKUPriceAndBenefits(t *testing.T) {
 		PriceCents:       150,
 		VirtualProductID: "contact_voucher_2_new",
 		BenefitConfig:    model.PaymentBenefitConfig{ContactVouchers: 2},
-		Operator:         "test",
+		PromotionConfig: model.PaymentPromotionConfig{
+			FirstPurchasePriceCents: 100,
+			FirstPurchaseScope:      model.PaymentFirstPurchaseScopeProduct,
+			VirtualProductID:         "contact_voucher_2_first",
+		},
+		Operator: "test",
 	})
 	if err != nil {
 		t.Fatalf("create package: %v", err)
@@ -101,12 +106,23 @@ func TestCreateContactVoucherOrderUsesServerSKUPriceAndBenefits(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read amount: %v", err)
 	}
-	if cents != 150 || item.ContactVoucherNum != 2 {
+	if cents != 100 || item.ContactVoucherNum != 2 {
 		t.Fatalf("unexpected order price or benefit: cents=%d item=%+v", cents, item)
 	}
 	if item.SKUID != packageID || item.SKUCode != "contact_voucher_2_new" ||
-		item.PriceCentsSnapshot != 150 || item.BenefitSnapshot == "" {
+		item.PriceCentsSnapshot != 100 || item.BenefitSnapshot == "" || item.PromotionSnapshot == "null" {
 		t.Fatalf("missing SKU snapshot: %+v", item)
+	}
+	// The next purchase must be re-quoted under the transaction lock. A stale
+	// list response cannot continue using the first-purchase price.
+	next, err := packageService.ResolveForPurchase(
+		context.Background(), user.ID, "contact_voucher_2_new", model.PaymentProductCodeContactVoucher, 0,
+	)
+	if err != nil {
+		t.Fatalf("resolve regular price after first order: %v", err)
+	}
+	if next.PurchasePriceCents != 150 || next.Promotion != nil {
+		t.Fatalf("next purchase quote = %+v, want regular price", next)
 	}
 	if err := db.Model(&model.Order{}).Where("id = ?", order.ID).Update("status", model.OrderStatusCanceled).Error; err != nil {
 		t.Fatalf("cancel order: %v", err)
@@ -117,7 +133,7 @@ func TestCreateContactVoucherOrderUsesServerSKUPriceAndBenefits(t *testing.T) {
 		TransactionID:    "wx-transaction-1",
 		ProductID:        item.VirtualProductIDSnapshot,
 		Quantity:         1,
-		ActualPriceCents: 150,
+		ActualPriceCents: 100,
 	}); !errors.Is(err, ErrVirtualPaymentOrderClosed) {
 		t.Fatalf("closed order notification = %v, want %v", err, ErrVirtualPaymentOrderClosed)
 	}

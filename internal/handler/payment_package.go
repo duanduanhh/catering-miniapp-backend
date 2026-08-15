@@ -79,7 +79,7 @@ func (h *PaymentPackageHandler) AdminUpdateProduct(ctx *gin.Context) {
 
 // AdminList godoc
 // @Summary 管理后台套餐列表
-// @Description 查询全部未删除 SKU，支持按收费业务、状态和关键词筛选。响应中的 price_cents、original_price_cents 单位为分；sale_rule 用于管理端编辑回显。
+// @Description 查询全部未删除 SKU，支持按收费业务、状态和关键词筛选。响应中的 price_cents、original_price_cents 单位为分；sale_rule、promotion_config 用于管理端编辑回显。
 // @Tags 管理后台-付费套餐
 // @Accept json
 // @Produce json
@@ -115,7 +115,7 @@ func (h *PaymentPackageHandler) AdminList(ctx *gin.Context) {
 
 // AdminDetail godoc
 // @Summary 管理后台套餐详情
-// @Description 返回 SKU 的完整管理配置，包括权益、营销人群和累计限购规则；sale_rule.audience：all=全部用户，platform_new=平台新用户，product_new=当前产品首购用户。
+// @Description 返回 SKU 的完整管理配置，包括权益、累计限购和首购特惠配置；promotion_config.first_purchase_price_cents 为同一 SKU 的首购成交价（分），first_purchase_scope：platform=平台首购，product=当前产品首购。
 // @Tags 管理后台-付费套餐
 // @Accept json
 // @Produce json
@@ -138,7 +138,7 @@ func (h *PaymentPackageHandler) AdminDetail(ctx *gin.Context) {
 
 // AdminCreate godoc
 // @Summary 新增付费套餐
-// @Description 新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的 virtual_product_id，且一个道具 ID 只能绑定一个 SKU。sale_rule.audience 支持 all、platform_new、product_new，max_purchase_per_user 为 0 表示不限购。
+// @Description 新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的 virtual_product_id，且一个道具 ID 只能绑定一个 SKU。promotion_config.first_purchase_price_cents 可为同一 SKU 配置首购特惠价，必须低于 price_cents；first_purchase_scope：platform=平台首购，product=当前产品首购；首购价与常规价不同，必须配置 promotion_config.virtual_product_id。
 // @Tags 管理后台-付费套餐
 // @Accept json
 // @Produce json
@@ -163,6 +163,7 @@ func (h *PaymentPackageHandler) AdminCreate(ctx *gin.Context) {
 		Sort:               req.Sort,
 		BenefitConfig:      toPaymentBenefitConfig(req.BenefitConfig),
 		SaleRule:           toPaymentSaleRule(req.SaleRule),
+		PromotionConfig:    toPaymentPromotionConfig(req.PromotionConfig),
 		Operator:           middleware.GetAdminUsernameFromCtx(ctx),
 	})
 	if err != nil {
@@ -199,6 +200,7 @@ func (h *PaymentPackageHandler) AdminUpdate(ctx *gin.Context) {
 		Sort:               req.Sort,
 		BenefitConfig:      toPaymentBenefitConfig(req.BenefitConfig),
 		SaleRule:           toPaymentSaleRule(req.SaleRule),
+		PromotionConfig:    toPaymentPromotionConfig(req.PromotionConfig),
 		ChangeReason:       req.ChangeReason,
 		Operator:           middleware.GetAdminUsernameFromCtx(ctx),
 	})
@@ -322,7 +324,7 @@ func (h *PaymentPackageHandler) AdminHistory(ctx *gin.Context) {
 // @Description product_code：job_top=岗位置顶，contact_voucher=联系券，paid_refresh=付费刷新，rent_publish=招租发布。
 // @Description biz_type：0=不限，1=招聘，2=求职，3=招租。岗位置顶传1或2；联系券传0；付费刷新传当前信息类型；招租发布传3。
 // @Description selection_mode：1=单规格，正常情况下 skus 只有一条，前端直接使用 skus[0]；2=多规格，前端展示 skus 供用户选择。
-// @Description price_cents 和 original_price_cents 的单位均为分，例如199表示1.99元。skus 为空表示当前没有可购买 SKU。
+// @Description price_cents 和 original_price_cents 的单位均为分，例如199表示1.99元。命中首购特惠时，同一 sku_code 返回特惠成交价 price_cents，original_price_cents 返回常规售价。skus 为空表示当前没有可购买 SKU。
 // @Description benefit_config 包含联系券、刷新次数、置顶小时数、招租发布次数和赠送联系券；仅返回当前产品适用的字段。营销规则由服务端完成资格判断，不返回 sale_rule。
 // @Description 创建支付订单时只传服务端返回的 sku_code 和业务目标，不能传客户端价格。
 // @Tags 付费套餐
@@ -363,10 +365,11 @@ func (h *PaymentPackageHandler) ListAvailable(ctx *gin.Context) {
 		response.SKUs = append(response.SKUs, v1.PaymentSKU{
 			SKUCode:            item.Package.SKUCode,
 			Name:               item.Package.Name,
-			Subtitle:           item.Package.Subtitle,
-			Badge:              item.Package.Badge,
-			PriceCents:         item.Package.PriceCents,
-			OriginalPriceCents: item.Package.OriginalPriceCents,
+			Subtitle:           purchaseSubtitle(item),
+			Badge:              purchaseBadge(item),
+			PromotionType:      purchasePromotionType(item),
+			PriceCents:         item.PurchasePriceCents,
+			OriginalPriceCents: purchaseOriginalPrice(item),
 			BenefitConfig:      toV1PaymentBenefitConfig(item.BenefitConfig),
 		})
 	}
@@ -415,6 +418,7 @@ func toPaymentPackageItem(value service.PaymentPackageAggregate, admin bool) v1.
 	if admin {
 		item.ID = pkg.ID
 		item.SaleRule = toV1PaymentSaleRule(value.SaleRule)
+		item.PromotionConfig = toV1PaymentPromotionConfig(value.PromotionConfig)
 		item.Status = int(pkg.Status)
 		item.Version = pkg.Version
 		item.CreatedBy = pkg.CreatedBy
@@ -435,9 +439,12 @@ func toV1PaymentBenefitConfig(value model.PaymentBenefitConfig) v1.PaymentBenefi
 
 func toV1PaymentSaleRule(value model.PaymentSaleRule) v1.PaymentSaleRule {
 	return v1.PaymentSaleRule{
-		Audience:           value.Audience,
 		MaxPurchasePerUser: value.MaxPurchasePerUser,
 	}
+}
+
+func toV1PaymentPromotionConfig(value model.PaymentPromotionConfig) v1.PaymentPromotionConfig {
+	return v1.PaymentPromotionConfig{FirstPurchasePriceCents: value.FirstPurchasePriceCents, FirstPurchaseScope: value.FirstPurchaseScope, Subtitle: value.Subtitle, Badge: value.Badge, VirtualProductID: value.VirtualProductID}
 }
 
 func toPaymentBenefitConfig(value v1.PaymentBenefitConfig) model.PaymentBenefitConfig {
@@ -445,7 +452,41 @@ func toPaymentBenefitConfig(value v1.PaymentBenefitConfig) model.PaymentBenefitC
 }
 
 func toPaymentSaleRule(value v1.PaymentSaleRule) model.PaymentSaleRule {
-	return model.PaymentSaleRule{Audience: value.Audience, MaxPurchasePerUser: value.MaxPurchasePerUser}
+	return model.PaymentSaleRule{
+		MaxPurchasePerUser: value.MaxPurchasePerUser,
+	}
+}
+
+func toPaymentPromotionConfig(value v1.PaymentPromotionConfig) model.PaymentPromotionConfig {
+	return model.PaymentPromotionConfig{FirstPurchasePriceCents: value.FirstPurchasePriceCents, FirstPurchaseScope: value.FirstPurchaseScope, Subtitle: value.Subtitle, Badge: value.Badge, VirtualProductID: value.VirtualProductID}
+}
+
+func purchaseBadge(item service.PaymentPackageAggregate) string {
+	if item.Promotion != nil {
+		return item.Promotion.Badge
+	}
+	return item.Package.Badge
+}
+
+func purchaseSubtitle(item service.PaymentPackageAggregate) string {
+	if item.Promotion != nil && item.Promotion.Subtitle != "" {
+		return item.Promotion.Subtitle
+	}
+	return item.Package.Subtitle
+}
+
+func purchasePromotionType(item service.PaymentPackageAggregate) string {
+	if item.Promotion != nil {
+		return item.Promotion.Type
+	}
+	return ""
+}
+
+func purchaseOriginalPrice(item service.PaymentPackageAggregate) int64 {
+	if item.Promotion != nil {
+		return item.Promotion.RegularPriceCents
+	}
+	return item.Package.OriginalPriceCents
 }
 
 func parsePaymentPackageTimes(startRaw, endRaw string) (*time.Time, *time.Time, error) {

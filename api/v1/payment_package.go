@@ -9,12 +9,19 @@ type PaymentBenefitConfig struct {
 	GiftContactVouchers int `json:"gift_contact_vouchers,omitempty"`
 }
 
-// PaymentSaleRule 是管理后台配置的 SKU 购买规则。
-// audience：all=全部用户，platform_new=平台新用户，product_new=当前产品首购用户。
+// PaymentSaleRule 是管理后台配置的 SKU 限购规则；所有用户均可购买。
 // max_purchase_per_user：同一用户可购买的累计次数，0 表示不限购。
 type PaymentSaleRule struct {
-	Audience           string `json:"audience" example:"all"`
-	MaxPurchasePerUser int    `json:"max_purchase_per_user" example:"0"`
+	MaxPurchasePerUser int `json:"max_purchase_per_user" example:"0"`
+}
+
+// PaymentPromotionConfig 是首购促销配置。命中首购资格时，价格、副标题和角标覆盖 SKU 的普通展示配置。
+type PaymentPromotionConfig struct {
+	FirstPurchasePriceCents int64  `json:"first_purchase_price_cents" example:"390"`
+	FirstPurchaseScope      string `json:"first_purchase_scope" enums:"platform,product" example:"product"`
+	Subtitle                string `json:"subtitle" example:"新用户专享"`
+	Badge                   string `json:"badge" example:"首单特惠"`
+	VirtualProductID        string `json:"virtual_product_id" example:"top_1_first"`
 }
 
 type AdminPaymentPackageListRequest struct {
@@ -39,20 +46,21 @@ type PaymentPackageItem struct {
 	Name          string `json:"name" example:"标准刷新"`
 	Subtitle      string `json:"subtitle" example:"立即刷新信息排名"`
 	Badge         string `json:"badge" example:""`
-	// 售价，单位为分；例如199表示1.99元。
+	// SKU 常规售价，单位为分。首购特惠价配置在 promotion_config 中。
 	PriceCents int64 `json:"price_cents" example:"199"`
-	// 划线价，单位为分；0表示不展示划线价。
+	// 划线价，单位为分；0 表示不展示。
 	OriginalPriceCents int64                `json:"original_price_cents" example:"0"`
 	BenefitConfig      PaymentBenefitConfig `json:"benefit_config"`
 	// 仅管理后台返回及配置。小程序端已根据此规则筛选可购买 SKU，不返回该字段。
-	SaleRule  PaymentSaleRule `json:"sale_rule"`
-	Status    int             `json:"status,omitempty"`
-	Sort      int             `json:"sort"`
-	Version   int             `json:"version,omitempty"`
-	CreatedBy string          `json:"created_by,omitempty"`
-	UpdatedBy string          `json:"updated_by,omitempty"`
-	CreateAt  string          `json:"create_at,omitempty"`
-	UpdateAt  string          `json:"update_at,omitempty"`
+	SaleRule        PaymentSaleRule        `json:"sale_rule"`
+	PromotionConfig PaymentPromotionConfig `json:"promotion_config"`
+	Status          int                    `json:"status,omitempty"`
+	Sort            int                    `json:"sort"`
+	Version         int                    `json:"version,omitempty"`
+	CreatedBy       string                 `json:"created_by,omitempty"`
+	UpdatedBy       string                 `json:"updated_by,omitempty"`
+	CreateAt        string                 `json:"create_at,omitempty"`
+	UpdateAt        string                 `json:"update_at,omitempty"`
 }
 
 type AdminPaymentPackageListResponseData struct {
@@ -82,10 +90,11 @@ type AdminPaymentPackageCreateRequest struct {
 	// 售价，单位为分，必须大于 0。
 	PriceCents int64 `json:"price_cents" binding:"required"`
 	// 划线价，单位为分；0 表示不展示。
-	OriginalPriceCents int64                `json:"original_price_cents"`
-	Sort               int                  `json:"sort"`
-	BenefitConfig      PaymentBenefitConfig `json:"benefit_config" binding:"required"`
-	SaleRule           PaymentSaleRule      `json:"sale_rule"`
+	OriginalPriceCents int64                  `json:"original_price_cents"`
+	Sort               int                    `json:"sort"`
+	BenefitConfig      PaymentBenefitConfig   `json:"benefit_config" binding:"required"`
+	SaleRule           PaymentSaleRule        `json:"sale_rule"`
+	PromotionConfig    PaymentPromotionConfig `json:"promotion_config"`
 }
 
 type AdminPaymentPackageUpdateRequest struct {
@@ -98,11 +107,12 @@ type AdminPaymentPackageUpdateRequest struct {
 	// 售价，单位为分，必须大于 0。
 	PriceCents int64 `json:"price_cents" binding:"required"`
 	// 划线价，单位为分；0 表示不展示。
-	OriginalPriceCents int64                `json:"original_price_cents"`
-	Sort               int                  `json:"sort"`
-	BenefitConfig      PaymentBenefitConfig `json:"benefit_config" binding:"required"`
-	SaleRule           PaymentSaleRule      `json:"sale_rule"`
-	ChangeReason       string               `json:"change_reason"`
+	OriginalPriceCents int64                  `json:"original_price_cents"`
+	Sort               int                    `json:"sort"`
+	BenefitConfig      PaymentBenefitConfig   `json:"benefit_config" binding:"required"`
+	SaleRule           PaymentSaleRule        `json:"sale_rule"`
+	PromotionConfig    PaymentPromotionConfig `json:"promotion_config"`
+	ChangeReason       string                 `json:"change_reason"`
 }
 
 type AdminPaymentPackageCreateResponseData struct {
@@ -141,13 +151,17 @@ type PaymentPackageListRequest struct {
 
 // PaymentSKU 是小程序购买页所需的最小 SKU 展示数据。购买资格由服务端筛选，不向客户端暴露营销规则。
 type PaymentSKU struct {
-	SKUCode            string               `json:"sku_code" example:"paid_refresh_1"`
-	Name               string               `json:"name" example:"刷新1次"`
-	Subtitle           string               `json:"subtitle" example:"立即刷新，提升曝光"`
-	Badge              string               `json:"badge" example:"推荐"`
-	PriceCents         int64                `json:"price_cents" example:"200"`
-	OriginalPriceCents int64                `json:"original_price_cents" example:"400"`
-	BenefitConfig      PaymentBenefitConfig `json:"benefit_config"`
+	SKUCode  string `json:"sku_code" example:"paid_refresh_1"`
+	Name     string `json:"name" example:"刷新1次"`
+	Subtitle string `json:"subtitle" example:"立即刷新，提升曝光"`
+	Badge    string `json:"badge" example:"推荐"`
+	// 当前用户的实际成交价，单位为分；首购特惠命中时低于常规售价。
+	PriceCents int64 `json:"price_cents" example:"200"`
+	// 划线价，单位为分；首购特惠命中时为 SKU 常规售价。
+	OriginalPriceCents int64 `json:"original_price_cents" example:"400"`
+	// 当前用户命中的促销类型；空字符串表示按 SKU 普通配置展示。
+	PromotionType string               `json:"promotion_type" example:"first_purchase"`
+	BenefitConfig PaymentBenefitConfig `json:"benefit_config"`
 }
 
 type PaymentPackageListResponseData struct {

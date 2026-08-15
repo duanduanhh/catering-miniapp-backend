@@ -25,6 +25,7 @@ type PaymentPackageCreateInput struct {
 	Sort               int
 	BenefitConfig      model.PaymentBenefitConfig
 	SaleRule           model.PaymentSaleRule
+	PromotionConfig    model.PaymentPromotionConfig
 	Operator           string
 }
 
@@ -40,17 +41,21 @@ type PaymentPackageUpdateInput struct {
 	Sort               int
 	BenefitConfig      model.PaymentBenefitConfig
 	SaleRule           model.PaymentSaleRule
+	PromotionConfig    model.PaymentPromotionConfig
 	ChangeReason       string
 	Operator           string
 }
 
 type PaymentPackageAggregate struct {
-	Product           *model.PaymentProduct
-	Package           *model.PaymentPackage
-	BenefitConfig     model.PaymentBenefitConfig
-	SaleRule          model.PaymentSaleRule
-	Purchasable       bool
-	UnavailableReason string
+	Product            *model.PaymentProduct
+	Package            *model.PaymentPackage
+	BenefitConfig      model.PaymentBenefitConfig
+	SaleRule           model.PaymentSaleRule
+	PromotionConfig    model.PaymentPromotionConfig
+	PurchasePriceCents int64
+	Promotion          *model.PaymentPromotionSnapshot
+	Purchasable        bool
+	UnavailableReason  string
 }
 
 type PaymentProductAggregate struct {
@@ -151,8 +156,13 @@ func (s *paymentPackageService) GetByID(ctx context.Context, id int64) (*Payment
 		return nil, err
 	}
 	return &PaymentPackageAggregate{
-		Product: product, Package: pkg, BenefitConfig: decodeBenefitConfig(pkg.BenefitConfigJSON), SaleRule: decodeSaleRule(pkg.SaleRuleJSON),
-		Purchasable: true,
+		Product:            product,
+		Package:            pkg,
+		BenefitConfig:      decodeBenefitConfig(pkg.BenefitConfigJSON),
+		SaleRule:           decodeSaleRule(pkg.SaleRuleJSON),
+		PromotionConfig:    decodePromotionConfig(pkg.PromotionConfigJSON),
+		PurchasePriceCents: pkg.PriceCents,
+		Purchasable:        true,
 	}, nil
 }
 
@@ -200,27 +210,32 @@ func (s *paymentPackageService) Create(ctx context.Context, input PaymentPackage
 		if err := validateSaleRule(input.SaleRule); err != nil {
 			return err
 		}
+		if err := validatePromotionConfig(input.PromotionConfig, input.PriceCents); err != nil {
+			return err
+		}
 		benefitConfigJSON, _ := json.Marshal(input.BenefitConfig)
 		saleRuleJSON, _ := json.Marshal(normalizeSaleRule(input.SaleRule))
+		promotionConfigJSON, _ := json.Marshal(normalizePromotionConfig(input.PromotionConfig))
 		now := time.Now()
 		pkg = &model.PaymentPackage{
-			ProductID:          product.ID,
-			SKUCode:            input.SKUCode,
-			VirtualProductID:   strings.TrimSpace(input.VirtualProductID),
-			Name:               strings.TrimSpace(input.Name),
-			Subtitle:           strings.TrimSpace(input.Subtitle),
-			Badge:              strings.TrimSpace(input.Badge),
-			PriceCents:         input.PriceCents,
-			OriginalPriceCents: input.OriginalPriceCents,
-			BenefitConfigJSON:  string(benefitConfigJSON),
-			SaleRuleJSON:       string(saleRuleJSON),
-			Status:             model.PaymentPackageStatusDraft,
-			Sort:               input.Sort,
-			Version:            1,
-			CreatedBy:          input.Operator,
-			UpdatedBy:          input.Operator,
-			CreateAt:           now,
-			UpdateAt:           now,
+			ProductID:           product.ID,
+			SKUCode:             input.SKUCode,
+			VirtualProductID:    strings.TrimSpace(input.VirtualProductID),
+			Name:                strings.TrimSpace(input.Name),
+			Subtitle:            strings.TrimSpace(input.Subtitle),
+			Badge:               strings.TrimSpace(input.Badge),
+			PriceCents:          input.PriceCents,
+			OriginalPriceCents:  input.OriginalPriceCents,
+			BenefitConfigJSON:   string(benefitConfigJSON),
+			SaleRuleJSON:        string(saleRuleJSON),
+			PromotionConfigJSON: string(promotionConfigJSON),
+			Status:              model.PaymentPackageStatusDraft,
+			Sort:                input.Sort,
+			Version:             1,
+			CreatedBy:           input.Operator,
+			UpdatedBy:           input.Operator,
+			CreateAt:            now,
+			UpdateAt:            now,
 		}
 		if err := s.repository.Create(ctx, pkg); err != nil {
 			return err
@@ -265,8 +280,12 @@ func (s *paymentPackageService) Update(ctx context.Context, input PaymentPackage
 	if err := validateSaleRule(input.SaleRule); err != nil {
 		return err
 	}
+	if err := validatePromotionConfig(input.PromotionConfig, input.PriceCents); err != nil {
+		return err
+	}
 	benefitConfigJSON, _ := json.Marshal(input.BenefitConfig)
 	saleRuleJSON, _ := json.Marshal(normalizeSaleRule(input.SaleRule))
+	promotionConfigJSON, _ := json.Marshal(normalizePromotionConfig(input.PromotionConfig))
 	now := time.Now()
 	updated := *current.Package
 	updated.Name = strings.TrimSpace(input.Name)
@@ -277,6 +296,7 @@ func (s *paymentPackageService) Update(ctx context.Context, input PaymentPackage
 	updated.OriginalPriceCents = input.OriginalPriceCents
 	updated.BenefitConfigJSON = string(benefitConfigJSON)
 	updated.SaleRuleJSON = string(saleRuleJSON)
+	updated.PromotionConfigJSON = string(promotionConfigJSON)
 	updated.Sort = input.Sort
 	updated.Version++
 	updated.UpdatedBy = input.Operator
@@ -367,9 +387,22 @@ func (s *paymentPackageService) Publish(ctx context.Context, id int64, version i
 	); err != nil {
 		return err
 	}
+	if err := validateSaleRule(current.SaleRule); err != nil {
+		return err
+	}
+	if err := validatePromotionConfig(current.PromotionConfig, current.Package.PriceCents); err != nil {
+		return err
+	}
 	virtualProductID := strings.TrimSpace(current.Package.VirtualProductID)
 	if virtualProductID == "" {
 		return ErrVirtualPaymentUnavailable
+	}
+	promotionProductID := strings.TrimSpace(current.PromotionConfig.VirtualProductID)
+	if current.PromotionConfig.FirstPurchasePriceCents > 0 && promotionProductID == "" {
+		return ErrVirtualPaymentUnavailable
+	}
+	if promotionProductID != "" && promotionProductID == virtualProductID {
+		return ErrPaymentPackageInvalid
 	}
 	exists, err := s.repository.ExistsByVirtualProductID(ctx, virtualProductID, current.Package.ID)
 	if err != nil {
@@ -377,6 +410,15 @@ func (s *paymentPackageService) Publish(ctx context.Context, id int64, version i
 	}
 	if exists {
 		return ErrPaymentPackageInvalid
+	}
+	if promotionProductID != "" {
+		exists, err = s.repository.ExistsByVirtualProductID(ctx, promotionProductID, current.Package.ID)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return ErrPaymentPackageInvalid
+		}
 	}
 	return s.changeStatus(ctx, current, model.PaymentPackageStatusPublished, model.PaymentPackageActionPublish, "", operator)
 }
@@ -436,7 +478,7 @@ func (s *paymentPackageService) ListAvailable(
 		if strings.TrimSpace(item.Package.VirtualProductID) == "" {
 			continue
 		}
-		purchasable, reason, err := s.evaluatePurchaseRule(ctx, userID, item, false)
+		purchasable, reason, err := s.evaluatePurchaseRule(ctx, userID, item)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -444,6 +486,9 @@ func (s *paymentPackageService) ListAvailable(
 		item.UnavailableReason = reason
 		if !purchasable {
 			continue
+		}
+		if err := s.applyPurchasePromotion(ctx, userID, &item, false); err != nil {
+			return nil, nil, err
 		}
 		available = append(available, item)
 	}
@@ -485,7 +530,7 @@ func (s *paymentPackageService) ResolveForPurchase(
 	if strings.TrimSpace(aggregate.Package.VirtualProductID) == "" {
 		return nil, ErrVirtualPaymentUnavailable
 	}
-	purchasable, reason, err := s.evaluatePurchaseRule(ctx, userID, *aggregate, true)
+	purchasable, reason, err := s.evaluatePurchaseRule(ctx, userID, *aggregate)
 	if err != nil {
 		return nil, err
 	}
@@ -496,6 +541,9 @@ func (s *paymentPackageService) ResolveForPurchase(
 		return nil, ErrPaymentPackageUnavailable
 	}
 	aggregate.Purchasable = true
+	if err := s.applyPurchasePromotion(ctx, userID, aggregate, true); err != nil {
+		return nil, err
+	}
 	return aggregate, nil
 }
 
@@ -560,11 +608,13 @@ func (s *paymentPackageService) loadAggregates(
 			return nil, 0, ErrPaymentProductNotFound
 		}
 		result = append(result, PaymentPackageAggregate{
-			Product:       product,
-			Package:       pkg,
-			BenefitConfig: decodeBenefitConfig(pkg.BenefitConfigJSON),
-			SaleRule:      decodeSaleRule(pkg.SaleRuleJSON),
-			Purchasable:   true,
+			Product:            product,
+			Package:            pkg,
+			BenefitConfig:      decodeBenefitConfig(pkg.BenefitConfigJSON),
+			SaleRule:           decodeSaleRule(pkg.SaleRuleJSON),
+			PromotionConfig:    decodePromotionConfig(pkg.PromotionConfigJSON),
+			PurchasePriceCents: pkg.PriceCents,
+			Purchasable:        true,
 		})
 	}
 	return result, total, nil
@@ -662,7 +712,23 @@ func validatePaymentPackage(
 }
 
 func validateSaleRule(input model.PaymentSaleRule) error {
-	if input.Audience != "" && input.Audience != "all" && input.Audience != "platform_new" && input.Audience != "product_new" || input.MaxPurchasePerUser < 0 {
+	if input.MaxPurchasePerUser < 0 {
+		return ErrPaymentPackageInvalid
+	}
+	return nil
+}
+
+func validatePromotionConfig(input model.PaymentPromotionConfig, regularPriceCents int64) error {
+	if input.FirstPurchasePriceCents == 0 && input.FirstPurchaseScope == "" && strings.TrimSpace(input.Subtitle) == "" && strings.TrimSpace(input.Badge) == "" && strings.TrimSpace(input.VirtualProductID) == "" {
+		return nil
+	}
+	if input.FirstPurchasePriceCents <= 0 || input.FirstPurchasePriceCents >= regularPriceCents {
+		return ErrPaymentPackageInvalid
+	}
+	if input.FirstPurchaseScope != model.PaymentFirstPurchaseScopePlatform && input.FirstPurchaseScope != model.PaymentFirstPurchaseScopeProduct {
+		return ErrPaymentPackageInvalid
+	}
+	if strings.TrimSpace(input.VirtualProductID) == "" {
 		return ErrPaymentPackageInvalid
 	}
 	return nil
@@ -705,75 +771,108 @@ func decodeSaleRule(raw string) model.PaymentSaleRule {
 }
 
 func normalizeSaleRule(rule model.PaymentSaleRule) model.PaymentSaleRule {
-	if rule.Audience == "" {
-		rule.Audience = "all"
-	}
 	return rule
+}
+
+func decodePromotionConfig(raw string) model.PaymentPromotionConfig {
+	var config model.PaymentPromotionConfig
+	_ = json.Unmarshal([]byte(raw), &config)
+	return normalizePromotionConfig(config)
+}
+
+func normalizePromotionConfig(config model.PaymentPromotionConfig) model.PaymentPromotionConfig {
+	config.Subtitle = strings.TrimSpace(config.Subtitle)
+	config.Badge = strings.TrimSpace(config.Badge)
+	config.VirtualProductID = strings.TrimSpace(config.VirtualProductID)
+	if config.FirstPurchasePriceCents == 0 {
+		config.FirstPurchaseScope = ""
+		config.Subtitle = ""
+		config.Badge = ""
+		config.VirtualProductID = ""
+	}
+	return config
+}
+
+// applyPurchasePromotion resolves the current user's price for one SKU. It is
+// deliberately run again while creating an order, so an old list response can
+// never grant a discount after the user's first purchase has been created.
+func (s *paymentPackageService) applyPurchasePromotion(
+	ctx context.Context,
+	userID int64,
+	item *PaymentPackageAggregate,
+	lockUser bool,
+) error {
+	item.PurchasePriceCents = item.Package.PriceCents
+	item.Promotion = nil
+	config := item.PromotionConfig
+	if config.FirstPurchasePriceCents == 0 {
+		return nil
+	}
+	if userID <= 0 || s.userRepository == nil || s.orderRepository == nil {
+		return ErrPaymentPackageInvalid
+	}
+	if lockUser {
+		user, err := s.userRepository.GetByIDForUpdate(ctx, userID)
+		if err != nil {
+			return err
+		}
+		if user == nil {
+			return ErrPaymentPackageInvalid
+		}
+	}
+
+	var (
+		count int64
+		err   error
+	)
+	switch config.FirstPurchaseScope {
+	case model.PaymentFirstPurchaseScopePlatform:
+		count, err = s.orderRepository.CountActiveOrders(ctx, userID)
+	case model.PaymentFirstPurchaseScopeProduct:
+		count, err = s.orderRepository.CountActivePurchases(ctx, userID, item.Product.ID, 0, nil)
+	default:
+		return ErrPaymentPackageInvalid
+	}
+	if err != nil {
+		return err
+	}
+	if count != 0 {
+		return nil
+	}
+	item.PurchasePriceCents = config.FirstPurchasePriceCents
+	item.Promotion = &model.PaymentPromotionSnapshot{
+		Type:                "first_purchase",
+		Scope:               config.FirstPurchaseScope,
+		RegularPriceCents:   item.Package.PriceCents,
+		PromotionPriceCents: config.FirstPurchasePriceCents,
+		Subtitle:            config.Subtitle,
+		Badge:               config.Badge,
+		VirtualProductID:    config.VirtualProductID,
+	}
+	return nil
 }
 
 func (s *paymentPackageService) evaluatePurchaseRule(
 	ctx context.Context,
 	userID int64,
 	item PaymentPackageAggregate,
-	lockUser bool,
 ) (bool, string, error) {
 	rule := item.SaleRule
-	if rule.Audience == "all" && rule.MaxPurchasePerUser == 0 {
+	if rule.MaxPurchasePerUser == 0 {
 		return true, "", nil
 	}
 	if userID <= 0 {
 		return false, "请登录后购买", nil
 	}
-	if s.userRepository == nil || s.orderRepository == nil {
+	if s.orderRepository == nil {
 		return false, "", ErrPaymentPackageInvalid
 	}
-	var (
-		user *model.User
-		err  error
-	)
-	if lockUser {
-		user, err = s.userRepository.GetByIDForUpdate(ctx, userID)
-	} else {
-		user, err = s.userRepository.GetByID(ctx, userID)
-	}
+	total, err := s.orderRepository.CountActivePurchases(ctx, userID, 0, item.Package.ID, nil)
 	if err != nil {
 		return false, "", err
 	}
-	switch rule.Audience {
-	case "all":
-	case "platform_new":
-		if user.NewCustomerStatus != 0 {
-			return false, "仅限平台新用户购买", nil
-		}
-		total, err := s.orderRepository.CountActiveOrders(ctx, userID)
-		if err != nil {
-			return false, "", err
-		}
-		if total > 0 {
-			return false, "仅限平台新用户购买", nil
-		}
-	case "product_new":
-		if item.Product.ProductCode == model.PaymentProductCodeJobTop && user.FirstTopStatus != 0 {
-			return false, "仅限该产品首购用户购买", nil
-		}
-		total, err := s.orderRepository.CountActivePurchases(ctx, userID, item.Product.ID, 0, nil)
-		if err != nil {
-			return false, "", err
-		}
-		if total > 0 {
-			return false, "仅限该产品首购用户购买", nil
-		}
-	default:
-		return false, "", ErrPaymentPackageInvalid
-	}
-	if rule.MaxPurchasePerUser > 0 {
-		total, err := s.orderRepository.CountActivePurchases(ctx, userID, 0, item.Package.ID, nil)
-		if err != nil {
-			return false, "", err
-		}
-		if total >= int64(rule.MaxPurchasePerUser) {
-			return false, "已达到每人累计限购次数", nil
-		}
+	if total >= int64(rule.MaxPurchasePerUser) {
+		return false, "已达到每人累计限购次数", nil
 	}
 	return true, "", nil
 }

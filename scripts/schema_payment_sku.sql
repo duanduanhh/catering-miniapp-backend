@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS `payment_sku` (
   `price_cents` bigint NOT NULL COMMENT '售价，单位为分',
   `original_price_cents` bigint NOT NULL DEFAULT 0 COMMENT '划线价，单位为分；0=不展示',
   `benefit_config` json NOT NULL COMMENT '权益配置',
-  `sale_rule` json NOT NULL COMMENT '营销与限购规则',
+  `sale_rule` json NOT NULL COMMENT '限购规则',
+  `promotion_config` json DEFAULT NULL COMMENT '促销配置：首购价格、资格范围与命中文案',
   `status` tinyint NOT NULL COMMENT '状态：1=草稿，2=已上架，3=已下架',
   `sort` int NOT NULL DEFAULT 0 COMMENT '排序，数值越大越靠前',
   `version` int NOT NULL DEFAULT 1 COMMENT '乐观锁版本号',
@@ -66,4 +67,5 @@ CREATE TABLE IF NOT EXISTS `payment_sku_change_log` (
 --   ADD COLUMN `sku_version` int NOT NULL DEFAULT 0,
 --   ADD COLUMN `virtual_product_id_snapshot` varchar(128) NOT NULL DEFAULT '',
 --   ADD COLUMN `price_cents_snapshot` bigint NOT NULL DEFAULT 0,
---   ADD COLUMN `benefit_snapshot` json DEFAULT NULL;
+--   ADD COLUMN `benefit_snapshot` json DEFAULT NULL,
+--   ADD COLUMN `promotion_snapshot` json DEFAULT NULL COMMENT '订单命中的营销规则快照';

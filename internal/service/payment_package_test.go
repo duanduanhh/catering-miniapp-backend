@@ -193,6 +193,28 @@ func TestValidatePackageCardinality(t *testing.T) {
 	}
 }
 
+func TestValidatePromotionConfigForFirstPurchasePrice(t *testing.T) {
+	valid := model.PaymentPromotionConfig{
+		FirstPurchasePriceCents: 190,
+		FirstPurchaseScope:      model.PaymentFirstPurchaseScopeProduct,
+		VirtualProductID:         "contact_voucher_2_first",
+	}
+	if err := validatePromotionConfig(valid, 500); err != nil {
+		t.Fatalf("valid first purchase promotion: %v", err)
+	}
+
+	for _, rule := range []model.PaymentPromotionConfig{
+		{FirstPurchasePriceCents: 500, FirstPurchaseScope: model.PaymentFirstPurchaseScopeProduct},
+		{FirstPurchasePriceCents: 190},
+		{FirstPurchaseScope: model.PaymentFirstPurchaseScopePlatform},
+		{FirstPurchasePriceCents: 190, FirstPurchaseScope: "sku"},
+	} {
+		if err := validatePromotionConfig(rule, 500); !errors.Is(err, ErrPaymentPackageInvalid) {
+			t.Fatalf("invalid first purchase promotion %+v: %v", rule, err)
+		}
+	}
+}
+
 func TestPaymentPackageServiceEnforcesProductSelectionMode(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
@@ -263,7 +285,7 @@ func TestPaymentPackageServiceEnforcesProductSelectionMode(t *testing.T) {
 	}
 }
 
-func TestPaymentPackageServiceEvaluatesNewCustomerAndPurchaseLimit(t *testing.T) {
+func TestPaymentPackageServiceEnforcesPurchaseLimit(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("open database: %v", err)
@@ -314,7 +336,7 @@ func TestPaymentPackageServiceEvaluatesNewCustomerAndPurchaseLimit(t *testing.T)
 		PriceCents:       150,
 		VirtualProductID: "contact_voucher_2_new",
 		BenefitConfig:    model.PaymentBenefitConfig{ContactVouchers: 2},
-		SaleRule:         model.PaymentSaleRule{Audience: "platform_new", MaxPurchasePerUser: 1},
+		SaleRule:         model.PaymentSaleRule{MaxPurchasePerUser: 1},
 		Operator:         "test",
 	})
 	if err != nil {
@@ -334,7 +356,7 @@ func TestPaymentPackageServiceEvaluatesNewCustomerAndPurchaseLimit(t *testing.T)
 		model.PaymentProductCodeContactVoucher,
 		0,
 	); err != nil {
-		t.Fatalf("new customer should be eligible: %v", err)
+		t.Fatalf("first purchase should be eligible: %v", err)
 	}
 
 	order := &model.Order{
@@ -367,9 +389,8 @@ func TestPaymentPackageServiceEvaluatesNewCustomerAndPurchaseLimit(t *testing.T)
 		"contact_voucher_2_new",
 		model.PaymentProductCodeContactVoucher,
 		0,
-	); !errors.Is(err, ErrPaymentPackageUnavailable) &&
-		!errors.Is(err, ErrPaymentPackageLimitReached) {
-		t.Fatalf("expected package to be unavailable after purchase, got %v", err)
+	); !errors.Is(err, ErrPaymentPackageLimitReached) {
+		t.Fatalf("expected package limit after purchase, got %v", err)
 	}
 }
 

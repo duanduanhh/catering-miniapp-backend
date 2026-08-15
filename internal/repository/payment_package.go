@@ -80,8 +80,12 @@ func (r *paymentPackageRepository) ExistsBySKU(ctx context.Context, skuCode stri
 // 同一道具只能对应一个本地 SKU，避免支付回调的商品、金额和权益出现歧义。
 func (r *paymentPackageRepository) ExistsByVirtualProductID(ctx context.Context, virtualProductID string, excludeID int64) (bool, error) {
 	var total int64
-	db := r.DB(ctx).Model(&model.PaymentPackage{}).
-		Where("virtual_product_id = ? AND deleted_at IS NULL", virtualProductID)
+	db := r.DB(ctx).Model(&model.PaymentPackage{})
+	if db.Dialector.Name() == "sqlite" {
+		db = db.Where("(virtual_product_id = ? OR json_extract(promotion_config, '$.virtual_product_id') = ?) AND deleted_at IS NULL", virtualProductID, virtualProductID)
+	} else {
+		db = db.Where("(virtual_product_id = ? OR JSON_UNQUOTE(JSON_EXTRACT(promotion_config, '$.virtual_product_id')) = ?) AND deleted_at IS NULL", virtualProductID, virtualProductID)
+	}
 	if excludeID > 0 {
 		db = db.Where("id != ?", excludeID)
 	}
@@ -148,6 +152,7 @@ func (r *paymentPackageRepository) Update(ctx context.Context, pkg *model.Paymen
 			"original_price_cents": pkg.OriginalPriceCents,
 			"benefit_config":       pkg.BenefitConfigJSON,
 			"sale_rule":            pkg.SaleRuleJSON,
+			"promotion_config":     pkg.PromotionConfigJSON,
 			"sort":                 pkg.Sort,
 			"version":              gorm.Expr("version + 1"),
 			"updated_by":           pkg.UpdatedBy,

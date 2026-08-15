@@ -173,12 +173,26 @@ func buildSKUOrder(
 	pkg *PaymentPackageAggregate,
 ) (*model.Order, *model.OrderItem) {
 	now := time.Now()
-	price := float64(pkg.Package.PriceCents) / 100
+	priceCents := pkg.PurchasePriceCents
+	if priceCents <= 0 {
+		priceCents = pkg.Package.PriceCents
+	}
+	price := float64(priceCents) / 100
 	benefitSnapshot, _ := json.Marshal(pkg.BenefitConfig)
+	promotionSnapshot := "null"
+	if pkg.Promotion != nil {
+		if data, err := json.Marshal(pkg.Promotion); err == nil {
+			promotionSnapshot = string(data)
+		}
+	}
+	virtualProductID := pkg.Package.VirtualProductID
+	if pkg.Promotion != nil && pkg.Promotion.VirtualProductID != "" {
+		virtualProductID = pkg.Promotion.VirtualProductID
+	}
 	order := &model.Order{
 		OrderNo:     orderNo,
 		UserID:      userID,
-		AmountTotal: model.NewDecimalFromCents(pkg.Package.PriceCents),
+		AmountTotal: model.NewDecimalFromCents(priceCents),
 		AmountPaid:  model.NewDecimalFromFloat64(0),
 		Currency:    "CNY",
 		Status:      model.OrderStatusPending,
@@ -191,11 +205,12 @@ func buildSKUOrder(
 		SKUID:                    pkg.Package.ID,
 		SKUCode:                  pkg.Package.SKUCode,
 		SKUVersion:               pkg.Package.Version,
-		VirtualProductIDSnapshot: pkg.Package.VirtualProductID,
+		VirtualProductIDSnapshot: virtualProductID,
 		TitleSnapshot:            pkg.Package.Name,
 		UnitPriceSnapshot:        price,
-		PriceCentsSnapshot:       pkg.Package.PriceCents,
+		PriceCentsSnapshot:       priceCents,
 		BenefitSnapshot:          string(benefitSnapshot),
+		PromotionSnapshot:        promotionSnapshot,
 		CreateAt:                 now,
 		UpdateAt:                 now,
 	}
@@ -305,9 +320,6 @@ func (s *orderService) completeOrder(ctx context.Context, order *model.Order, pa
 						return err
 					}
 				}
-				if err := s.applyFirstTopStatus(ctx, order.UserID); err != nil {
-					return err
-				}
 			case model.ProductTypeContactVoucher:
 				if err := s.applyContactVoucher(ctx, order.UserID, item, "购买联系券"); err != nil {
 					return err
@@ -398,19 +410,6 @@ func (s *orderService) applyRefresh(ctx context.Context, item *model.OrderItem) 
 	now := time.Now()
 	job.PaidRefreshTime = &now
 	return s.jobRepository.Update(ctx, job)
-}
-
-func (s *orderService) applyFirstTopStatus(ctx context.Context, userID int64) error {
-	user, err := s.userRepository.GetByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-	if user.FirstTopStatus == 0 {
-		user.FirstTopStatus = 1
-		user.UpdateAt = time.Now()
-		return s.userRepository.Update(ctx, user)
-	}
-	return nil
 }
 
 func (s *orderService) applyNewCustomerStatus(ctx context.Context, userID int64) error {

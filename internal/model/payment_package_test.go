@@ -33,16 +33,16 @@ func TestPaymentPackageAutoMigrate(t *testing.T) {
 		t.Fatalf("create payment product: %v", err)
 	}
 	pkg := &PaymentPackage{
-		ProductID:              product.ID,
-		SKUCode:                "voucher_10",
-		Name:                   "10张联系券",
-		PriceCents:             100,
-		BenefitConfigJSON:      `{"contact_vouchers":10}`,
-		SaleRuleJSON:           `{"audience":"all"}`,
-		Status:                 PaymentPackageStatusDraft,
-		Version:                1,
-		CreateAt:               now,
-		UpdateAt:               now,
+		ProductID:         product.ID,
+		SKUCode:           "voucher_10",
+		Name:              "10张联系券",
+		PriceCents:        100,
+		BenefitConfigJSON: `{"contact_vouchers":10}`,
+		SaleRuleJSON:      `{}`,
+		Status:            PaymentPackageStatusDraft,
+		Version:           1,
+		CreateAt:          now,
+		UpdateAt:          now,
 	}
 	if err := db.Create(pkg).Error; err != nil {
 		t.Fatalf("create payment package: %v", err)
