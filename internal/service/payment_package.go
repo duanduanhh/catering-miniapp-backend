@@ -794,8 +794,8 @@ func normalizePromotionConfig(config model.PaymentPromotionConfig) model.Payment
 }
 
 // applyPurchasePromotion resolves the current user's price for one SKU. It is
-// deliberately run again while creating an order, so an old list response can
-// never grant a discount after the user's first purchase has been created.
+// deliberately run again while creating an order, so only a completed payment
+// consumes the first-purchase offer; an abandoned payment can be retried.
 func (s *paymentPackageService) applyPurchasePromotion(
 	ctx context.Context,
 	userID int64,
@@ -827,9 +827,9 @@ func (s *paymentPackageService) applyPurchasePromotion(
 	)
 	switch config.FirstPurchaseScope {
 	case model.PaymentFirstPurchaseScopePlatform:
-		count, err = s.orderRepository.CountActiveOrders(ctx, userID)
+		count, err = s.orderRepository.CountPaidOrders(ctx, userID)
 	case model.PaymentFirstPurchaseScopeProduct:
-		count, err = s.orderRepository.CountActivePurchases(ctx, userID, item.Product.ID, 0, nil)
+		count, err = s.orderRepository.CountPaidPurchases(ctx, userID, item.Product.ID)
 	default:
 		return ErrPaymentPackageInvalid
 	}

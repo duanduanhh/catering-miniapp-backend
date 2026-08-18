@@ -70,7 +70,7 @@ func TestCreateContactVoucherOrderUsesServerSKUPriceAndBenefits(t *testing.T) {
 		PromotionConfig: model.PaymentPromotionConfig{
 			FirstPurchasePriceCents: 100,
 			FirstPurchaseScope:      model.PaymentFirstPurchaseScopeProduct,
-			VirtualProductID:         "contact_voucher_2_first",
+			VirtualProductID:        "contact_voucher_2_first",
 		},
 		Operator: "test",
 	})
@@ -113,13 +113,24 @@ func TestCreateContactVoucherOrderUsesServerSKUPriceAndBenefits(t *testing.T) {
 		item.PriceCentsSnapshot != 100 || item.BenefitSnapshot == "" || item.PromotionSnapshot == "null" {
 		t.Fatalf("missing SKU snapshot: %+v", item)
 	}
-	// The next purchase must be re-quoted under the transaction lock. A stale
-	// list response cannot continue using the first-purchase price.
+	// A pending or failed payment must not consume the first-purchase offer.
 	next, err := packageService.ResolveForPurchase(
 		context.Background(), user.ID, "contact_voucher_2_new", model.PaymentProductCodeContactVoucher, 0,
 	)
 	if err != nil {
-		t.Fatalf("resolve regular price after first order: %v", err)
+		t.Fatalf("resolve first-purchase price after pending order: %v", err)
+	}
+	if next.PurchasePriceCents != 100 || next.Promotion == nil {
+		t.Fatalf("next purchase quote = %+v, want first-purchase price", next)
+	}
+	if err := db.Model(&model.Order{}).Where("id = ?", order.ID).Update("status", model.OrderStatusPaid).Error; err != nil {
+		t.Fatalf("mark order paid: %v", err)
+	}
+	next, err = packageService.ResolveForPurchase(
+		context.Background(), user.ID, "contact_voucher_2_new", model.PaymentProductCodeContactVoucher, 0,
+	)
+	if err != nil {
+		t.Fatalf("resolve regular price after paid order: %v", err)
 	}
 	if next.PurchasePriceCents != 150 || next.Promotion != nil {
 		t.Fatalf("next purchase quote = %+v, want regular price", next)

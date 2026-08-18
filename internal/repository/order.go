@@ -18,6 +18,8 @@ type OrderRepository interface {
 	HasPaidOrderByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error)
 	CountActivePurchases(ctx context.Context, userID, productID, packageID int64, since *time.Time) (int64, error)
 	CountActiveOrders(ctx context.Context, userID int64) (int64, error)
+	CountPaidPurchases(ctx context.Context, userID, productID int64) (int64, error)
+	CountPaidOrders(ctx context.Context, userID int64) (int64, error)
 	ListPendingRentOrderNos(ctx context.Context, jobID int64) ([]string, error)
 	CancelPendingOrder(ctx context.Context, orderNo, remark string) (bool, error)
 }
@@ -228,6 +230,31 @@ func (r *orderRepository) CountActiveOrders(ctx context.Context, userID int64) (
 		Where("user_id = ?", userID).
 		Where("(status = ? OR (status = ? AND create_at >= ?))",
 			model.OrderStatusPaid, model.OrderStatusPending, time.Now().Add(-30*time.Minute)).
+		Count(&total).Error
+	return total, err
+}
+
+// CountPaidPurchases 仅统计已支付订单，用于判断首购优惠资格。
+// 待支付、已取消和退款订单均不消耗首购资格。
+func (r *orderRepository) CountPaidPurchases(ctx context.Context, userID, productID int64) (int64, error) {
+	var total int64
+	db := r.DB(ctx).Table("orders AS o").
+		Joins("INNER JOIN order_item oi ON oi.order_id = o.id").
+		Where("o.user_id = ? AND o.status = ?", userID, model.OrderStatusPaid)
+	if productID > 0 {
+		db = db.Where("oi.product_id = ?", productID)
+	}
+	if err := db.Distinct("o.id").Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+// CountPaidOrders 仅统计已支付订单，用于判断平台首购优惠资格。
+func (r *orderRepository) CountPaidOrders(ctx context.Context, userID int64) (int64, error) {
+	var total int64
+	err := r.DB(ctx).Model(&model.Order{}).
+		Where("user_id = ? AND status = ?", userID, model.OrderStatusPaid).
 		Count(&total).Error
 	return total, err
 }
