@@ -2,11 +2,16 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"math"
 	"time"
 
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 	"github.com/go-nunu/nunu-layout-advanced/internal/repository"
 )
+
+var ErrInvalidAdminJobLocation = errors.New("invalid admin job location")
 
 type AdminJobService interface {
 	List(ctx context.Context, query repository.AdminJobListQuery) ([]AdminJobItem, int64, error)
@@ -17,9 +22,13 @@ type AdminJobService interface {
 }
 
 type AdminJobUpdateInput struct {
-	JobID       int64
-	Description *string
-	WorkContent *string
+	JobID         int64
+	Description   *string
+	WorkContent   *string
+	Address       *string
+	AddressDetail *string
+	Latitude      *float64
+	Longitude     *float64
 }
 
 func NewAdminJobService(
@@ -49,6 +58,8 @@ type AdminJobItem struct {
 	Contact           string
 	Address           string
 	AddressDetail     string
+	Latitude          float64
+	Longitude         float64
 	SalaryMin         int
 	SalaryMax         int
 	Status            int
@@ -95,6 +106,8 @@ func (s *adminJobService) List(ctx context.Context, query repository.AdminJobLis
 			Contact:           job.Contact,
 			Address:           job.Address,
 			AddressDetail:     job.AddressDetail,
+			Latitude:          job.Latitude,
+			Longitude:         job.Longitude,
 			SalaryMin:         job.SalaryMin,
 			SalaryMax:         job.SalaryMax,
 			Status:            int(job.Status),
@@ -128,6 +141,24 @@ func (s *adminJobService) Update(ctx context.Context, input AdminJobUpdateInput)
 	}
 	if input.WorkContent != nil {
 		job.WorkContent = *input.WorkContent
+	}
+	if input.Address != nil {
+		job.Address = *input.Address
+	}
+	if input.AddressDetail != nil {
+		job.AddressDetail = *input.AddressDetail
+	}
+	if input.Latitude != nil {
+		if math.IsNaN(*input.Latitude) || math.IsInf(*input.Latitude, 0) || *input.Latitude < -90 || *input.Latitude > 90 {
+			return fmt.Errorf("%w: 纬度必须在 -90 到 90 之间", ErrInvalidAdminJobLocation)
+		}
+		job.Latitude = *input.Latitude
+	}
+	if input.Longitude != nil {
+		if math.IsNaN(*input.Longitude) || math.IsInf(*input.Longitude, 0) || *input.Longitude < -180 || *input.Longitude > 180 {
+			return fmt.Errorf("%w: 经度必须在 -180 到 180 之间", ErrInvalidAdminJobLocation)
+		}
+		job.Longitude = *input.Longitude
 	}
 	return s.jobRepository.Update(ctx, job)
 }

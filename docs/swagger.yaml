@@ -250,6 +250,10 @@ definitions:
         type: string
       job_id:
         type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
       photo_urls:
         items:
           type: string
@@ -312,10 +316,18 @@ definitions:
     type: object
   v1.AdminJobUpdateRequest:
     properties:
+      address:
+        type: string
+      address_detail:
+        type: string
       description:
         type: string
       job_id:
         type: integer
+      latitude:
+        type: number
+      longitude:
+        type: number
       work_content:
         type: string
     required:
@@ -2225,7 +2237,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 管理后台编辑岗位的岗位描述和工作内容，两个字段均为可选，传哪个改哪个。
+      description: 管理后台编辑岗位内容及位置字段，所有字段均为可选，传哪个改哪个。
       parameters:
       - description: params
         in: body

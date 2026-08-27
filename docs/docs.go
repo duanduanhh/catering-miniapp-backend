@@ -259,7 +259,7 @@ const docTemplate = `{
         },
         "/admin/jobs/update": {
             "post": {
-                "description": "管理后台编辑岗位的岗位描述和工作内容，两个字段均为可选，传哪个改哪个。",
+                "description": "管理后台编辑岗位内容及位置字段，所有字段均为可选，传哪个改哪个。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2703,6 +2703,12 @@ const docTemplate = `{
                 "job_id": {
                     "type": "integer"
                 },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
                 "photo_urls": {
                     "type": "array",
                     "items": {
@@ -2800,11 +2806,23 @@ const docTemplate = `{
                 "job_id"
             ],
             "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "address_detail": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
                 "job_id": {
                     "type": "integer"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
                 },
                 "work_content": {
                     "type": "string"
