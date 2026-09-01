@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -79,6 +80,8 @@ func (h *AdminJobHandler) List(ctx *gin.Context) {
 			Contact:           item.Contact,
 			Address:           item.Address,
 			AddressDetail:     item.AddressDetail,
+			Latitude:          item.Latitude,
+			Longitude:         item.Longitude,
 			SalaryMin:         item.SalaryMin,
 			SalaryMax:         item.SalaryMax,
 			Status:            item.Status,
@@ -104,7 +107,7 @@ func (h *AdminJobHandler) List(ctx *gin.Context) {
 
 // AdminUpdateJob godoc
 // @Summary 编辑岗位
-// @Description 管理后台编辑岗位的岗位描述和工作内容，两个字段均为可选，传哪个改哪个。
+// @Description 管理后台编辑岗位内容及位置字段，所有字段均为可选，传哪个改哪个。
 // @Tags 管理后台
 // @Accept json
 // @Produce json
@@ -118,12 +121,20 @@ func (h *AdminJobHandler) Update(ctx *gin.Context) {
 		return
 	}
 	input := service.AdminJobUpdateInput{
-		JobID:       req.JobID,
-		Description: req.Description,
-		WorkContent: req.WorkContent,
+		JobID:         req.JobID,
+		Description:   req.Description,
+		WorkContent:   req.WorkContent,
+		Address:       req.Address,
+		AddressDetail: req.AddressDetail,
+		Latitude:      req.Latitude,
+		Longitude:     req.Longitude,
 	}
 	if err := h.adminJobService.Update(ctx, input); err != nil {
 		h.logger.WithContext(ctx).Error("adminJobService.Update error", zap.Error(err))
+		if errors.Is(err, service.ErrInvalidAdminJobLocation) {
+			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
+			return
+		}
 		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, err.Error())
 		return
 	}

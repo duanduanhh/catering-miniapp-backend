@@ -33,11 +33,11 @@ build-linux:
 SWR_REGISTRY ?= swr.cn-north-1.myhuaweicloud.com
 SWR_ORG      ?= catering-cyxx
 IMAGE_NAME   ?= miniapp-backend
-IMAGE_TAG    ?= v1-20260818-sku-promotion
+IMAGE_TAG    ?= v1-20260901-sku-promotion
 
 docker:
 	make swag
-	docker buildx build --platform linux/amd64 --pull=false --load -f deploy/build/Dockerfile \
+	docker buildx build --platform linux/amd64 --provenance=false --pull=false --load -f deploy/build/Dockerfile \
 		--build-arg APP_RELATIVE_PATH=./cmd/server \
 		-t $(SWR_REGISTRY)/$(SWR_ORG)/$(IMAGE_NAME):$(IMAGE_TAG) \
 		--push .

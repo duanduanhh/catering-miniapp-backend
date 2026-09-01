@@ -20,6 +20,8 @@ type AdminJobItem struct {
 	Contact           string         `json:"contact"`
 	Address           string         `json:"address"`
 	AddressDetail     string         `json:"address_detail"`
+	Latitude          float64        `json:"latitude"`
+	Longitude         float64        `json:"longitude"`
 	SalaryMin         int            `json:"salary_min"`
 	SalaryMax         int            `json:"salary_max"`
 	Status            int            `json:"status"`
@@ -50,7 +52,11 @@ type AdminJobIDRequest struct {
 }
 
 type AdminJobUpdateRequest struct {
-	JobID       int64   `json:"job_id" binding:"required"`
-	Description *string `json:"description"`
-	WorkContent *string `json:"work_content"`
+	JobID         int64    `json:"job_id" binding:"required"`
+	Description   *string  `json:"description"`
+	WorkContent   *string  `json:"work_content"`
+	Address       *string  `json:"address"`
+	AddressDetail *string  `json:"address_detail"`
+	Latitude      *float64 `json:"latitude"`
+	Longitude     *float64 `json:"longitude"`
 }
