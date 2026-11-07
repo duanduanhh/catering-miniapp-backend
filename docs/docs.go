@@ -358,6 +358,329 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/payment-packages/create": {
+            "post": {
+                "description": "新增 SKU 后状态为草稿。product_id 和 sku_code 创建后不可修改；金额字段单位为分。上架前必须填写微信虚拟支付后台已发布的 virtual_product_id，且一个道具 ID 只能绑定一个 SKU。promotion_config.first_purchase_price_cents 可为同一 SKU 配置首购特惠价，必须低于 price_cents；first_purchase_scope：platform=平台首购，product=当前产品首购；首购价与常规价不同，必须配置 promotion_config.virtual_product_id。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "新增付费套餐",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageCreateResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-packages/delete": {
+            "post": {
+                "description": "仅未上架套餐可删除，执行软删除并保留变更记录。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "删除付费套餐",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-packages/detail": {
+            "post": {
+                "description": "返回 SKU 的完整管理配置，包括权益、累计限购和首购特惠配置；promotion_config.first_purchase_price_cents 为同一 SKU 的首购成交价（分），first_purchase_scope：platform=平台首购，product=当前产品首购。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "管理后台套餐详情",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.PaymentPackageItem"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-packages/history": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "查询套餐变更记录",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageHistoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageHistoryResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-packages/list": {
+            "post": {
+                "description": "查询全部未删除 SKU，支持按收费业务、状态和关键词筛选。响应中的 price_cents、original_price_cents 单位为分；sale_rule、promotion_config 用于管理端编辑回显。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "管理后台套餐列表",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-packages/publish": {
+            "post": {
+                "description": "上架前校验套餐权益、价格以及微信虚拟支付道具 ID；未填写道具 ID 或与其他未删除 SKU 重复时不能上架。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "上架付费套餐",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-packages/unpublish": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "下架付费套餐",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageIDRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-packages/update": {
+            "post": {
+                "description": "仅草稿或已下架 SKU 可编辑，version 用于防止多人覆盖修改。金额字段单位为分；营销规则会随本次编辑整体更新。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "编辑付费套餐",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentPackageUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-products/list": {
+            "post": {
+                "description": "返回收费业务、单/多规格模式、购买须知及当前未删除 SKU 数量。selection_mode：1=单规格，2=多规格。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "管理后台付费产品列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.PaymentProductListResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/payment-products/update": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理后台-付费套餐"
+                ],
+                "summary": "编辑付费产品购买须知",
+                "parameters": [
+                    {
+                        "description": "params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.AdminPaymentProductUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/reports/list": {
             "post": {
                 "consumes": [
@@ -722,7 +1045,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "创建联系券购买订单并返回微信支付参数，支付成功后后台回调自动增加券数量。price 单位：元；contact_voucher_num 为本次购买张数。",
+                "description": "创建联系券待支付订单。传入套餐查询接口返回的 sku_code，价格、联系券数量和赠送数量均由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动到账。",
                 "consumes": [
                     "application/json"
                 ],
@@ -748,7 +1071,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.PayOrderResponseData"
+                            "$ref": "#/definitions/v1.PaymentOrderResponseData"
                         }
                     }
                 }
@@ -1694,7 +2017,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "创建付费刷新订单并返回微信支付参数，支付成功后后台回调自动完成刷新。适用于招聘、求职和招租信息；price 单位：元。",
+                "description": "创建付费刷新待支付订单。传入套餐查询接口返回的 sku_code，价格和刷新权益由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动完成刷新。适用于招聘、求职和招租信息。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1719,7 +2042,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.PayOrderResponseData"
+                            "$ref": "#/definitions/v1.PaymentOrderResponseData"
                         }
                     }
                 }
@@ -1732,7 +2055,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "每个自然日限使用1次，分享后免费刷新岗位排名（更新 refresh_time）。3001=今日次数已用完，403=非本人岗位。",
+                "description": "每次使用后冷却24小时，分享后免费刷新岗位排名（更新 refresh_time）。3001=仍在24小时冷却期，403=非本人岗位。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1771,7 +2094,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "招租(biz_type=3)专用发布接口。一次事务预建 job(status=待支付) + rent_detail + order，返回微信支付参数。小程序完成支付后，微信回调将 job 翻转为 active 并刷新时间。photo_urls 至少1张、最多4张；transfer_fee_type=1 时 transfer_fee_amount 必填。发布价格从服务端配置 rent.publish_price 读取，客户端不传。",
+                "description": "招租(biz_type=3)专用下单接口。传入 rent_publish 产品返回的 sku_code，价格由服务端读取。一次事务预建 job(status=待支付) + rent_detail + order；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后信息自动发布。photo_urls 至少1张、最多4张。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1849,7 +2172,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "创建置顶订单并返回微信支付参数，支付成功后后台回调自动写入置顶时间窗口。top_hour 单位：小时，必须\u003e0；price 单位：元，必须\u003e0。仅限岗位所有者操作。",
+                "description": "创建岗位置顶待支付订单。传入套餐查询接口返回的 sku_code，价格、置顶时长和赠送联系券由服务端读取；随后使用返回的 order_no 调用 /payment/virtual/prepare 并发起 wx.requestVirtualPayment。道具发货推送成功后自动发放权益。仅限岗位所有者操作。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1875,7 +2198,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.PayOrderResponseData"
+                            "$ref": "#/definitions/v1.PaymentOrderResponseData"
                         }
                     }
                 }
@@ -1954,6 +2277,144 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.OrderStatusResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment-packages/list": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "小程序登录接口。按产品返回已上架、适用于当前 biz_type 且符合当前用户购买资格的 SKU。\nproduct_code：job_top=岗位置顶，contact_voucher=联系券，paid_refresh=付费刷新，rent_publish=招租发布。\nbiz_type：0=不限，1=招聘，2=求职，3=招租。岗位置顶传1或2；联系券传0；付费刷新传当前信息类型；招租发布传3。\nselection_mode：1=单规格，正常情况下 skus 只有一条，前端直接使用 skus[0]；2=多规格，前端展示 skus 供用户选择。\nprice_cents 和 original_price_cents 的单位均为分，例如199表示1.99元。命中首购特惠时，同一 sku_code 返回特惠成交价 price_cents，original_price_cents 返回常规售价。skus 为空表示当前没有可购买 SKU。\nbenefit_config 包含联系券、刷新次数、置顶小时数、招租发布次数和赠送联系券；仅返回当前产品适用的字段。营销规则由服务端完成资格判断，不返回 sale_rule。\n创建支付订单时只传服务端返回的 sku_code 和业务目标，不能传客户端价格。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "付费套餐"
+                ],
+                "summary": "查询可购买套餐",
+                "parameters": [
+                    {
+                        "description": "产品编码及当前业务类型",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.PaymentPackageListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "查询成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.PaymentPackageListResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "参数错误，例如 biz_type 超出0～3",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录或登录态已失效",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "product_code 对应的产品不存在",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment/virtual/prepare": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "为当前用户的待支付单生成 wx.requestVirtualPayment 所需的 signData、paySig、signature。login_code 必须在本次支付前由 wx.login() 新获取；后端校验其所属用户与订单归属。小程序必须原样传入 virtual_payment，不能修改或重新序列化 signData。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "准备微信虚拟支付",
+                "parameters": [
+                    {
+                        "description": "订单号和本次 wx.login code",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.VirtualPaymentPrepareRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "签名生成成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/v1.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/v1.VirtualPaymentPrepareResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "订单不可支付、SKU 未配置微信道具 ID 或虚拟支付未配置",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录或 login_code 不属于当前用户",
+                        "schema": {
+                            "$ref": "#/definitions/v1.Response"
                         }
                     }
                 }
@@ -2055,7 +2516,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "返回当前登录用户的基本信息。sex: 0=未设置 1=男 2=女。first_top_status: 0=未享受首次置顶优惠 1=已享受。new_customer_status: 0=未享受新用户优惠 1=已享受。profile_complete_status: 0=未完善 1=已完善（填写手机号）。",
+                "description": "返回当前登录用户的基本信息。share_refresh_available=1表示可分享免费刷新；冷却中同时返回下次可用时间和剩余秒数。冷却时长为24小时。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2122,7 +2583,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新。amount 单位：元。",
+                "description": "返回当前用户已支付的订单列表，按创建时间倒序。product_type: 1=岗位置顶 2=联系券 3=付费刷新 4=招租发布。amount 单位：元。",
                 "consumes": [
                     "application/json"
                 ],
@@ -2232,40 +2693,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/wechat/pay/notify": {
-            "post": {
-                "description": "微信支付结果异步通知接口，由微信服务器主动调用，前端无需关注。收到回调后解密验签，金额一致则更新订单状态并执行对应业务逻辑（置顶/券充值/刷新）。",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "支付模块"
-                ],
-                "summary": "微信支付回调（仅供微信服务器调用）",
-                "parameters": [
-                    {
-                        "description": "params",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.WechatPayNotifyRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/wechat/user/login": {
             "post": {
                 "description": "通过微信小程序 login code 换取 JWT token。用户不存在时返回 404，需先调用 /register。token 放在后续请求的 ` + "`" + `token` + "`" + ` header 中（小写，非 Authorization）。",
@@ -2329,6 +2756,97 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.WechatLoginResponseData"
+                        }
+                    }
+                }
+            }
+        },
+        "/wechat/virtual-payment/notify": {
+            "get": {
+                "description": "在微信虚拟支付后台保存发货推送地址时调用。接口校验 message_token 签名；若后台选择安全模式，同时解密 echostr。",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "验证虚拟支付消息推送地址（仅供微信服务器调用）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "明文模式微信签名",
+                        "name": "signature",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "安全模式微信签名",
+                        "name": "msg_signature",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "时间戳",
+                        "name": "timestamp",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "随机数",
+                        "name": "nonce",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "微信回显内容",
+                        "name": "echostr",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "微信回显内容",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "接收 xpay_goods_deliver_notify。服务端校验微信消息签名（安全模式下解密 XML），原子更新订单为已支付，并幂等发放订单权益；招租订单会自动发布对应招租信息。返回 {\"ErrCode\":0} 表示发货完成。",
+                "consumes": [
+                    "text/xml"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "支付模块"
+                ],
+                "summary": "微信虚拟支付道具发货推送（仅供微信服务器调用）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "明文模式微信签名",
+                        "name": "signature",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "安全模式微信签名",
+                        "name": "msg_signature",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发货成功",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -2927,7 +3445,19 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "product_id": {
+                    "type": "integer"
+                },
                 "product_type": {
+                    "type": "integer"
+                },
+                "sku_code": {
+                    "type": "string"
+                },
+                "sku_id": {
+                    "type": "integer"
+                },
+                "sku_version": {
                     "type": "integer"
                 },
                 "target_id": {
@@ -3000,6 +3530,258 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageCreateRequest": {
+            "type": "object",
+            "required": [
+                "benefit_config",
+                "name",
+                "price_cents",
+                "product_id",
+                "sku_code"
+            ],
+            "properties": {
+                "badge": {
+                    "type": "string"
+                },
+                "benefit_config": {
+                    "$ref": "#/definitions/v1.PaymentBenefitConfig"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "original_price_cents": {
+                    "description": "划线价，单位为分；0 表示不展示。",
+                    "type": "integer"
+                },
+                "price_cents": {
+                    "description": "售价，单位为分，必须大于 0。",
+                    "type": "integer"
+                },
+                "product_id": {
+                    "description": "收费业务 ID；创建后不可修改。",
+                    "type": "integer"
+                },
+                "promotion_config": {
+                    "$ref": "#/definitions/v1.PaymentPromotionConfig"
+                },
+                "sale_rule": {
+                    "$ref": "#/definitions/v1.PaymentSaleRule"
+                },
+                "sku_code": {
+                    "description": "SKU 唯一编码；创建后不可修改。",
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "virtual_product_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageCreateResponseData": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageDetailRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageHistoryItem": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "integer"
+                },
+                "after_snapshot": {
+                    "type": "string"
+                },
+                "before_snapshot": {
+                    "type": "string"
+                },
+                "change_reason": {
+                    "type": "string"
+                },
+                "create_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "operator": {
+                    "type": "string"
+                },
+                "sku_id": {
+                    "type": "integer"
+                },
+                "sku_version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageHistoryRequest": {
+            "type": "object",
+            "required": [
+                "sku_id"
+            ],
+            "properties": {
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "sku_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageHistoryResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.AdminPaymentPackageHistoryItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageIDRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageListRequest": {
+            "type": "object",
+            "properties": {
+                "keyword": {
+                    "type": "string"
+                },
+                "page_num": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.PaymentPackageItem"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.AdminPaymentPackageUpdateRequest": {
+            "type": "object",
+            "required": [
+                "benefit_config",
+                "id",
+                "name",
+                "price_cents",
+                "version"
+            ],
+            "properties": {
+                "badge": {
+                    "type": "string"
+                },
+                "benefit_config": {
+                    "$ref": "#/definitions/v1.PaymentBenefitConfig"
+                },
+                "change_reason": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "original_price_cents": {
+                    "description": "划线价，单位为分；0 表示不展示。",
+                    "type": "integer"
+                },
+                "price_cents": {
+                    "description": "售价，单位为分，必须大于 0。",
+                    "type": "integer"
+                },
+                "promotion_config": {
+                    "$ref": "#/definitions/v1.PaymentPromotionConfig"
+                },
+                "sale_rule": {
+                    "$ref": "#/definitions/v1.PaymentSaleRule"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "virtual_product_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AdminPaymentProductUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "purchase_notice": {
+                    "type": "string"
                 }
             }
         },
@@ -3388,18 +4170,12 @@ const docTemplate = `{
         "v1.ContactVoucherBuyRequest": {
             "type": "object",
             "required": [
-                "contact_voucher_num",
-                "price"
+                "sku_code"
             ],
             "properties": {
-                "contact_voucher_num": {
-                    "type": "integer"
-                },
-                "gift_num": {
-                    "type": "integer"
-                },
-                "price": {
-                    "type": "number"
+                "sku_code": {
+                    "type": "string",
+                    "example": "contact_voucher_5"
                 }
             }
         },
@@ -4596,14 +5372,15 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "job_id",
-                "price"
+                "sku_code"
             ],
             "properties": {
                 "job_id": {
                     "type": "integer"
                 },
-                "price": {
-                    "type": "number"
+                "sku_code": {
+                    "type": "string",
+                    "example": "paid_refresh_1"
                 }
             }
         },
@@ -4644,22 +5421,15 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "job_id",
-                "price",
-                "top_hour"
+                "sku_code"
             ],
             "properties": {
-                "contact_voucher_num": {
-                    "description": "加赠联系券数量，0=不加赠",
-                    "type": "integer"
-                },
                 "job_id": {
                     "type": "integer"
                 },
-                "price": {
-                    "type": "number"
-                },
-                "top_hour": {
-                    "type": "integer"
+                "sku_code": {
+                    "type": "string",
+                    "example": "job_top_3d"
                 }
             }
         },
@@ -4815,40 +5585,322 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.PayOrderResponseData": {
+        "v1.PaymentBenefitConfig": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
+                "contact_vouchers": {
+                    "type": "integer"
+                },
+                "gift_contact_vouchers": {
+                    "type": "integer"
+                },
+                "refresh_times": {
+                    "type": "integer"
+                },
+                "rent_publish_times": {
+                    "type": "integer"
+                },
+                "top_hours": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1.PaymentOrderResponseData": {
+            "type": "object",
+            "properties": {
+                "amount_cents": {
+                    "type": "integer",
+                    "example": 1800
                 },
                 "order_id": {
                     "type": "integer"
                 },
                 "order_no": {
                     "type": "string"
-                },
-                "pay_params": {
-                    "$ref": "#/definitions/v1.PayParams"
                 }
             }
         },
-        "v1.PayParams": {
+        "v1.PaymentPackageItem": {
             "type": "object",
             "properties": {
-                "nonceStr": {
+                "badge": {
+                    "type": "string",
+                    "example": ""
+                },
+                "benefit_config": {
+                    "$ref": "#/definitions/v1.PaymentBenefitConfig"
+                },
+                "create_at": {
                     "type": "string"
                 },
-                "package": {
+                "created_by": {
                     "type": "string"
                 },
-                "paySign": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "标准刷新"
+                },
+                "original_price_cents": {
+                    "description": "划线价，单位为分；0 表示不展示。",
+                    "type": "integer",
+                    "example": 0
+                },
+                "price_cents": {
+                    "description": "SKU 常规售价，单位为分。首购特惠价配置在 promotion_config 中。",
+                    "type": "integer",
+                    "example": 199
+                },
+                "product_code": {
+                    "type": "string",
+                    "enum": [
+                        "job_top",
+                        "contact_voucher",
+                        "paid_refresh",
+                        "rent_publish"
+                    ],
+                    "example": "paid_refresh"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "product_name": {
+                    "type": "string",
+                    "example": "付费刷新"
+                },
+                "promotion_config": {
+                    "$ref": "#/definitions/v1.PaymentPromotionConfig"
+                },
+                "sale_rule": {
+                    "description": "仅管理后台返回及配置。小程序端已根据此规则筛选可购买 SKU，不返回该字段。",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.PaymentSaleRule"
+                        }
+                    ]
+                },
+                "selection_mode": {
+                    "description": "规格模式：1=单规格，2=多规格。",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ],
+                    "example": 1
+                },
+                "sku_code": {
+                    "description": "SKU 唯一编码；创建支付订单时应传此字段，不得传客户端价格。",
+                    "type": "string",
+                    "example": "paid_refresh_standard"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "subtitle": {
+                    "type": "string",
+                    "example": "立即刷新信息排名"
+                },
+                "update_at": {
                     "type": "string"
                 },
-                "signType": {
+                "updated_by": {
                     "type": "string"
                 },
-                "timeStamp": {
+                "version": {
+                    "type": "integer"
+                },
+                "virtual_product_id": {
+                    "description": "微信虚拟支付后台已发布的道具 ID；仅管理后台使用，不向小程序购买页返回。",
+                    "type": "string",
+                    "example": "wx_paid_refresh_1"
+                }
+            }
+        },
+        "v1.PaymentPackageListRequest": {
+            "type": "object",
+            "properties": {
+                "biz_type": {
+                    "description": "当前业务类型：0=不限，1=招聘，2=求职，3=招租。岗位置顶传1或2；联系券传0；付费刷新传当前信息类型；招租发布传3。",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "example": 3
+                },
+                "product_code": {
+                    "description": "产品编码，前端应优先使用该字段：job_top=岗位置顶，contact_voucher=联系券，paid_refresh=付费刷新，rent_publish=招租发布。",
+                    "type": "string",
+                    "enum": [
+                        "job_top",
+                        "contact_voucher",
+                        "paid_refresh",
+                        "rent_publish"
+                    ],
+                    "example": "paid_refresh"
+                }
+            }
+        },
+        "v1.PaymentPackageListResponseData": {
+            "type": "object",
+            "properties": {
+                "product_code": {
+                    "type": "string",
+                    "enum": [
+                        "job_top",
+                        "contact_voucher",
+                        "paid_refresh",
+                        "rent_publish"
+                    ],
+                    "example": "paid_refresh"
+                },
+                "product_name": {
+                    "type": "string",
+                    "example": "付费刷新"
+                },
+                "purchase_notice": {
+                    "type": "string",
+                    "example": "虚拟商品购买后自动到账"
+                },
+                "selection_mode": {
+                    "description": "规格模式：1=单规格，前端直接使用 skus[0]；2=多规格，前端展示 SKU 供用户选择。",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ],
+                    "example": 1
+                },
+                "skus": {
+                    "description": "当前已上架、适用于 biz_type 且符合当前用户购买资格的 SKU；空数组表示暂无可购买 SKU。",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.PaymentSKU"
+                    }
+                }
+            }
+        },
+        "v1.PaymentProductItem": {
+            "type": "object",
+            "properties": {
+                "create_at": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "package_count": {
+                    "type": "integer"
+                },
+                "product_code": {
+                    "type": "string"
+                },
+                "purchase_notice": {
+                    "type": "string"
+                },
+                "selection_mode": {
+                    "type": "integer"
+                },
+                "update_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.PaymentProductListResponseData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.PaymentProductItem"
+                    }
+                }
+            }
+        },
+        "v1.PaymentPromotionConfig": {
+            "type": "object",
+            "properties": {
+                "badge": {
+                    "type": "string",
+                    "example": "首单特惠"
+                },
+                "first_purchase_price_cents": {
+                    "type": "integer",
+                    "example": 390
+                },
+                "first_purchase_scope": {
+                    "type": "string",
+                    "enum": [
+                        "platform",
+                        "product"
+                    ],
+                    "example": "product"
+                },
+                "subtitle": {
+                    "type": "string",
+                    "example": "新用户专享"
+                },
+                "virtual_product_id": {
+                    "type": "string",
+                    "example": "top_1_first"
+                }
+            }
+        },
+        "v1.PaymentSKU": {
+            "type": "object",
+            "properties": {
+                "badge": {
+                    "type": "string",
+                    "example": "推荐"
+                },
+                "benefit_config": {
+                    "$ref": "#/definitions/v1.PaymentBenefitConfig"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "刷新1次"
+                },
+                "original_price_cents": {
+                    "description": "划线价，单位为分；首购特惠命中时为 SKU 常规售价。",
+                    "type": "integer",
+                    "example": 400
+                },
+                "price_cents": {
+                    "description": "当前用户的实际成交价，单位为分；首购特惠命中时低于常规售价。",
+                    "type": "integer",
+                    "example": 200
+                },
+                "promotion_type": {
+                    "description": "当前用户命中的促销类型；空字符串表示按 SKU 普通配置展示。",
+                    "type": "string",
+                    "example": "first_purchase"
+                },
+                "sku_code": {
+                    "type": "string",
+                    "example": "paid_refresh_1"
+                },
+                "subtitle": {
+                    "type": "string",
+                    "example": "立即刷新，提升曝光"
+                }
+            }
+        },
+        "v1.PaymentSaleRule": {
+            "type": "object",
+            "properties": {
+                "max_purchase_per_user": {
+                    "type": "integer",
+                    "example": 0
                 }
             }
         },
@@ -4940,7 +5992,8 @@ const docTemplate = `{
                 "monthly_rent",
                 "photo_urls",
                 "positions",
-                "second_area_des"
+                "second_area_des",
+                "sku_code"
             ],
             "properties": {
                 "address": {
@@ -5002,6 +6055,10 @@ const docTemplate = `{
                 "second_area_id": {
                     "type": "integer"
                 },
+                "sku_code": {
+                    "type": "string",
+                    "example": "rent_publish_1"
+                },
                 "third_area_des": {
                     "type": "string"
                 },
@@ -5046,8 +6103,9 @@ const docTemplate = `{
         "v1.RentPrePublishResponseData": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
+                "amount_cents": {
+                    "type": "integer",
+                    "example": 1800
                 },
                 "job_id": {
                     "type": "integer"
@@ -5057,9 +6115,6 @@ const docTemplate = `{
                 },
                 "order_no": {
                     "type": "string"
-                },
-                "pay_params": {
-                    "$ref": "#/definitions/v1.PayParams"
                 }
             }
         },
@@ -5199,9 +6254,6 @@ const docTemplate = `{
                 "contact_voucher_num": {
                     "type": "integer"
                 },
-                "first_top_status": {
-                    "type": "integer"
-                },
                 "name": {
                     "type": "string"
                 },
@@ -5218,6 +6270,12 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "share_refresh_available": {
+                    "type": "integer"
+                },
+                "share_refresh_next_available_at": {
+                    "type": "string"
+                },
+                "share_refresh_remaining_seconds": {
                     "type": "integer"
                 },
                 "user_code": {
@@ -5313,12 +6371,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "product_type": {
-                    "description": "商品类型: 1=置顶 2=联系券 3=刷新",
+                    "description": "商品类型: 1=置顶 2=联系券 3=刷新 4=招租发布",
                     "type": "integer",
                     "enum": [
                         1,
                         2,
-                        3
+                        3,
+                        4
                     ],
                     "example": 1
                 },
@@ -5349,6 +6408,55 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "v1.VirtualPaymentParams": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "example": "short_series_goods"
+                },
+                "paySig": {
+                    "type": "string"
+                },
+                "signData": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.VirtualPaymentPrepareRequest": {
+            "type": "object",
+            "required": [
+                "login_code",
+                "order_no"
+            ],
+            "properties": {
+                "login_code": {
+                    "type": "string"
+                },
+                "order_no": {
+                    "type": "string",
+                    "example": "TOP202608010001"
+                }
+            }
+        },
+        "v1.VirtualPaymentPrepareResponseData": {
+            "type": "object",
+            "properties": {
+                "amount_cents": {
+                    "type": "integer",
+                    "example": 390
+                },
+                "order_no": {
+                    "type": "string"
+                },
+                "virtual_payment": {
+                    "$ref": "#/definitions/v1.VirtualPaymentParams"
                 }
             }
         },
@@ -5387,9 +6495,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "v1.WechatPayNotifyRequest": {
-            "type": "object"
         },
         "v1.WechatRegisterRequest": {
             "type": "object",

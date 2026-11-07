@@ -1,16 +1,25 @@
 package handler
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/go-nunu/nunu-layout-advanced/internal/service"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/jwt"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 )
 
 type Handler struct {
 	logger *log.Logger
+}
+
+func isPaymentPackageOrderError(err error) bool {
+	return errors.Is(err, service.ErrPaymentPackageNotFound) ||
+		errors.Is(err, service.ErrPaymentPackageInvalid) ||
+		errors.Is(err, service.ErrPaymentPackageUnavailable) ||
+		errors.Is(err, service.ErrPaymentPackageLimitReached)
 }
 
 func NewHandler(

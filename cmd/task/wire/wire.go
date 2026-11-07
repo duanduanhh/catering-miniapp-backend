@@ -23,6 +23,7 @@ var repositorySet = wire.NewSet(
 	repository.NewUserRepository,
 	repository.NewJobRepository,
 	repository.NewRentDetailRepository,
+	repository.NewOrderRepository,
 )
 
 var taskSet = wire.NewSet(

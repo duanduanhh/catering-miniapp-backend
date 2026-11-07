@@ -2,6 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/go-nunu/nunu-layout-advanced/internal/middleware"
 )
 
 func InitCommonRouter(deps RouterDeps, r *gin.RouterGroup) {
@@ -10,4 +12,6 @@ func InitCommonRouter(deps RouterDeps, r *gin.RouterGroup) {
 	{
 		commonRouter.GET("/close_reasons", deps.JobHandler.GetCloseReasons)
 	}
+	packageRouter := r.Group("/").Use(middleware.StrictAuth(deps.JWT, deps.Logger, deps.UserRepo))
+	packageRouter.POST("/payment-packages/list", deps.PaymentPackageHandler.ListAvailable)
 }

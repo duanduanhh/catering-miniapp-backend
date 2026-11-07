@@ -12,7 +12,6 @@ var (
 	// more biz errors
 	ErrEmailAlreadyUse     = newError(1001, "The email is already in use.")
 	ErrInsufficientVoucher = newError(1002, "Insufficient contact voucher.")
-	ErrAmountMismatch      = newError(1003, "Amount mismatch.")
 
 	// enterprise errors
 	ErrEnterpriseNotFound  = newError(2001, "Enterprise not found.")

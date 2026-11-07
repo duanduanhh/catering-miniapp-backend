@@ -1,5 +1,12 @@
 # 数据表设计
 
+## 付费 SKU 配置（新建）
+
+付费商品、SKU 与变更记录的正式 MySQL 8 建表语句维护在 [../scripts/schema_payment_sku.sql](../scripts/schema_payment_sku.sql)。
+
+该脚本只创建表和索引，不写入套餐数据；测试环境初始化 SKU 请另行执行
+[../scripts/seed_payment_packages.sql](../scripts/seed_payment_packages.sql)。种子数据默认是草稿，需在管理后台上架后才会向小程序端返回。
+
 ## 用户表（改造）
 
 ```mysql
@@ -34,8 +41,7 @@ CREATE TABLE `user` (
   `device_model` longtext COMMENT '设备型号',
   `ip` longtext COMMENT '最近登录IP',
   `contact_voucher_num` int DEFAULT '0' COMMENT '联系券余额',
-  `first_top_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '首单状态：0=未触发，1=已触发（首次置顶支付成功后设为1，不可回退）',
-  `new_customer_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '新客状态：0=未触发，1=已触发（购买联系券支付成功后设为1，不可回退）',
+  `new_customer_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '首次付费状态：0=未触发，1=已触发（首次付费成功后设为1，用于邀请奖励幂等）',
   `profile_complete_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '信息完善状态：0=未完善，1=已完善（首次编辑个人信息成功后设为1，赠送2张联系券，不可回退）',
   `old_user_status` tinyint NOT NULL DEFAULT '0' COMMENT '老用户转化状态：0=新用户 1=老用户待通知 2=老用户已通知（存量用户上线时手动执行 UPDATE 设为1）',
   `share_refresh_date` datetime(3) DEFAULT NULL COMMENT '分享刷新最近使用时间（自然日内限1次，按日期比较）',

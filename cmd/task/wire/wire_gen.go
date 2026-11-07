@@ -29,7 +29,8 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 	userTask := task.NewUserTask(taskTask, userRepository)
 	jobRepository := repository.NewJobRepository(repositoryRepository)
 	rentDetailRepository := repository.NewRentDetailRepository(repositoryRepository)
-	rentTask := task.NewRentTask(taskTask, viperViper, jobRepository, rentDetailRepository)
+	orderRepository := repository.NewOrderRepository(repositoryRepository)
+	rentTask := task.NewRentTask(taskTask, viperViper, jobRepository, rentDetailRepository, orderRepository)
 	taskServer := server.NewTaskServer(logger, userTask, rentTask)
 	appApp := newApp(taskServer)
 	return appApp, func() {
@@ -38,7 +39,7 @@ func NewWire(viperViper *viper.Viper, logger *log.Logger) (*app.App, func(), err
 
 // wire.go:
 
-var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewRentDetailRepository)
+var repositorySet = wire.NewSet(repository.NewDB, repository.NewRepository, repository.NewTransaction, repository.NewUserRepository, repository.NewJobRepository, repository.NewRentDetailRepository, repository.NewOrderRepository)
 
 var taskSet = wire.NewSet(task.NewTask, task.NewUserTask, task.NewRentTask)
 

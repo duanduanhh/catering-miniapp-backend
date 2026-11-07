@@ -23,6 +23,7 @@ import (
 type WechatService interface {
 	Register(ctx context.Context, code, loginCode string, inviterID int64) (string, *model.User, error)
 	Login(ctx context.Context, code string) (token string, user *model.User, isOldUser bool, err error)
+	SessionKeyForPayment(ctx context.Context, loginCode, openID string) (string, error)
 }
 
 func NewWechatService(
@@ -184,6 +185,19 @@ func (s *wechatService) Login(ctx context.Context, code string) (string, *model.
 		return "", nil, false, err
 	}
 	return token, user, isOldUser, nil
+}
+
+// SessionKeyForPayment 用一次性登录 code 获取虚拟支付用户态签名所需的 session_key。
+// 必须校验 code 所属 openid，禁止为其他账号生成支付签名。
+func (s *wechatService) SessionKeyForPayment(ctx context.Context, loginCode, openID string) (string, error) {
+	if loginCode == "" || openID == "" {
+		return "", ErrVirtualPaymentLoginInvalid
+	}
+	session, err := s.code2session(ctx, loginCode)
+	if err != nil || session.OpenID != openID || session.SessionKey == "" {
+		return "", ErrVirtualPaymentLoginInvalid
+	}
+	return session.SessionKey, nil
 }
 
 func randAlphanumeric(n int) string {

@@ -18,7 +18,6 @@ import (
 	"github.com/go-nunu/nunu-layout-advanced/pkg/log"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/server/http"
 	"github.com/go-nunu/nunu-layout-advanced/pkg/sid"
-	"github.com/go-nunu/nunu-layout-advanced/pkg/wechatpay"
 )
 
 var repositorySet = wire.NewSet(
@@ -41,6 +40,8 @@ var repositorySet = wire.NewSet(
 	repository.NewContactFeedbackRepository,
 	repository.NewCallbackHistoryRepository,
 	repository.NewRentDetailRepository,
+	repository.NewPaymentProductRepository,
+	repository.NewPaymentPackageRepository,
 )
 
 var serviceSet = wire.NewSet(
@@ -53,9 +54,10 @@ var serviceSet = wire.NewSet(
 	service.NewOrderItemService,
 	service.NewContactVoucherHistoryService,
 	service.NewWechatService,
+	service.NewVirtualPaymentService,
+	service.NewVirtualPaymentNotifyService,
 	service.NewUploadService,
 	service.NewImageSecurityService,
-	NewPayServiceProvider,
 	service.NewPositionCategoryService,
 	service.NewFeedbackService,
 	service.NewEnterpriseService,
@@ -65,6 +67,7 @@ var serviceSet = wire.NewSet(
 	service.NewReportService,
 	service.NewContactFeedbackService,
 	service.NewCallbackHistoryService,
+	service.NewPaymentPackageService,
 )
 
 var handlerSet = wire.NewSet(
@@ -85,10 +88,7 @@ var handlerSet = wire.NewSet(
 	handler.NewAdminListHandler,
 	handler.NewReportHandler,
 	handler.NewContactFeedbackHandler,
-)
-
-var wechatPaySet = wire.NewSet(
-	NewWechatPayClientProvider,
+	handler.NewPaymentPackageHandler,
 )
 
 var jobSet = wire.NewSet(
@@ -99,16 +99,6 @@ var serverSet = wire.NewSet(
 	server.NewHTTPServer,
 	server.NewJobServer,
 )
-
-// NewPayServiceProvider 提供 PayService
-func NewPayServiceProvider(config *viper.Viper, logger *log.Logger) (service.PayService, error) {
-	return service.NewPayService(config, logger.Logger)
-}
-
-// NewWechatPayClientProvider 提供 WechatPayClient
-func NewWechatPayClientProvider(config *viper.Viper) (*wechatpay.WechatPayClient, error) {
-	return wechatpay.NewWechatPayClient(config)
-}
 
 // build App
 func newApp(
@@ -127,7 +117,6 @@ func NewWire(*viper.Viper, *log.Logger) (*app.App, func(), error) {
 		repositorySet,
 		serviceSet,
 		handlerSet,
-		wechatPaySet,
 		jobSet,
 		serverSet,
 		wire.Struct(new(router.RouterDeps), "*"),

@@ -146,6 +146,10 @@ func (h *AdminListHandler) ListOrders(ctx *gin.Context) {
 			items = append(items, v1.AdminOrderItemDetail{
 				ID:                item.ID,
 				ProductType:       int(item.ProductType),
+				ProductID:         item.ProductID,
+				SKUID:             item.SKUID,
+				SKUCode:           item.SKUCode,
+				SKUVersion:        item.SKUVersion,
 				Title:             item.TitleSnapshot,
 				UnitPrice:         item.UnitPriceSnapshot,
 				TopHour:           item.TopHour,

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-nunu/nunu-layout-advanced/internal/model"
 )
@@ -9,11 +10,18 @@ import (
 type OrderRepository interface {
 	Create(ctx context.Context, order *model.Order) error
 	Update(ctx context.Context, order *model.Order) error
+	MarkPaidIfPending(ctx context.Context, order *model.Order) (bool, error)
 	GetByID(ctx context.Context, id int64) (*model.Order, error)
 	GetByOrderNo(ctx context.Context, orderNo string) (*model.Order, error)
 	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
 	AdminList(ctx context.Context, query AdminOrderListQuery) ([]*AdminOrderRow, int64, error)
 	HasPaidOrderByUserIDs(ctx context.Context, userIDs []int64) (map[int64]bool, error)
+	CountActivePurchases(ctx context.Context, userID, productID, packageID int64, since *time.Time) (int64, error)
+	CountActiveOrders(ctx context.Context, userID int64) (int64, error)
+	CountPaidPurchases(ctx context.Context, userID, productID int64) (int64, error)
+	CountPaidOrders(ctx context.Context, userID int64) (int64, error)
+	ListPendingRentOrderNos(ctx context.Context, jobID int64) ([]string, error)
+	CancelPendingOrder(ctx context.Context, orderNo, remark string) (bool, error)
 }
 
 type AdminOrderListQuery struct {
@@ -55,6 +63,25 @@ func (r *orderRepository) Create(ctx context.Context, order *model.Order) error 
 
 func (r *orderRepository) Update(ctx context.Context, order *model.Order) error {
 	return r.DB(ctx).Save(order).Error
+}
+
+// MarkPaidIfPending 以状态条件原子地将订单置为已支付。
+// 返回 false 表示订单已被其他回调处理，调用方不得重复发放权益。
+func (r *orderRepository) MarkPaidIfPending(ctx context.Context, order *model.Order) (bool, error) {
+	result := r.DB(ctx).Model(&model.Order{}).
+		Where("id = ? AND status = ?", order.ID, model.OrderStatusPending).
+		Updates(map[string]interface{}{
+			"status":       model.OrderStatusPaid,
+			"amount_paid":  order.AmountTotal,
+			"pay_channel":  order.PayChannel,
+			"pay_trade_no": order.PayTradeNo,
+			"paid_at":      order.PaidAt,
+			"update_at":    order.UpdateAt,
+		})
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return result.RowsAffected == 1, nil
 }
 
 func (r *orderRepository) GetByID(ctx context.Context, id int64) (*model.Order, error) {
@@ -169,4 +196,88 @@ func (r *orderRepository) HasPaidOrderByUserIDs(ctx context.Context, userIDs []i
 		result[row.UserID] = true
 	}
 	return result, nil
+}
+
+func (r *orderRepository) CountActivePurchases(
+	ctx context.Context,
+	userID, productID, packageID int64,
+	since *time.Time,
+) (int64, error) {
+	var total int64
+	db := r.DB(ctx).Table("orders AS o").
+		Joins("INNER JOIN order_item oi ON oi.order_id = o.id").
+		Where("o.user_id = ?", userID).
+		Where("(o.status = ? OR (o.status = ? AND o.create_at >= ?))",
+			model.OrderStatusPaid, model.OrderStatusPending, time.Now().Add(-30*time.Minute))
+	if productID > 0 {
+		db = db.Where("oi.product_id = ?", productID)
+	}
+	if packageID > 0 {
+		db = db.Where("oi.sku_id = ?", packageID)
+	}
+	if since != nil {
+		db = db.Where("o.create_at >= ?", *since)
+	}
+	if err := db.Distinct("o.id").Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func (r *orderRepository) CountActiveOrders(ctx context.Context, userID int64) (int64, error) {
+	var total int64
+	err := r.DB(ctx).Model(&model.Order{}).
+		Where("user_id = ?", userID).
+		Where("(status = ? OR (status = ? AND create_at >= ?))",
+			model.OrderStatusPaid, model.OrderStatusPending, time.Now().Add(-30*time.Minute)).
+		Count(&total).Error
+	return total, err
+}
+
+// CountPaidPurchases 仅统计已支付订单，用于判断首购优惠资格。
+// 待支付、已取消和退款订单均不消耗首购资格。
+func (r *orderRepository) CountPaidPurchases(ctx context.Context, userID, productID int64) (int64, error) {
+	var total int64
+	db := r.DB(ctx).Table("orders AS o").
+		Joins("INNER JOIN order_item oi ON oi.order_id = o.id").
+		Where("o.user_id = ? AND o.status = ?", userID, model.OrderStatusPaid)
+	if productID > 0 {
+		db = db.Where("oi.product_id = ?", productID)
+	}
+	if err := db.Distinct("o.id").Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+// CountPaidOrders 仅统计已支付订单，用于判断平台首购优惠资格。
+func (r *orderRepository) CountPaidOrders(ctx context.Context, userID int64) (int64, error) {
+	var total int64
+	err := r.DB(ctx).Model(&model.Order{}).
+		Where("user_id = ? AND status = ?", userID, model.OrderStatusPaid).
+		Count(&total).Error
+	return total, err
+}
+
+func (r *orderRepository) ListPendingRentOrderNos(ctx context.Context, jobID int64) ([]string, error) {
+	var orderNos []string
+	err := r.DB(ctx).Table("orders AS o").
+		Select("o.order_no").
+		Joins("INNER JOIN order_item oi ON oi.order_id = o.id").
+		Where("o.status = ? AND oi.product_type = ? AND oi.target_type = ? AND oi.target_id = ?", model.OrderStatusPending, model.ProductTypePublishRent, model.OrderTargetJob, jobID).
+		Find(&orderNos).Error
+	return orderNos, err
+}
+
+func (r *orderRepository) CancelPendingOrder(ctx context.Context, orderNo, remark string) (bool, error) {
+	now := time.Now()
+	result := r.DB(ctx).Model(&model.Order{}).
+		Where("order_no = ? AND status = ?", orderNo, model.OrderStatusPending).
+		Updates(map[string]any{
+			"status":      model.OrderStatusCanceled,
+			"canceled_at": now,
+			"remark":      remark,
+			"update_at":   now,
+		})
+	return result.RowsAffected == 1, result.Error
 }

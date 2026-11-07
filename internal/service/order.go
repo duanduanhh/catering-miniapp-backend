@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -10,13 +11,20 @@ import (
 )
 
 type OrderService interface {
-	CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64, contactVoucherNum int) (*model.Order, *model.OrderItem, error)
-	CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int, giftNum int) (*model.Order, *model.OrderItem, error)
-	CreateRefreshOrder(ctx context.Context, userID, jobID int64, price float64) (*model.Order, *model.OrderItem, error)
-	PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
-	PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error)
+	CreateTopOrder(ctx context.Context, userID, jobID int64, skuCode string) (*model.Order, *model.OrderItem, error)
+	CreateContactVoucherOrder(ctx context.Context, userID int64, skuCode string) (*model.Order, *model.OrderItem, error)
+	CreateRefreshOrder(ctx context.Context, userID, jobID int64, skuCode string) (*model.Order, *model.OrderItem, error)
 	ListByUser(ctx context.Context, userID int64, pageNum, pageSize int) ([]*model.OrderWithItem, int64, error)
 	GetByOrderNo(ctx context.Context, userID int64, orderNo string) (*model.Order, error)
+	GetVirtualPaymentOrder(ctx context.Context, userID int64, orderNo string) (*VirtualPaymentOrder, error)
+	CompleteVirtualPaymentOrder(ctx context.Context, notification VirtualPaymentGoodsDelivery) (*model.Order, error)
+}
+
+// VirtualPaymentOrder 是虚拟支付签名所需的、已由服务端确认的订单快照。
+type VirtualPaymentOrder struct {
+	OrderNo          string
+	AmountCents      int64
+	VirtualProductID string
 }
 
 func NewOrderService(
@@ -26,6 +34,7 @@ func NewOrderService(
 	jobRepository repository.JobRepository,
 	userRepository repository.UserRepository,
 	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository,
+	paymentPackageService PaymentPackageService,
 ) OrderService {
 	return &orderService{
 		Service:                         service,
@@ -34,6 +43,7 @@ func NewOrderService(
 		jobRepository:                   jobRepository,
 		userRepository:                  userRepository,
 		contactVoucherHistoryRepository: contactVoucherHistoryRepository,
+		paymentPackageService:           paymentPackageService,
 	}
 }
 
@@ -44,9 +54,14 @@ type orderService struct {
 	jobRepository                   repository.JobRepository
 	userRepository                  repository.UserRepository
 	contactVoucherHistoryRepository repository.ContactVoucherHistoryRepository
+	paymentPackageService           PaymentPackageService
 }
 
-func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, topHour int, price float64, contactVoucherNum int) (*model.Order, *model.OrderItem, error) {
+func (s *orderService) CreateTopOrder(
+	ctx context.Context,
+	userID, jobID int64,
+	skuCode string,
+) (*model.Order, *model.OrderItem, error) {
 	job, err := s.jobRepository.GetByID(ctx, jobID)
 	if err != nil {
 		return nil, nil, err
@@ -54,167 +69,245 @@ func (s *orderService) CreateTopOrder(ctx context.Context, userID, jobID int64, 
 	if job.UserID != userID {
 		return nil, nil, ErrForbidden
 	}
-	order := &model.Order{
-		OrderNo:     s.generateOrderNo("TOP"),
-		UserID:      userID,
-		AmountTotal: model.NewDecimalFromFloat64(price),
-		AmountPaid:  model.NewDecimalFromFloat64(0),
-		Currency:    "CNY",
-		Status:      model.OrderStatusPending,
-		CreateAt:    time.Now(),
-		UpdateAt:    time.Now(),
-	}
-	item := &model.OrderItem{
-		ProductType:       model.ProductTypeTop,
-		TitleSnapshot:     fmt.Sprintf("置顶%d天", topHour/24),
-		TopHour:           topHour,
-		UnitPriceSnapshot: price,
-		TargetType:        model.OrderTargetJob,
-		TargetID:          jobID,
-		ContactVoucherNum: contactVoucherNum,
-		CreateAt:          time.Now(),
-		UpdateAt:          time.Now(),
-	}
-
-	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
-		if err := s.orderRepository.Create(ctx, order); err != nil {
-			return err
-		}
-		item.OrderID = order.ID
-		return s.orderItemRepository.Create(ctx, item)
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	return order, item, nil
-}
-
-func (s *orderService) CreateContactVoucherOrder(ctx context.Context, userID int64, price float64, voucherNum int, giftNum int) (*model.Order, *model.OrderItem, error) {
-	order := &model.Order{
-		OrderNo:     s.generateOrderNo("CV"),
-		UserID:      userID,
-		AmountTotal: model.NewDecimalFromFloat64(price),
-		AmountPaid:  model.NewDecimalFromFloat64(0),
-		Currency:    "CNY",
-		Status:      model.OrderStatusPending,
-		CreateAt:    time.Now(),
-		UpdateAt:    time.Now(),
-	}
-	item := &model.OrderItem{
-		ProductType:       model.ProductTypeContactVoucher,
-		TitleSnapshot:     fmt.Sprintf("购买联系券"),
-		UnitPriceSnapshot: price,
-		ContactVoucherNum: voucherNum + giftNum,
-		CreateAt:          time.Now(),
-		UpdateAt:          time.Now(),
-	}
-	err := s.tm.Transaction(ctx, func(ctx context.Context) error {
-		if err := s.orderRepository.Create(ctx, order); err != nil {
-			return err
-		}
-		item.OrderID = order.ID
-		return s.orderItemRepository.Create(ctx, item)
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	return order, item, nil
-}
-
-func (s *orderService) CreateRefreshOrder(ctx context.Context, userID, jobID int64, price float64) (*model.Order, *model.OrderItem, error) {
-	job, err := s.jobRepository.GetByID(ctx, jobID)
-	if err != nil {
-		return nil, nil, err
-	}
-	if job.UserID != userID {
-		return nil, nil, ErrForbidden
-	}
-	order := &model.Order{
-		OrderNo:     s.generateOrderNo("REF"),
-		UserID:      userID,
-		AmountTotal: model.NewDecimalFromFloat64(price),
-		AmountPaid:  model.NewDecimalFromFloat64(0),
-		Currency:    "CNY",
-		Status:      model.OrderStatusPending,
-		CreateAt:    time.Now(),
-		UpdateAt:    time.Now(),
-	}
-	item := &model.OrderItem{
-		ProductType:       model.ProductTypeRefresh,
-		TitleSnapshot:     "刷新",
-		UnitPriceSnapshot: price,
-		TargetType:        model.OrderTargetJob,
-		TargetID:          jobID,
-		CreateAt:          time.Now(),
-		UpdateAt:          time.Now(),
-	}
-	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
-		if err := s.orderRepository.Create(ctx, order); err != nil {
-			return err
-		}
-		item.OrderID = order.ID
-		return s.orderItemRepository.Create(ctx, item)
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	return order, item, nil
-}
-
-func (s *orderService) PayOrder(ctx context.Context, userID, orderID int64, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
 	var order *model.Order
-	var err error
-	if orderID > 0 {
-		order, err = s.orderRepository.GetByID(ctx, orderID)
-	} else {
-		order, err = s.orderRepository.GetByOrderNo(ctx, orderNo)
+	var item *model.OrderItem
+	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
+		pkg, err := s.paymentPackageService.ResolveForPurchase(
+			ctx, userID, skuCode, model.PaymentProductCodeJobTop, job.BizType,
+		)
+		if err != nil {
+			return err
+		}
+		topHour := pkg.BenefitConfig.TopHours
+		contactVoucherNum := pkg.BenefitConfig.GiftContactVouchers
+		order, item = buildSKUOrder(generatePaymentOrderNo(s.Service, "TOP"), userID, model.ProductTypeTop, pkg)
+		item.TitleSnapshot = fmt.Sprintf("置顶%d天", topHour/24)
+		item.TopHour = topHour
+		item.ContactVoucherNum = contactVoucherNum
+		item.TargetType = model.OrderTargetJob
+		item.TargetID = jobID
+		if err := s.orderRepository.Create(ctx, order); err != nil {
+			return err
+		}
+		item.OrderID = order.ID
+		return s.orderItemRepository.Create(ctx, item)
+	})
+	if err != nil {
+		return nil, nil, err
 	}
+	return order, item, nil
+}
+
+func (s *orderService) CreateContactVoucherOrder(
+	ctx context.Context,
+	userID int64,
+	skuCode string,
+) (*model.Order, *model.OrderItem, error) {
+	var order *model.Order
+	var item *model.OrderItem
+	err := s.tm.Transaction(ctx, func(ctx context.Context) error {
+		pkg, err := s.paymentPackageService.ResolveForPurchase(
+			ctx, userID, skuCode, model.PaymentProductCodeContactVoucher, 0,
+		)
+		if err != nil {
+			return err
+		}
+		voucherNum := pkg.BenefitConfig.ContactVouchers
+		giftNum := pkg.BenefitConfig.GiftContactVouchers
+		order, item = buildSKUOrder(generatePaymentOrderNo(s.Service, "CV"), userID, model.ProductTypeContactVoucher, pkg)
+		item.TitleSnapshot = pkg.Package.Name
+		item.ContactVoucherNum = voucherNum + giftNum
+		if err := s.orderRepository.Create(ctx, order); err != nil {
+			return err
+		}
+		item.OrderID = order.ID
+		return s.orderItemRepository.Create(ctx, item)
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return order, item, nil
+}
+
+func (s *orderService) CreateRefreshOrder(
+	ctx context.Context,
+	userID, jobID int64,
+	skuCode string,
+) (*model.Order, *model.OrderItem, error) {
+	job, err := s.jobRepository.GetByID(ctx, jobID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if job.UserID != userID {
+		return nil, nil, ErrForbidden
+	}
+	var order *model.Order
+	var item *model.OrderItem
+	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
+		pkg, err := s.paymentPackageService.ResolveForPurchase(
+			ctx, userID, skuCode, model.PaymentProductCodePaidRefresh, job.BizType,
+		)
+		if err != nil {
+			return err
+		}
+		order, item = buildSKUOrder(generatePaymentOrderNo(s.Service, "REF"), userID, model.ProductTypeRefresh, pkg)
+		item.TitleSnapshot = pkg.Package.Name
+		item.TargetType = model.OrderTargetJob
+		item.TargetID = jobID
+		if err := s.orderRepository.Create(ctx, order); err != nil {
+			return err
+		}
+		item.OrderID = order.ID
+		return s.orderItemRepository.Create(ctx, item)
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return order, item, nil
+}
+
+func buildSKUOrder(
+	orderNo string,
+	userID int64,
+	productType model.ProductType,
+	pkg *PaymentPackageAggregate,
+) (*model.Order, *model.OrderItem) {
+	now := time.Now()
+	priceCents := pkg.PurchasePriceCents
+	if priceCents <= 0 {
+		priceCents = pkg.Package.PriceCents
+	}
+	price := float64(priceCents) / 100
+	benefitSnapshot, _ := json.Marshal(pkg.BenefitConfig)
+	promotionSnapshot := "null"
+	if pkg.Promotion != nil {
+		if data, err := json.Marshal(pkg.Promotion); err == nil {
+			promotionSnapshot = string(data)
+		}
+	}
+	virtualProductID := pkg.Package.VirtualProductID
+	if pkg.Promotion != nil && pkg.Promotion.VirtualProductID != "" {
+		virtualProductID = pkg.Promotion.VirtualProductID
+	}
+	order := &model.Order{
+		OrderNo:     orderNo,
+		UserID:      userID,
+		AmountTotal: model.NewDecimalFromCents(priceCents),
+		AmountPaid:  model.NewDecimalFromFloat64(0),
+		Currency:    "CNY",
+		Status:      model.OrderStatusPending,
+		CreateAt:    now,
+		UpdateAt:    now,
+	}
+	item := &model.OrderItem{
+		ProductType:              productType,
+		ProductID:                pkg.Product.ID,
+		SKUID:                    pkg.Package.ID,
+		SKUCode:                  pkg.Package.SKUCode,
+		SKUVersion:               pkg.Package.Version,
+		VirtualProductIDSnapshot: virtualProductID,
+		TitleSnapshot:            pkg.Package.Name,
+		UnitPriceSnapshot:        price,
+		PriceCentsSnapshot:       priceCents,
+		BenefitSnapshot:          string(benefitSnapshot),
+		PromotionSnapshot:        promotionSnapshot,
+		CreateAt:                 now,
+		UpdateAt:                 now,
+	}
+	return order, item
+}
+
+func (s *orderService) GetVirtualPaymentOrder(ctx context.Context, userID int64, orderNo string) (*VirtualPaymentOrder, error) {
+	order, err := s.GetByOrderNo(ctx, userID, orderNo)
 	if err != nil {
 		return nil, err
 	}
-	if order.UserID != userID {
-		return nil, ErrForbidden
-	}
-	return s.payOrderWithItems(ctx, order, amount, payChannel, payTradeNo)
-}
-
-func (s *orderService) PayOrderByNotify(ctx context.Context, orderNo string, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
-	order, err := s.orderRepository.GetByOrderNo(ctx, orderNo)
-	if err != nil {
-		return nil, err
-	}
-	return s.payOrderWithItems(ctx, order, amount, payChannel, payTradeNo)
-}
-
-func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order, amount float64, payChannel, payTradeNo string) (*model.Order, error) {
 	if order.Status != model.OrderStatusPending {
+		return nil, ErrVirtualPaymentOrderInvalid
+	}
+	items, err := s.orderItemRepository.ListByOrderID(ctx, order.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) != 1 || items[0].SKUID <= 0 {
+		return nil, ErrVirtualPaymentOrderInvalid
+	}
+	if items[0].VirtualProductIDSnapshot == "" {
+		return nil, ErrVirtualPaymentUnavailable
+	}
+	amountCents, err := order.AmountTotal.ToCents()
+	if err != nil {
+		return nil, err
+	}
+	return &VirtualPaymentOrder{
+		OrderNo:          order.OrderNo,
+		AmountCents:      amountCents,
+		VirtualProductID: items[0].VirtualProductIDSnapshot,
+	}, nil
+}
+
+// CompleteVirtualPaymentOrder 仅在微信虚拟支付的道具发货推送通过验签后调用。
+// 在执行权益前，使用订单创建时固化的价格、道具 ID 和用户 OpenID 再次校验通知内容。
+func (s *orderService) CompleteVirtualPaymentOrder(ctx context.Context, notification VirtualPaymentGoodsDelivery) (*model.Order, error) {
+	order, err := s.orderRepository.GetByOrderNo(ctx, notification.OutTradeNo)
+	if err != nil {
+		return nil, err
+	}
+	user, err := s.userRepository.GetByID(ctx, order.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if notification.OpenID == "" || notification.OpenID != user.WechatOpenID {
+		return nil, ErrVirtualPaymentNotifyMismatch
+	}
+	items, err := s.orderItemRepository.ListByOrderID(ctx, order.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(items) != 1 || items[0].VirtualProductIDSnapshot == "" ||
+		items[0].VirtualProductIDSnapshot != notification.ProductID ||
+		notification.Quantity != 1 {
+		return nil, ErrVirtualPaymentNotifyMismatch
+	}
+	expectedCents, err := order.AmountTotal.ToCents()
+	if err != nil {
+		return nil, err
+	}
+	if expectedCents != notification.ActualPriceCents {
+		return nil, ErrVirtualPaymentNotifyMismatch
+	}
+	return s.completeOrder(ctx, order, "virtual_payment", notification.TransactionID)
+}
+
+func (s *orderService) completeOrder(ctx context.Context, order *model.Order, payChannel, payTradeNo string) (*model.Order, error) {
+	if order.Status == model.OrderStatusPaid {
 		return order, nil
 	}
-	if amount > 0 {
-		expected, err := order.AmountTotal.ToCents()
-		if err != nil {
-			return nil, err
-		}
-		given := int64(amount*100 + 0.5)
-		if expected != given {
-			return nil, ErrAmountMismatch
-		}
+	if order.Status != model.OrderStatusPending {
+		// 已取消或已退款的订单绝不能向微信确认“发货成功”。否则用户已付款时，
+		// 平台不会继续重试，而本地权益又不会到账，后续只能人工排查。
+		return nil, ErrVirtualPaymentOrderClosed
 	}
 	items, err := s.orderItemRepository.ListByOrderID(ctx, order.ID)
 	if err != nil {
 		return nil, err
 	}
 
+	paid := false
 	err = s.tm.Transaction(ctx, func(ctx context.Context) error {
-		order.Status = model.OrderStatusPaid
 		order.AmountPaid = order.AmountTotal
 		order.PayChannel = payChannel
 		order.PayTradeNo = payTradeNo
 		paidAt := time.Now()
 		order.PaidAt = &paidAt
 		order.UpdateAt = time.Now()
-		if err := s.orderRepository.Update(ctx, order); err != nil {
+		var err error
+		paid, err = s.orderRepository.MarkPaidIfPending(ctx, order)
+		if err != nil {
 			return err
+		}
+		if !paid {
+			return nil
 		}
 		for _, item := range items {
 			switch item.ProductType {
@@ -226,9 +319,6 @@ func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order
 					if err := s.applyContactVoucher(ctx, order.UserID, item, "购买置顶套餐赠送联系券"); err != nil {
 						return err
 					}
-				}
-				if err := s.applyFirstTopStatus(ctx, order.UserID); err != nil {
-					return err
 				}
 			case model.ProductTypeContactVoucher:
 				if err := s.applyContactVoucher(ctx, order.UserID, item, "购买联系券"); err != nil {
@@ -255,6 +345,10 @@ func (s *orderService) payOrderWithItems(ctx context.Context, order *model.Order
 	if err != nil {
 		return nil, err
 	}
+	if !paid {
+		return s.orderRepository.GetByID(ctx, order.ID)
+	}
+	order.Status = model.OrderStatusPaid
 	return order, nil
 }
 
@@ -318,19 +412,6 @@ func (s *orderService) applyRefresh(ctx context.Context, item *model.OrderItem) 
 	return s.jobRepository.Update(ctx, job)
 }
 
-func (s *orderService) applyFirstTopStatus(ctx context.Context, userID int64) error {
-	user, err := s.userRepository.GetByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-	if user.FirstTopStatus == 0 {
-		user.FirstTopStatus = 1
-		user.UpdateAt = time.Now()
-		return s.userRepository.Update(ctx, user)
-	}
-	return nil
-}
-
 func (s *orderService) applyNewCustomerStatus(ctx context.Context, userID int64) error {
 	user, err := s.userRepository.GetByID(ctx, userID)
 	if err != nil {
@@ -363,7 +444,11 @@ func (s *orderService) GetByOrderNo(ctx context.Context, userID int64, orderNo s
 }
 
 func (s *orderService) generateOrderNo(prefix string) string {
-	id, err := s.sid.GenUint64()
+	return generatePaymentOrderNo(s.Service, prefix)
+}
+
+func generatePaymentOrderNo(service *Service, prefix string) string {
+	id, err := service.sid.GenUint64()
 	if err != nil {
 		return fmt.Sprintf("%s%s", prefix, time.Now().Format("20060102150405"))
 	}

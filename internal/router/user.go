@@ -18,6 +18,7 @@ func InitUserRouter(
 		strictAuthRouter.POST("/user/update/info", deps.UserHandler.UpdateInfo)
 		strictAuthRouter.POST("/user/orders", deps.OrderHandler.ListOrders)
 		strictAuthRouter.POST("/order/status", deps.OrderHandler.QueryOrderStatus)
+		strictAuthRouter.POST("/payment/virtual/prepare", deps.OrderHandler.PrepareVirtualPayment)
 		strictAuthRouter.POST("/user/invites", deps.UserHandler.ListInvites)
 	}
 }

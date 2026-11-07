@@ -30,6 +30,7 @@ type RentDetailDTO struct {
 
 // RentPrePublishRequest 招租发布（付费）请求
 type RentPrePublishRequest struct {
+	SKUCode           string   `json:"sku_code" binding:"required" example:"rent_publish_1"`
 	Positions         string   `json:"positions" binding:"required"` // 招租标题
 	Address           string   `json:"address" binding:"required"`
 	AddressDetail     string   `json:"address_detail"`
@@ -48,20 +49,19 @@ type RentPrePublishRequest struct {
 	FourAreaID        int      `json:"four_area_id"`
 	FourAreaDes       string   `json:"four_area_des"`
 	// 招租扩展字段
-	MonthlyRent       int    `json:"monthly_rent" binding:"required"`                  // 月租(元)
-	AreaSize          int    `json:"area_size" binding:"required"`                     // 店铺面积(㎡)
-	TransferFeeType   int    `json:"transfer_fee_type" binding:"oneof=0 1 2"`          // 0=无 1=固定 2=面议
-	TransferFeeAmount int    `json:"transfer_fee_amount"`                              // 仅当 TransferFeeType=1 时必填
+	MonthlyRent       int    `json:"monthly_rent" binding:"required"`         // 月租(元)
+	AreaSize          int    `json:"area_size" binding:"required"`            // 店铺面积(㎡)
+	TransferFeeType   int    `json:"transfer_fee_type" binding:"oneof=0 1 2"` // 0=无 1=固定 2=面议
+	TransferFeeAmount int    `json:"transfer_fee_amount"`                     // 仅当 TransferFeeType=1 时必填
 	TransferDesc      string `json:"transfer_desc"`
 }
 
 // RentPrePublishResponseData 招租预发布响应
 type RentPrePublishResponseData struct {
-	JobID     int64     `json:"job_id"`
-	OrderID   int64     `json:"order_id"`
-	OrderNo   string    `json:"order_no"`
-	Amount    float64   `json:"amount"`
-	PayParams PayParams `json:"pay_params"`
+	JobID       int64  `json:"job_id"`
+	OrderID     int64  `json:"order_id"`
+	OrderNo     string `json:"order_no"`
+	AmountCents int64  `json:"amount_cents" example:"1800"`
 }
 
 type RentPrePublishResponse struct {

@@ -30,4 +30,5 @@ type RouterDeps struct {
 	AdminListHandler             *handler.AdminListHandler
 	ReportHandler                *handler.ReportHandler
 	ContactFeedbackHandler       *handler.ContactFeedbackHandler
+	PaymentPackageHandler        *handler.PaymentPackageHandler
 }
