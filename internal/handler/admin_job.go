@@ -128,10 +128,11 @@ func (h *AdminJobHandler) Update(ctx *gin.Context) {
 		AddressDetail: req.AddressDetail,
 		Latitude:      req.Latitude,
 		Longitude:     req.Longitude,
+		TransferDesc:  req.TransferDesc,
 	}
 	if err := h.adminJobService.Update(ctx, input); err != nil {
 		h.logger.WithContext(ctx).Error("adminJobService.Update error", zap.Error(err))
-		if errors.Is(err, service.ErrInvalidAdminJobLocation) {
+		if errors.Is(err, service.ErrInvalidAdminJobLocation) || errors.Is(err, service.ErrInvalidRentInput) {
 			v1.HandleError(ctx, http.StatusBadRequest, v1.ErrBadRequest, err.Error())
 			return
 		}

@@ -59,4 +59,6 @@ type AdminJobUpdateRequest struct {
 	AddressDetail *string  `json:"address_detail"`
 	Latitude      *float64 `json:"latitude"`
 	Longitude     *float64 `json:"longitude"`
+	// TransferDesc 仅招租(biz_type=3)使用，修改 rent_detail.transfer_desc。
+	TransferDesc *string `json:"transfer_desc"`
 }

@@ -29,6 +29,7 @@ type AdminJobUpdateInput struct {
 	AddressDetail *string
 	Latitude      *float64
 	Longitude     *float64
+	TransferDesc  *string
 }
 
 func NewAdminJobService(
@@ -160,7 +161,29 @@ func (s *adminJobService) Update(ctx context.Context, input AdminJobUpdateInput)
 		}
 		job.Longitude = *input.Longitude
 	}
-	return s.jobRepository.Update(ctx, job)
+
+	var rentDetail *model.RentDetail
+	if input.TransferDesc != nil {
+		if job.BizType != bizTypeRent {
+			return fmt.Errorf("%w: transfer_desc is only allowed for rent", ErrInvalidRentInput)
+		}
+		detail, err := s.rentDetailRepository.GetByJobID(ctx, job.ID)
+		if err != nil {
+			return err
+		}
+		detail.TransferDesc = *input.TransferDesc
+		rentDetail = detail
+	}
+
+	return s.tm.Transaction(ctx, func(ctx context.Context) error {
+		if err := s.jobRepository.Update(ctx, job); err != nil {
+			return err
+		}
+		if rentDetail != nil {
+			return s.rentDetailRepository.Update(ctx, rentDetail)
+		}
+		return nil
+	})
 }
 
 func (s *adminJobService) Disable(ctx context.Context, jobID int64) error {
